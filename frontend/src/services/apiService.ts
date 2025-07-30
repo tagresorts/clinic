@@ -5,10 +5,11 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
@@ -85,7 +86,14 @@ class ApiService {
   }
 
   async changePassword(currentPassword: string, newPassword: string) {
-    return this.post('/auth/change-password', { currentPassword, newPassword });
+    return this.post('/auth/change-password', { 
+      current_password: currentPassword, 
+      new_password: newPassword 
+    });
+  }
+
+  async register(userData: any) {
+    return this.post('/auth/register', userData);
   }
 
   // Patient endpoints
@@ -107,6 +115,14 @@ class ApiService {
 
   async deletePatient(id: string) {
     return this.delete(`/patients/${id}`);
+  }
+
+  async searchPatients(query: string, limit?: number) {
+    return this.get('/patients/search', { params: { query, limit } });
+  }
+
+  async getPatientStats(id: string) {
+    return this.get(`/patients/${id}/stats`);
   }
 
   async getPatientDentalChart(id: string) {
@@ -147,7 +163,7 @@ class ApiService {
   }
 
   async getUpcomingAppointments(limit?: number) {
-    return this.get('/appointments/upcoming/list', { params: { limit } });
+    return this.get('/appointments/upcoming', { params: { limit } });
   }
 
   // Treatment endpoints
@@ -157,6 +173,18 @@ class ApiService {
 
   async createTreatmentPlan(data: any) {
     return this.post('/treatments/plans', data);
+  }
+
+  async getTreatmentPlan(id: string) {
+    return this.get(`/treatments/plans/${id}`);
+  }
+
+  async updateTreatmentPlan(id: string, data: any) {
+    return this.put(`/treatments/plans/${id}`, data);
+  }
+
+  async getTreatmentRecords(params?: any) {
+    return this.get('/treatments/records', { params });
   }
 
   async createTreatmentRecord(data: any) {
@@ -172,6 +200,22 @@ class ApiService {
     return this.post('/billing/invoices', data);
   }
 
+  async getInvoice(id: string) {
+    return this.get(`/billing/invoices/${id}`);
+  }
+
+  async getPayments(params?: any) {
+    return this.get('/billing/payments', { params });
+  }
+
+  async createPayment(data: any) {
+    return this.post('/billing/payments', data);
+  }
+
+  async getOutstandingInvoices() {
+    return this.get('/billing/outstanding');
+  }
+
   // Inventory endpoints
   async getInventoryItems() {
     return this.get('/inventory/items');
@@ -179,6 +223,26 @@ class ApiService {
 
   async createInventoryItem(data: any) {
     return this.post('/inventory/items', data);
+  }
+
+  async updateInventoryItem(id: string, data: any) {
+    return this.put(`/inventory/items/${id}`, data);
+  }
+
+  async getSuppliers() {
+    return this.get('/inventory/suppliers');
+  }
+
+  async createSupplier(data: any) {
+    return this.post('/inventory/suppliers', data);
+  }
+
+  async getLowStockItems() {
+    return this.get('/inventory/low-stock');
+  }
+
+  async recordStockMovement(data: any) {
+    return this.post('/inventory/stock-movement', data);
   }
 
   // User endpoints
@@ -190,13 +254,33 @@ class ApiService {
     return this.get('/users/dentists');
   }
 
-  async createUser(data: any) {
-    return this.post('/auth/register', data);
+  async updateUser(id: string, data: any) {
+    return this.put(`/users/${id}`, data);
+  }
+
+  async toggleUserStatus(id: string) {
+    return this.post(`/users/${id}/toggle-status`);
   }
 
   // Reports endpoints
   async getDashboardStats() {
     return this.get('/reports/dashboard');
+  }
+
+  async getFinancialReports(params?: any) {
+    return this.get('/reports/financial', { params });
+  }
+
+  async getPatientReports(params?: any) {
+    return this.get('/reports/patients', { params });
+  }
+
+  async getAppointmentReports(params?: any) {
+    return this.get('/reports/appointments', { params });
+  }
+
+  async getTreatmentReports(params?: any) {
+    return this.get('/reports/treatments', { params });
   }
 }
 
