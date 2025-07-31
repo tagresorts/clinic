@@ -5,7 +5,6 @@
     "ghcr.io/devcontainers/features/php:1": {
       "version": "8.3",
       "installComposer": true,
-      "installPhpExtensions": true,
       "extensions": [
         "pdo_mysql",
         "bcmath",
@@ -14,7 +13,6 @@
         "json",
         "mbstring",
         "openssl",
-        "pdo",
         "tokenizer",
         "xml",
         "zip"
@@ -34,12 +32,11 @@
         "mhutchie.git-graph",
         "ms-vscode.live-server",
         "bradlc.vscode-tailwindcss",
-        "Vue.volar",
-        "octref.vetur"
+        "Vue.volar"  // ✅ Prefer this for Vue 3
       ]
     }
   },
-  "postCreateCommand": "composer global require laravel/installer && composer install && npm install && php artisan key:generate && php artisan migrate --seed --force",
+  "postCreateCommand": "composer global require laravel/installer && [ -f composer.json ] && composer install || true && [ -f package.json ] && npm install || true && php artisan key:generate || true && php artisan migrate --seed --force || true",
   "forwardPorts": [8000, 5173],
   "remoteUser": "vscode"
 }
