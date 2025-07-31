@@ -1,0 +1,57 @@
+# docker-compose.prod.yml
+version: '3.8'
+
+services:
+  # Nginx (Web Server)
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile.prod # Custom Dockerfile for Nginx on AlmaLinux
+    ports:
+      - "80:80"
+      - "443:443" # For HTTPS
+    volumes:
+      - ./:/var/www/html # Mount your Laravel code
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf # Your Nginx config
+      - ./docker/nginx/certs:/etc/nginx/certs # For SSL certificates
+    depends_on:
+      - app # Depends on the PHP-FPM container
+    restart: unless-stopped
+
+  # PHP-FPM (Laravel Application Server)
+  app:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile.prod # Custom Dockerfile for PHP-FPM on AlmaLinux
+    volumes:
+      - ./:/var/www/html
+    environment:
+      # Laravel .env variables
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: mysql
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Add other production specific ENV vars as needed
+    restart: unless-stopped
+
+  # MariaDB Database
+  mariadb:
+    image: mariadb:10.11 # Or a newer version like 10.12, 11.x, based on your preference
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql # Persistent storage for database data
+    ports:
+      - "3306:3306" # Only expose if you need to access from host, otherwise remove
+    restart: unless-stopped
+
+volumes:
+  mariadb_data: # Define the volume for MariaDB data persistence
