@@ -10,12 +10,7 @@
       ]
     }
   },
-  "postCreateCommand": "dnf install -y epel-release && \
-    dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm && \
-    dnf module reset -y php && \
-    dnf module enable -y php:remi-8.3 && \
-    dnf install -y php php-cli php-mbstring php-pdo php-mysqlnd php-xml php-bcmath php-json php-zip composer git nodejs npm && \
-    composer install || true && npm install || true",
+  "postCreateCommand": "dnf install -y epel-release && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm && dnf module reset -y php && dnf module enable -y php:remi-8.3 && dnf install -y php php-cli php-mbstring php-pdo php-mysqlnd php-xml php-bcmath php-json php-zip composer git nodejs npm && composer install || true && npm install || true",
   "forwardPorts": [8000, 5173],
   "remoteUser": "root"
 }
