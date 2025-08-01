@@ -1,27 +1,16 @@
 {
-  "name": "Laravel 12 (PHP 8.3) Dev",
-  "image": "mcr.microsoft.com/devcontainers/php:0-8.3-bullseye",
-  "features": {
-    "ghcr.io/devcontainers/features/composer:1": {},
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    },
-    "ghcr.io/devcontainers/features/git-lfs:1": {}
-  },
+  "name": "Laravel 12 on AlmaLinux",
+  "image": "almalinux:9",
+  "features": {},
   "customizations": {
     "vscode": {
       "extensions": [
         "bmewburn.vscode-intelephense-client",
-        "esbenp.prettier-vscode",
-        "ms-azuretools.vscode-docker",
-        "mhutchie.git-graph",
-        "bradlc.vscode-tailwindcss",
-        "Vue.volar"
+        "esbenp.prettier-vscode"
       ]
     }
   },
-  "postCreateCommand": "cp .env.example .env || true && composer install || true && npm install || true",
-  "postStartCommand": "php artisan key:generate || true && php artisan migrate --seed --force || true",
+  "postCreateCommand": "dnf install -y epel-release && dnf install -y php php-cli php-mbstring php-pdo php-mysqlnd php-xml php-bcmath php-json php-zip composer git nodejs npm && composer install || true && npm install || true",
   "forwardPorts": [8000, 5173],
-  "remoteUser": "vscode"
+  "remoteUser": "root"
 }
