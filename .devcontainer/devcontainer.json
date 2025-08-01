@@ -1,6 +1,6 @@
 {
-  "name": "Laravel 12 (PHP 8.3) Dev (Slim)",
-  "image": "ghcr.io/devcontainers/images/php:8.3-bullseye", 
+  "name": "Laravel 12 (PHP 8.3) Dev",
+  "image": "mcr.microsoft.com/devcontainers/php:0-8.3-bullseye",
   "features": {
     "ghcr.io/devcontainers/features/composer:1": {},
     "ghcr.io/devcontainers/features/node:1": {
