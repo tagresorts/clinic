@@ -1,23 +1,8 @@
 {
-  "name": "Laravel 12 (PHP 8.3) Development",
-  "image": "ghcr.io/devcontainers/images/features/php:8.3",
+  "name": "Laravel 12 (PHP 8.3) Dev (Slim)",
+  "image": "ghcr.io/devcontainers/images/php:8.3-bullseye", 
   "features": {
-    "ghcr.io/devcontainers/features/php:1": {
-      "version": "8.3",
-      "installComposer": true,
-      "extensions": [
-        "pdo_mysql",
-        "bcmath",
-        "ctype",
-        "fileinfo",
-        "json",
-        "mbstring",
-        "openssl",
-        "tokenizer",
-        "xml",
-        "zip"
-      ]
-    },
+    "ghcr.io/devcontainers/features/composer:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
     },
@@ -30,13 +15,13 @@
         "esbenp.prettier-vscode",
         "ms-azuretools.vscode-docker",
         "mhutchie.git-graph",
-        "ms-vscode.live-server",
         "bradlc.vscode-tailwindcss",
         "Vue.volar"
       ]
     }
   },
-  "postCreateCommand": "if [ -f composer.json ]; then composer install; fi && if [ -f package.json ]; then npm install; fi && if [ -f artisan ]; then php artisan key:generate || true && php artisan migrate --seed --force || true; fi",
+  "postCreateCommand": "cp .env.example .env || true && composer install || true && npm install || true",
+  "postStartCommand": "php artisan key:generate || true && php artisan migrate --seed --force || true",
   "forwardPorts": [8000, 5173],
   "remoteUser": "vscode"
 }
