@@ -6,6 +6,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ProcedureController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to dashboard if authenticated
@@ -30,6 +31,13 @@ Route::middleware(['auth', 'role'])->group(function () {
     Route::resource('patients', PatientController::class);
     Route::get('patients/{patient}/dental-chart', [PatientController::class, 'dentalChart'])->name('patients.dental-chart');
     Route::get('patients/{patient}/medical-history', [PatientController::class, 'medicalHistory'])->name('patients.medical-history');
+Route::get('patients/{patient}/debug-medical-history', [PatientController::class, 'debugMedicalHistory'])->name('patients.debug-medical-history');
+Route::get('treatment-plans/{treatmentPlan}/debug', [TreatmentPlanController::class, 'debugShow'])->name('treatment-plans.debug-show');
+});
+
+// Procedure Management - Administrators only
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::resource('procedures', ProcedureController::class);
 });
 
 // Appointment Management - Accessible by all roles

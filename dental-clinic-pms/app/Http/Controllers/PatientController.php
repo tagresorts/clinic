@@ -55,36 +55,52 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('Patient store method called.');
         // Only receptionists and administrators can create patients
         if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+            \Illuminate\Support\Facades\Log::warning('Unauthorized attempt to create patient by user: ' . auth()->id());
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'date_of_birth' => 'required|date|before:today',
-            'gender' => 'required|in:male,female,other',
-            'address' => 'required|string',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'emergency_contact_name' => 'required|string|max:255',
-            'emergency_contact_phone' => 'required|string|max:20',
-            'emergency_contact_relationship' => 'required|string|max:100',
-            'allergies' => 'nullable|string',
-            'medical_conditions' => 'nullable|string',
-            'current_medications' => 'nullable|string',
-            'medical_notes' => 'nullable|string',
-            'dental_history' => 'nullable|string',
-            'previous_treatments' => 'nullable|string',
-            'dental_notes' => 'nullable|string',
-            'insurance_provider' => 'nullable|string|max:255',
-            'insurance_policy_number' => 'nullable|string|max:100',
-            'insurance_group_number' => 'nullable|string|max:100',
-            'insurance_expiry_date' => 'nullable|date|after:today',
-        ]);
+        \Illuminate\Support\Facades\Log::info('Request data: ', $request->all());
 
-        $patient = Patient::create($validated);
+        try {
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'date_of_birth' => 'required|date|before:today',
+                'gender' => 'required|in:male,female,other',
+                'address' => 'required|string',
+                'phone' => 'required|string|max:20',
+                'email' => 'nullable|email|max:255',
+                'emergency_contact_name' => 'required|string|max:255',
+                'emergency_contact_phone' => 'required|string|max:20',
+                'emergency_contact_relationship' => 'required|string|max:100',
+                'allergies' => 'nullable|string',
+                'medical_conditions' => 'nullable|string',
+                'current_medications' => 'nullable|string',
+                'medical_notes' => 'nullable|string',
+                'dental_history' => 'nullable|string',
+                'previous_treatments' => 'nullable|string',
+                'dental_notes' => 'nullable|string',
+                'insurance_provider' => 'nullable|string|max:255',
+                'insurance_policy_number' => 'nullable|string|max:100',
+                'insurance_group_number' => 'nullable|string|max:100',
+                'insurance_expiry_date' => 'nullable|date|after:today',
+            ]);
+            \Illuminate\Support\Facades\Log::info('Validation successful: ', $validated);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Illuminate\Support\Facades\Log::error('Validation failed: ', $e->errors());
+            throw $e;
+        }
+
+        try {
+            $patient = Patient::create($validated);
+            \Illuminate\Support\Facades\Log::info('Patient created successfully: ', $patient->toArray());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error creating patient: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to register patient. Please try again.');
+        }
 
         return redirect()->route('patients.show', $patient)
             ->with('success', 'Patient registered successfully.');
@@ -193,10 +209,25 @@ class PatientController extends Controller
     public function medicalHistory(Patient $patient)
     {
         $treatmentRecords = $patient->treatmentRecords()
-            ->with(['dentist', 'appointment'])
+            ->with(['dentist', 'appointment', 'treatmentPlan', 'procedures'])
             ->orderBy('treatment_date', 'desc')
             ->get();
 
-        return view('patients.medical-history', compact('patient', 'treatmentRecords'));
+        $treatmentPlans = $patient->treatmentPlans()
+            ->with(['dentist'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('patients.medical-history', compact('patient', 'treatmentRecords', 'treatmentPlans'));
+    }
+
+    public function debugMedicalHistory(Patient $patient)
+    {
+        $treatmentRecords = $patient->treatmentRecords()
+            ->with(['dentist', 'appointment', 'treatmentPlan', 'procedures'])
+            ->orderBy('treatment_date', 'desc')
+            ->get();
+
+        dd($treatmentRecords);
     }
 }

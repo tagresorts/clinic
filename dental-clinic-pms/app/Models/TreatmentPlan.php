@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TreatmentPlan extends Model
 {
@@ -16,7 +17,7 @@ class TreatmentPlan extends Model
         'dentist_id',
         'plan_title',
         'diagnosis',
-        'proposed_procedures',
+        // 'proposed_procedures', // Removed as it will be handled by many-to-many
         'estimated_cost',
         'estimated_duration_sessions',
         'priority',
@@ -33,7 +34,7 @@ class TreatmentPlan extends Model
     ];
 
     protected $casts = [
-        'proposed_procedures' => 'array',
+        // 'proposed_procedures' => 'array', // Removed as it will be handled by many-to-many
         'estimated_cost' => 'decimal:2',
         'actual_cost' => 'decimal:2',
         'insurance_coverage_amount' => 'decimal:2',
@@ -42,6 +43,16 @@ class TreatmentPlan extends Model
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
+
+    // ... (other methods)
+
+    /**
+     * Procedures for this treatment plan
+     */
+    public function procedures(): BelongsToMany
+    {
+        return $this->belongsToMany(Procedure::class, 'treatment_plan_procedure');
+    }
 
     // Status constants
     const STATUS_PROPOSED = 'proposed';

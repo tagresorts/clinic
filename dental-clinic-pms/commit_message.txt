@@ -1,0 +1,8 @@
+feat: Consolidate migrations and add new features
+
+This commit introduces a major update to the application, including:
+
+- Consolidating all previous database migrations into a single `create_all_tables.php` migration file. This simplifies the database setup for new installations.
+- Switching the database driver from SQLite to MySQL and updating the configuration.
+- Adding new views and controllers for various application features like appointments, inventory, invoices, patients, reports, and treatment plans.
+- General code cleanup and refactoring across the application.

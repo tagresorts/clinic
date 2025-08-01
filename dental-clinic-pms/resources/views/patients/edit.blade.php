@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Register New Patient') }}
+            {{ __('Edit Patient') }}
         </h2>
     </x-slot>
 
@@ -10,9 +10,9 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     @include('patients._form', [
-                        'patient' => null,
-                        'method' => 'POST',
-                        'action' => route('patients.store')
+                        'patient' => $patient,
+                        'method' => 'PUT',
+                        'action' => route('patients.update', $patient)
                     ])
 
                     <div class="flex items-center justify-end mt-6">
@@ -20,7 +20,7 @@
                             {{ __('Cancel') }}
                         </x-secondary-button>
                         <x-primary-button form="patientForm">
-                            {{ __('Register Patient') }}
+                            {{ __('Update Patient') }}
                         </x-primary-button>
                     </div>
                 </div>

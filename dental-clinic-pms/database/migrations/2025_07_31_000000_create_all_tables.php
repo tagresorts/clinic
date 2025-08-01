@@ -97,12 +97,28 @@ return new class extends Migration
             $table->id();
             $table->foreignId('patient_id')->constrained('patients');
             $table->foreignId('dentist_id')->constrained('users');
-            $table->text('description');
+            $table->string('plan_title');
+            $table->text('diagnosis');
+            $table->decimal('estimated_cost', 10, 2);
+            $table->integer('estimated_duration_sessions');
+            $table->string('priority'); // e.g., low, medium, high, urgent
             $table->string('status'); // e.g., proposed, patient_approved, in_progress, completed, cancelled
-            $table->decimal('total_cost', 8, 2);
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->text('treatment_notes')->nullable();
+            $table->text('patient_concerns')->nullable();
+            $table->text('dentist_notes')->nullable();
+            $table->decimal('actual_cost', 10, 2)->nullable();
+            $table->boolean('insurance_covered')->default(false);
+            $table->decimal('insurance_coverage_amount', 10, 2)->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('treatment_plan_procedure', function (Blueprint $table) {
+            $table->foreignId('treatment_plan_id')->constrained('treatment_plans')->onDelete('cascade');
+            $table->foreignId('procedure_id')->constrained('procedures')->onDelete('cascade');
+            $table->primary(['treatment_plan_id', 'procedure_id']);
         });
 
         Schema::create('treatment_records', function (Blueprint $table) {
@@ -110,11 +126,28 @@ return new class extends Migration
             $table->foreignId('patient_id')->constrained('patients');
             $table->foreignId('dentist_id')->constrained('users');
             $table->foreignId('treatment_plan_id')->nullable()->constrained('treatment_plans');
-            $table->date('record_date');
-            $table->string('procedure_name');
-            $table->text('description')->nullable();
-            $table->decimal('cost', 8, 2);
+            $table->date('treatment_date');
+            $table->text('treatment_notes')->nullable();
+            $table->text('post_treatment_instructions')->nullable();
+            $table->text('observations')->nullable();
+            $table->json('teeth_treated')->nullable();
+            $table->json('dental_chart_updates')->nullable();
+            $table->json('medications_prescribed')->nullable();
+            $table->boolean('follow_up_required')->default(false);
+            $table->date('next_visit_recommended')->nullable();
+            $table->json('attached_images')->nullable();
+            $table->json('attached_documents')->nullable();
+            $table->string('treatment_outcome')->nullable();
+            $table->text('complications_notes')->nullable();
+            $table->decimal('treatment_cost', 10, 2)->nullable();
+            $table->boolean('billed')->default(false);
             $table->timestamps();
+        });
+
+        Schema::create('treatment_record_procedure', function (Blueprint $table) {
+            $table->foreignId('treatment_record_id')->constrained('treatment_records')->onDelete('cascade');
+            $table->foreignId('procedure_id')->constrained('procedures')->onDelete('cascade');
+            $table->primary(['treatment_record_id', 'procedure_id']);
         });
 
         Schema::create('invoices', function (Blueprint $table) {
@@ -234,7 +267,9 @@ return new class extends Migration
         Schema::dropIfExists('suppliers');
         Schema::dropIfExists('payments');
         Schema::dropIfExists('invoices');
+        Schema::dropIfExists('treatment_record_procedure');
         Schema::dropIfExists('treatment_records');
+        Schema::dropIfExists('treatment_plan_procedure');
         Schema::dropIfExists('treatment_plans');
         Schema::dropIfExists('appointments');
         Schema::dropIfExists('patients');

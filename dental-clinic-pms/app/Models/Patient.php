@@ -64,13 +64,18 @@ class Patient extends Model
     {
         $prefix = 'PAT';
         $year = date('Y');
-        $lastPatient = static::whereYear('created_at', $year)
-            ->orderBy('created_at', 'desc')
+        
+        // Find the last patient ID for the current year to avoid race conditions and issues with out-of-order creation.
+        $lastPatient = static::where('patient_id', 'like', $prefix . $year . '%')
+            ->orderBy('patient_id', 'desc')
             ->first();
         
-        if ($lastPatient && preg_match('/PAT' . $year . '(\d{4})/', $lastPatient->patient_id, $matches)) {
-            $number = intval($matches[1]) + 1;
+        if ($lastPatient) {
+            // Extract the number from the last patient_id, e.g., from "PAT20250012"
+            $lastNumber = intval(substr($lastPatient->patient_id, strlen($prefix) + 4));
+            $number = $lastNumber + 1;
         } else {
+            // First patient of the year
             $number = 1;
         }
         
