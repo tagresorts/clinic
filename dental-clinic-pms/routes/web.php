@@ -6,13 +6,6 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\TreatmentRecordController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\AuditController;
-use App\Http\Controllers\DentalChartController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to dashboard if authenticated
@@ -56,37 +49,24 @@ Route::middleware(['auth', 'role:dentist,administrator'])->group(function () {
     Route::post('treatment-plans/{treatmentPlan}/complete', [TreatmentPlanController::class, 'complete'])->name('treatment-plans.complete');
 });
 
-// Treatment Records - Dentists and Administrators only
-Route::middleware(['auth', 'role:dentist,administrator'])->group(function () {
-    Route::resource('treatment-records', TreatmentRecordController::class);
-    Route::get('treatment-records/patient/{patient}', [TreatmentRecordController::class, 'patientRecords'])->name('treatment-records.patient');
-});
-
-// Dental Charts - Dentists and Administrators only
-Route::middleware(['auth', 'role:dentist,administrator'])->group(function () {
-    Route::resource('dental-charts', DentalChartController::class);
-    Route::get('dental-charts/patient/{patient}', [DentalChartController::class, 'patientChart'])->name('dental-charts.patient');
-    Route::post('dental-charts/patient/{patient}/bulk-update', [DentalChartController::class, 'bulkUpdate'])->name('dental-charts.bulk-update');
-});
-
 // Billing and Invoicing - Receptionists and Administrators
 Route::middleware(['auth', 'role:receptionist,administrator'])->group(function () {
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
-});
-
-// Payment Management - Receptionists and Administrators
-Route::middleware(['auth', 'role:receptionist,administrator'])->group(function () {
-    Route::resource('payments', PaymentController::class);
+    Route::get('payments', [InvoiceController::class, 'payments'])->name('payments.index');
+    Route::post('payments', [InvoiceController::class, 'storePayment'])->name('payments.store');
 });
 
 // Inventory Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::resource('inventory', InventoryController::class);
-    Route::post('inventory/{inventoryItem}/adjust-stock', [InventoryController::class, 'adjustStock'])->name('inventory.adjust-stock');
+    Route::get('inventory', function () {
+        return view('inventory.index');
+    })->name('inventory.index');
     
-    Route::resource('suppliers', SupplierController::class);
+    Route::get('suppliers', function () {
+        return view('suppliers.index');
+    })->name('suppliers.index');
 });
 
 // Reports - Administrators only
@@ -110,17 +90,13 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 
 // User Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::resource('users', UserController::class);
-    Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-});
-
-// Audit Logs - Administrators only
-Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::resource('audit-logs', AuditController::class)->only(['index', 'show']);
-    Route::get('audit-logs/export', [AuditController::class, 'export'])->name('audit-logs.export');
-    Route::get('audit-logs/user/{userId}', [AuditController::class, 'userLogs'])->name('audit-logs.user');
-    Route::get('audit-logs/model/{modelType}/{modelId}', [AuditController::class, 'modelLogs'])->name('audit-logs.model');
+    Route::get('users', function () {
+        return view('users.index');
+    })->name('users.index');
+    
+    Route::get('audit-logs', function () {
+        return view('audit.index');
+    })->name('audit.index');
 });
 
 require __DIR__.'/auth.php';
