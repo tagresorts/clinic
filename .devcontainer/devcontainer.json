@@ -32,11 +32,11 @@
         "mhutchie.git-graph",
         "ms-vscode.live-server",
         "bradlc.vscode-tailwindcss",
-        "Vue.volar"  // ✅ Prefer this for Vue 3
+        "Vue.volar"
       ]
     }
   },
-  "postCreateCommand": "composer global require laravel/installer && [ -f composer.json ] && composer install || true && [ -f package.json ] && npm install || true && php artisan key:generate || true && php artisan migrate --seed --force || true",
+  "postCreateCommand": "if [ -f composer.json ]; then composer install; fi && if [ -f package.json ]; then npm install; fi && if [ -f artisan ]; then php artisan key:generate || true && php artisan migrate --seed --force || true; fi",
   "forwardPorts": [8000, 5173],
   "remoteUser": "vscode"
 }
