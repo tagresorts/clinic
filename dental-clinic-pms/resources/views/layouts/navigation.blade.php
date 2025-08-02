@@ -123,6 +123,25 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            <div class="pt-2 pb-3 space-y-1">
+                <x-responsive-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.index') || request()->routeIs('patients.create') || request()->routeIs('patients.edit') || request()->routeIs('patients.show')">
+                    {{ __('Patients') }}
+                </x-responsive-nav-link>
+                @if(auth()->user()->isDentist() || auth()->user()->isAdministrator())
+                <x-responsive-nav-link :href="route('treatment-plans.index')" :active="request()->routeIs('treatment-plans.index') || request()->routeIs('treatment-plans.create') || request()->routeIs('treatment-plans.edit') || request()->routeIs('treatment-plans.show')">
+                    {{ __('Treatment Plans') }}
+                </x-responsive-nav-link>
+                @if(auth()->user()->isAdministrator())
+                <x-responsive-nav-link :href="route('procedures.index')" :active="request()->routeIs('procedures.index') || request()->routeIs('procedures.create') || request()->routeIs('procedures.edit') || request()->routeIs('procedures.show')">
+                    {{ __('Procedures') }}
+                </x-responsive-nav-link>
+                @endif
+                @endif
+                <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
+                    {{ __('Appointments') }}
+                </x-responsive-nav-link>
+            </div>
         </div>
 
         <!-- Responsive Settings Options -->
