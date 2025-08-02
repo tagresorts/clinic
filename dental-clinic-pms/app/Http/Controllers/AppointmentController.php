@@ -93,8 +93,8 @@ class AppointmentController extends Controller
             'appointment_datetime' => $datetime,
             'duration_minutes' => $validated['duration_minutes'],
             'appointment_type' => $validated['appointment_type'],
-            'reason_for_visit' => $validated['reason_for_visit'],
-            'appointment_notes' => $validated['appointment_notes'],
+            'reason_for_visit' => $validated['reason_for_visit'] ?? null,
+            'appointment_notes' => $validated['appointment_notes'] ?? null,
             'status' => Appointment::STATUS_SCHEDULED,
         ]);
 
@@ -171,9 +171,9 @@ class AppointmentController extends Controller
             'duration_minutes' => $validated['duration_minutes'],
             'appointment_type' => $validated['appointment_type'],
             'status' => $validated['status'],
-            'reason_for_visit' => $validated['reason_for_visit'],
-            'appointment_notes' => $validated['appointment_notes'],
-            'cancellation_reason' => $validated['cancellation_reason'],
+            'reason_for_visit' => $validated['reason_for_visit'] ?? null,
+            'appointment_notes' => $validated['appointment_notes'] ?? null,
+            'cancellation_reason' => $validated['cancellation_reason'] ?? null,
         ]);
 
         $appointment->addModificationHistory('Updated by receptionist/admin');
