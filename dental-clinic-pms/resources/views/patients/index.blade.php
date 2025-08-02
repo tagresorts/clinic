@@ -31,7 +31,7 @@
                     </div>
 
                     <!-- Desktop Table View -->
-                    <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200 sm:block">
+                    <div class="hidden sm:block overflow-x-auto shadow-md rounded-lg border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -93,6 +93,42 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="sm:hidden">
+                        <div class="grid grid-cols-1 gap-4">
+                            @forelse ($patients as $patient)
+                                <div class="bg-white shadow-lg rounded-lg p-4 border border-gray-200">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="text-lg font-bold text-gray-900">{{ $patient->fullName }}</p>
+                                            <p class="text-sm text-gray-600">{{ $patient->age }} yrs old, {{ ucfirst($patient->gender) }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <p class="text-sm text-gray-600"><span class="font-medium">Address:</span> {{ $patient->address }}</p>
+                                        <p class="text-sm text-gray-600"><span class="font-medium">Phone:</span> {{ $patient->phone }}</p>
+                                        <p class="text-sm text-gray-600"><span class="font-medium">Email:</span> {{ $patient->email ?? 'N/A' }}</p>
+                                    </div>
+                                    <div class="mt-4 flex justify-end space-x-2">
+                                        <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
+                                        <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                                        @if (auth()->user()->isAdministrator())
+                                            <form class="inline-block" action="{{ route('patients.destroy', $patient) }}" method="POST" onsubmit="return confirm('Are you sure you want to deactivate this patient?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">Deactivate</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center text-gray-500 py-4">
+                                    No patients found matching your criteria.
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
 
                     <div class="mt-6">
