@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             PatientSeeder::class,
             ProcedureSeeder::class,
+            AppointmentSeeder::class,
             TreatmentPlanSeeder::class,
             TreatmentRecordSeeder::class,
         ]);
