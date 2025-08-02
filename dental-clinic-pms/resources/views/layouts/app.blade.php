@@ -13,6 +13,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- FullCalendar CSS -->
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">

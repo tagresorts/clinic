@@ -205,4 +205,70 @@ class AppointmentController extends Controller
 
         return redirect()->route('appointments.index')->with('success', $message);
     }
+
+    /**
+     * Display the appointment calendar.
+     */
+    public function calendar()
+    {
+        return view('appointments.calendar');
+    }
+
+    /**
+     * Provide appointment data for the calendar feed.
+     */
+    public function feed(Request $request)
+    {
+        $request->validate([
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
+        ]);
+
+        $start = Carbon::parse($request->start)->startOfDay();
+        $end = Carbon::parse($request->end)->endOfDay();
+
+        $query = Appointment::with('patient', 'dentist')
+            ->whereBetween('appointment_datetime', [$start, $end]);
+
+        if (auth()->user()->isDentist()) {
+            $query->byDentist(auth()->id());
+        }
+
+        $appointments = $query->get();
+
+        $events = $appointments->map(function (Appointment $appointment) {
+            return [
+                'id' => $appointment->id,
+                'title' => $appointment->patient->full_name . ' (' . $appointment->appointment_type . ')',
+                'start' => $appointment->appointment_datetime->toIso8601String(),
+                'end' => $appointment->getEndTimeAttribute()->toIso8601String(),
+                'url' => route('appointments.show', $appointment),
+                'backgroundColor' => $this->getStatusColor($appointment->status),
+                'borderColor' => $this->getStatusColor($appointment->status),
+                'extendedProps' => [
+                    'dentist' => 'Dr. ' . $appointment->dentist->name,
+                    'status' => ucfirst(str_replace('_', ' ', $appointment->status)),
+                    'reason' => $appointment->reason_for_visit,
+                ]
+            ];
+        });
+
+        return response()->json($events);
+    }
+
+    /**
+     * Get a color based on appointment status.
+     */
+    private function getStatusColor(string $status): string
+    {
+        return match ($status) {
+            Appointment::STATUS_SCHEDULED => '#3b82f6', // blue-500
+            Appointment::STATUS_CONFIRMED => '#10b981', // green-500
+            Appointment::STATUS_IN_PROGRESS => '#f97316', // orange-500
+            Appointment::STATUS_COMPLETED => '#6b7280', // gray-500
+            Appointment::STATUS_CANCELLED => '#ef4444', // red-500
+            Appointment::STATUS_NO_SHOW => '#eab308', // yellow-500
+            default => '#6b7280',
+        };
+    }
 }
