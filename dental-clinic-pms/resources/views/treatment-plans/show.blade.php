@@ -36,7 +36,7 @@
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-gray-500">Estimated Cost</p>
-                                    <p class="text-lg text-gray-900">${{ number_format($plan->estimated_cost, 2) }}</p>
+                                    <p class="text-lg text-gray-900">₱{{ number_format($plan->estimated_cost, 2) }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-gray-500">Estimated Duration</p>

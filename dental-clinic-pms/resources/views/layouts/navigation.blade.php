@@ -1,6 +1,6 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
@@ -38,9 +38,6 @@
                             </x-slot>
                         </x-dropdown>
                     </div>
-                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
-                        {{ __('Appointments') }}
-                    </x-nav-link>
                     @if(auth()->user()->isDentist() || auth()->user()->isAdministrator())
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
                         <x-dropdown align="left" width="48">
@@ -68,6 +65,9 @@
                         </x-dropdown>
                     </div>
                     @endif
+                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')">
+                        {{ __('Appointments') }}
+                    </x-nav-link>
                 </div>
             </div>
 

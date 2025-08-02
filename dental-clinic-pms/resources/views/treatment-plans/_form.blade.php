@@ -108,7 +108,7 @@
                                 <input type="checkbox" id="procedure_{{ $procedure->id }}" name="procedure_ids[]" value="{{ $procedure->id }}" data-cost="{{ $procedure->cost }}"
                                     class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                     {{ in_array($procedure->id, old('procedure_ids', $plan ? $plan->procedures->pluck('id')->toArray() : [])) ? 'checked' : '' }}>
-                                <span class="ms-2 text-sm text-gray-600">{{ $procedure->name }} (${{ number_format($procedure->cost, 2) }})</span>
+                                <span class="ms-2 text-sm text-gray-600">{{ $procedure->name }} (₱{{ number_format($procedure->cost, 2) }})</span>
                             </label>
                         @endforeach
                     </div>

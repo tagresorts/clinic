@@ -31,8 +31,8 @@
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div class="text-gray-900">
                             <h3 class="text-lg font-semibold">Revenue This Month</h3>
-                            <p class="text-3xl font-bold text-yellow-600">${{ number_format($data['revenue_this_month'], 2) }}</p>
-                            <p class="text-sm text-gray-500">${{ number_format($data['outstanding_balance'], 2) }} outstanding</p>
+                            <p class="text-3xl font-bold text-yellow-600">₱{{ number_format($data['revenue_this_month'], 2) }}</p>
+                                <p class="text-sm text-gray-500">₱{{ number_format($data['outstanding_balance'], 2) }} outstanding</p>
                         </div>
                     </div>
                     

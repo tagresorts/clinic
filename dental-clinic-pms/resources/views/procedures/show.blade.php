@@ -12,7 +12,7 @@
                     <div class="space-y-4">
                         <p><span class="font-medium">Name:</span> {{ $procedure->name }}</p>
                         <p><span class="font-medium">Description:</span> {{ $procedure->description ?? 'N/A' }}</p>
-                        <p><span class="font-medium">Cost:</span> ${{ number_format($procedure->cost, 2) }}</p>
+                        <p><span class="font-medium">Cost:</span> ₱{{ number_format($procedure->cost, 2) }}</p>
                     </div>
 
                     <div class="flex items-center justify-end mt-6">

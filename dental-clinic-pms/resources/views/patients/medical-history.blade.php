@@ -39,7 +39,7 @@
                             </div>
                             <p class="text-gray-700 mb-2"><span class="font-medium">Diagnosis:</span> {{ $plan->diagnosis }}</p>
                             <p class="text-gray-700 mb-2"><span class="font-medium">Proposed Procedures:</span> {{ is_array($plan->proposed_procedures) ? implode(', ', $plan->proposed_procedures) : $plan->proposed_procedures }}</p>
-                            <p class="text-gray-700"><span class="font-medium">Estimated Cost:</span> ${{ number_format($plan->estimated_cost, 2) }}</p>
+                            <p class="text-gray-700"><span class="font-medium">Estimated Cost:</span> ₱{{ number_format($plan->estimated_cost, 2) }}</p>
                             <div class="mt-4">
                                 <a href="{{ route('treatment-plans.show', $plan) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">View Plan Details</a>
                             </div>

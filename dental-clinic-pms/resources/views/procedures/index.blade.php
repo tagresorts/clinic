@@ -38,7 +38,7 @@
                                         <div class="text-sm text-gray-500">{{ $procedure->description ?? 'N/A' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-500">${{ number_format($procedure->cost, 2) }}</div>
+                                        <div class="text-sm text-gray-500">₱{{ number_format($procedure->cost, 2) }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('procedures.edit', $procedure) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
