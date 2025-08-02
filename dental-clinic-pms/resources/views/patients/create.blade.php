@@ -14,15 +14,6 @@
                         'method' => 'POST',
                         'action' => route('patients.store')
                     ])
-
-                    <div class="flex items-center justify-end mt-6">
-                        <x-secondary-button type="button" onclick="window.history.back()" class="mr-2">
-                            {{ __('Cancel') }}
-                        </x-secondary-button>
-                        <x-primary-button form="patientForm">
-                            {{ __('Register Patient') }}
-                        </x-primary-button>
-                    </div>
                 </div>
             </div>
         </div>

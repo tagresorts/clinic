@@ -30,7 +30,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+                    <!-- Desktop Table View -->
+                    <div class="overflow-x-auto shadow-md rounded-lg border border-gray-200 sm:block">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
