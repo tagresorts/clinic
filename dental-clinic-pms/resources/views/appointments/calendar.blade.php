@@ -57,6 +57,11 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
+                views: {
+                    dayGridMonth: {
+                        eventDisplay: 'list-item' // Render events as a list item
+                    }
+                },
                 events: {
                     url: '{{ route("appointments.feed") }}',
                     failure: function(error) {
