@@ -6,8 +6,8 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="mb-4 flex space-x-4">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8">
+            <div class="mb-4 flex flex-wrap space-x-4">
                 <div>
                     <label for="dentist_filter" class="block text-sm font-medium text-gray-700">Filter by Dentist:</label>
                     <select id="dentist_filter" name="dentist_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
@@ -18,23 +18,23 @@
                     </select>
                 </div>
                 <div>
-                    <label for="type_filter" class="block text-sm font-medium text-gray-700">Filter by Type:</label>
-                    <select id="type_filter" name="type_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option value="">All Types</option>
-                        @foreach($appointmentTypes as $type)
-                            <option value="{{ $type }}">{{ $type }}</option>
+                    <label for="status_filter" class="block text-sm font-medium text-gray-700">Filter by Status:</label>
+                    <select id="status_filter" name="status_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">All Statuses</option>
+                        @foreach($appointmentStatuses as $status)
+                            <option value="{{ $status }}">{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="md:col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="w-full md:w-3/4 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
                         <div id='calendar'></div>
                     </div>
                 </div>
-                <div class="md:col-span-1">
+                <div class="w-full md:w-1/4">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200 space-y-4">
                             <h3 class="text-lg font-medium text-gray-900">Schedule Summary</h3>
@@ -70,7 +70,7 @@
             var endDateInput = document.getElementById('summary_end_date');
             var updateSummaryBtn = document.getElementById('update_summary_btn');
             var dentistFilter = document.getElementById('dentist_filter');
-            var typeFilter = document.getElementById('type_filter');
+            var statusFilter = document.getElementById('status_filter');
 
             // --- Calendar Initialization ---
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -90,7 +90,7 @@
                     extraParams: function() {
                         return {
                             dentist_id: dentistFilter.value,
-                            appointment_type: typeFilter.value
+                            appointment_status: statusFilter.value
                         };
                     },
                     failure: function(error) {
@@ -122,7 +122,7 @@
             dentistFilter.addEventListener('change', function() {
                 calendar.refetchEvents();
             });
-            typeFilter.addEventListener('change', function() {
+            statusFilter.addEventListener('change', function() {
                 calendar.refetchEvents();
             });
 

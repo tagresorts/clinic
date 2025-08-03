@@ -212,8 +212,8 @@ class AppointmentController extends Controller
     public function calendar()
     {
         $dentists = User::where('role', 'dentist')->orderBy('name')->get();
-        $appointmentTypes = Appointment::distinct()->pluck('appointment_type');
-        return view('appointments.calendar', compact('dentists', 'appointmentTypes'));
+        $appointmentStatuses = Appointment::getStatuses();
+        return view('appointments.calendar', compact('dentists', 'appointmentStatuses'));
     }
 
     /**
@@ -243,8 +243,8 @@ class AppointmentController extends Controller
             $query->byDentist(auth()->id());
         }
 
-        if ($request->filled('appointment_type')) {
-            $query->where('appointment_type', $request->appointment_type);
+        if ($request->filled('appointment_status')) {
+            $query->where('status', $request->appointment_status);
         }
 
         $appointments = $query->get();
