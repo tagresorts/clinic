@@ -28,8 +28,16 @@ class AppointmentController extends Controller
             ->whereHas('patient')
             ->whereHas('dentist');
 
-        if (auth()->user()->isDentist()) {
+        // If a specific dentist is requested, filter by them.
+        // Otherwise, if the logged-in user is a dentist, only show their appointments.
+        if ($request->filled('dentist_id')) {
+            $query->byDentist($request->dentist_id);
+        } elseif (auth()->user()->isDentist()) {
             $query->byDentist(auth()->id());
+        }
+
+        if ($request->filled('appointment_status')) {
+            $query->where('status', $request->appointment_status);
         }
 
         $appointments = $query->orderBy('appointment_datetime')->get();

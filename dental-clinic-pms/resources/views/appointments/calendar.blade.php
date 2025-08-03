@@ -127,16 +127,38 @@
             // --- Event Listeners ---
             dentistFilter.addEventListener('change', function() {
                 calendar.refetchEvents();
+                updateSummaryForCurrentSelection();
             });
             statusFilter.addEventListener('change', function() {
                 calendar.refetchEvents();
+                updateSummaryForCurrentSelection();
             });
+
+            function updateSummaryForCurrentSelection() {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                if (startDate && endDate) {
+                    updateSummary(startDate, endDate);
+                }
+            }
 
             // --- Summary Panel Logic ---
             function updateSummary(startDate, endDate) {
                 summaryContentEl.innerHTML = '<p class="text-gray-500">Loading summary...</p>';
 
-                const url = `{{ route('api.appointments.summary') }}?start_date=${startDate}&end_date=${endDate}`;
+                let url = new URL('{{ route("api.appointments.summary") }}');
+                url.searchParams.append('start_date', startDate);
+                url.searchParams.append('end_date', endDate);
+
+                const dentistId = dentistFilter.value;
+                if (dentistId) {
+                    url.searchParams.append('dentist_id', dentistId);
+                }
+
+                const status = statusFilter.value;
+                if (status) {
+                    url.searchParams.append('appointment_status', status);
+                }
 
                 fetch(url, {
                     headers: {
