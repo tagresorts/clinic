@@ -212,7 +212,13 @@ class AppointmentController extends Controller
     public function calendar()
     {
         $dentists = User::where('role', 'dentist')->orderBy('name')->get();
-        $appointmentStatuses = Appointment::getStatuses();
+        $appointmentStatuses = [
+            Appointment::STATUS_SCHEDULED,
+            Appointment::STATUS_CONFIRMED,
+            Appointment::STATUS_CANCELLED,
+            Appointment::STATUS_COMPLETED,
+            Appointment::STATUS_NO_SHOW,
+        ];
         return view('appointments.calendar', compact('dentists', 'appointmentStatuses'));
     }
 
