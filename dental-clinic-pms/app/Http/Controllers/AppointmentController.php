@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -287,9 +288,7 @@ class AppointmentController extends Controller
      */
     private function getAppointmentsQuery(Request $request)
     {
-        $query = Appointment::with('patient', 'dentist')
-            ->whereHas('patient')
-            ->whereHas('dentist');
+        $query = Appointment::with('patient', 'dentist');
 
         // If a specific dentist is requested, filter by them.
         // Otherwise, if the logged-in user is a dentist, only show their appointments.
@@ -301,9 +300,6 @@ class AppointmentController extends Controller
 
         if ($request->filled('appointment_status')) {
             $query->where('status', $request->appointment_status);
-        } else {
-            // By default, exclude cancelled appointments unless a specific status is requested.
-            $query->where('status', '!=', Appointment::STATUS_CANCELLED);
         }
 
         return $query;
@@ -323,9 +319,14 @@ class AppointmentController extends Controller
         $end = Carbon::parse($request->end_date)->endOfDay();
 
         $query = $this->getAppointmentsQuery($request);
+        Log::info('Summary Query Start: ' . $start->toDateTimeString());
+        Log::info('Summary Query End: ' . $end->toDateTimeString());
+        Log::info('Summary Query SQL: ' . $query->toSql());
+        Log::info('Summary Query Bindings: ' . json_encode($query->getBindings()));
         $appointments = $query->whereBetween('appointment_datetime', [$start, $end])
                               ->orderBy('appointment_datetime')
                               ->get();
+        Log::info('Appointments retrieved for summary: ' . $appointments->count());
 
         $formattedAppointments = $appointments->map(function ($appointment) {
             return [
