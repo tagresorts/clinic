@@ -228,7 +228,8 @@ class AppointmentController extends Controller
         $end = Carbon::parse($request->end)->endOfDay();
 
         $query = Appointment::with('patient', 'dentist')
-            ->whereBetween('appointment_datetime', [$start, $end]);
+            ->whereBetween('appointment_datetime', [$start, $end])
+            ->whereHas('patient');
 
         if (auth()->user()->isDentist()) {
             $query->byDentist(auth()->id());
