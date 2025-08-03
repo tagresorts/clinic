@@ -235,25 +235,8 @@ class AppointmentController extends Controller
         $start = Carbon::parse($request->start)->startOfDay();
         $end = Carbon::parse($request->end)->endOfDay();
 
-        $query = Appointment::with('patient', 'dentist')
-            ->where('status', '!=', Appointment::STATUS_CANCELLED)
-            ->whereBetween('appointment_datetime', [$start, $end])
-            ->whereHas('patient')
-            ->whereHas('dentist');
-
-        // If a specific dentist is requested, filter by them.
-        // Otherwise, if the logged-in user is a dentist, only show their appointments.
-        if ($request->filled('dentist_id')) {
-            $query->byDentist($request->dentist_id);
-        } elseif (auth()->user()->isDentist()) {
-            $query->byDentist(auth()->id());
-        }
-
-        if ($request->filled('appointment_status')) {
-            $query->where('status', $request->appointment_status);
-        }
-
-        $appointments = $query->get();
+        $query = $this->getAppointmentsQuery($request);
+        $appointments = $query->whereBetween('appointment_datetime', [$start, $end])->get();
 
         try {
             $events = $appointments->map(function (Appointment $appointment) {
@@ -297,5 +280,64 @@ class AppointmentController extends Controller
             Appointment::STATUS_NO_SHOW => '#eab308', // yellow-500
             default => '#6b7280',
         };
+    }
+
+    /**
+     * Build the base query for appointments with filters.
+     */
+    private function getAppointmentsQuery(Request $request)
+    {
+        $query = Appointment::with('patient', 'dentist')
+            ->whereHas('patient')
+            ->whereHas('dentist');
+
+        // If a specific dentist is requested, filter by them.
+        // Otherwise, if the logged-in user is a dentist, only show their appointments.
+        if ($request->filled('dentist_id')) {
+            $query->byDentist($request->dentist_id);
+        } elseif (auth()->user()->isDentist()) {
+            $query->byDentist(auth()->id());
+        }
+
+        if ($request->filled('appointment_status')) {
+            $query->where('status', $request->appointment_status);
+        } else {
+            // By default, exclude cancelled appointments unless a specific status is requested.
+            $query->where('status', '!=', Appointment::STATUS_CANCELLED);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Provide a summary of appointments for a given date range.
+     */
+    public function summary(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end = Carbon::parse($request->end_date)->endOfDay();
+
+        $query = $this->getAppointmentsQuery($request);
+        $appointments = $query->whereBetween('appointment_datetime', [$start, $end])
+                              ->orderBy('appointment_datetime')
+                              ->get();
+
+        $formattedAppointments = $appointments->map(function ($appointment) {
+            return [
+                'time' => $appointment->appointment_datetime->format('g:i A'),
+                'patient_name' => $appointment->patient->full_name,
+                'dentist_name' => 'Dr. ' . $appointment->dentist->name,
+                'type' => $appointment->appointment_type,
+                'status' => ucfirst(str_replace('_', ' ', $appointment->status)),
+                'url' => route('appointments.show', $appointment),
+            ];
+        });
+
+        return response()->json($formattedAppointments);
     }
 }

@@ -146,7 +146,7 @@
             function updateSummary(startDate, endDate) {
                 summaryContentEl.innerHTML = '<p class="text-gray-500">Loading summary...</p>';
 
-                let url = new URL('{{ route("api.appointments.summary") }}');
+                let url = new URL('{{ route("appointments.summary") }}');
                 url.searchParams.append('start_date', startDate);
                 url.searchParams.append('end_date', endDate);
 
@@ -162,8 +162,8 @@
 
                 fetch(url, {
                     headers: {
-                        'Authorization': 'Bearer {{ auth()->user()->createToken("api-token")->plainTextToken }}', // This is not ideal for production
                         'Accept': 'application/json',
+                        "X-CSRF-TOKEN": document.head.querySelector('meta[name="csrf-token"]').content
                     },
                 })
                 .then(response => {
