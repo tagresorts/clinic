@@ -229,7 +229,8 @@ class AppointmentController extends Controller
 
         $query = Appointment::with('patient', 'dentist')
             ->whereBetween('appointment_datetime', [$start, $end])
-            ->whereHas('patient');
+            ->whereHas('patient')
+            ->whereHas('dentist');
 
         if (auth()->user()->isDentist()) {
             $query->byDentist(auth()->id());
@@ -237,24 +238,32 @@ class AppointmentController extends Controller
 
         $appointments = $query->get();
 
-        $events = $appointments->map(function (Appointment $appointment) {
-            return [
-                'id' => $appointment->id,
-                'title' => $appointment->patient->full_name . ' (' . $appointment->appointment_type . ')',
-                'start' => $appointment->appointment_datetime->toIso8601String(),
-                'end' => $appointment->getEndTimeAttribute()->toIso8601String(),
-                'url' => route('appointments.show', $appointment),
-                'backgroundColor' => $this->getStatusColor($appointment->status),
-                'borderColor' => $this->getStatusColor($appointment->status),
-                'extendedProps' => [
-                    'dentist' => 'Dr. ' . $appointment->dentist->name,
-                    'status' => ucfirst(str_replace('_', ' ', $appointment->status)),
-                    'reason' => $appointment->reason_for_visit,
-                ]
-            ];
-        });
-
-        return response()->json($events);
+        try {
+            $events = $appointments->map(function (Appointment $appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'title' => $appointment->patient->full_name . ' (' . $appointment->appointment_type . ')',
+                    'start' => $appointment->appointment_datetime->toIso8601String(),
+                    'end' => $appointment->getEndTimeAttribute()->toIso8601String(),
+                    'url' => route('appointments.show', $appointment),
+                    'backgroundColor' => $this->getStatusColor($appointment->status),
+                    'borderColor' => $this->getStatusColor($appointment->status),
+                    'extendedProps' => [
+                        'dentist' => 'Dr. ' . $appointment->dentist->name,
+                        'status' => ucfirst(str_replace('_', ' ', $appointment->status)),
+                        'reason' => $appointment->reason_for_visit,
+                    ]
+                ];
+            });
+            return response()->json($events);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'An error occurred while processing appointments.',
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**

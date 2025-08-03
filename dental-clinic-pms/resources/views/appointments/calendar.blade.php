@@ -42,8 +42,14 @@
                 },
                 events: {
                     url: '{{ route("appointments.feed") }}',
-                    failure: function() {
-                        alert('there was an error while fetching events!');
+                    failure: function(error) {
+                        let errorMsg = 'An unknown error occurred while fetching events.';
+                        if (error.xhr.responseJSON && error.xhr.responseJSON.message) {
+                            errorMsg = 'Error: ' + error.xhr.responseJSON.message +
+                                       '\\nFile: ' + error.xhr.responseJSON.file +
+                                       '\\nLine: ' + error.xhr.responseJSON.line;
+                        }
+                        alert(errorMsg);
                     }
                 },
                 eventClick: function(info) {
