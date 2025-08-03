@@ -236,7 +236,7 @@ class AppointmentController extends Controller
 
         // If a specific dentist is requested, filter by them.
         // Otherwise, if the logged-in user is a dentist, only show their appointments.
-        if ($request->has('dentist_id')) {
+        if ($request->filled('dentist_id')) {
             $query->byDentist($request->dentist_id);
         } elseif (auth()->user()->isDentist()) {
             $query->byDentist(auth()->id());
