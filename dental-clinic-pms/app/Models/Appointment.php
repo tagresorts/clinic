@@ -50,7 +50,6 @@ class Appointment extends Model
         return [
             self::STATUS_SCHEDULED,
             self::STATUS_CONFIRMED,
-            self::STATUS_IN_PROGRESS,
             self::STATUS_COMPLETED,
             self::STATUS_CANCELLED,
             self::STATUS_NO_SHOW,

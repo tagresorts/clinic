@@ -42,9 +42,10 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 
 // Appointment Management - Accessible by all roles
 Route::middleware(['auth', 'role'])->group(function () {
+    Route::get('appointments/feed', [AppointmentController::class, 'feed'])->name('appointments.feed');
+    Route::get('appointments/summary', [AppointmentController::class, 'summary'])->name('appointments.summary');
     Route::resource('appointments', AppointmentController::class);
     Route::get('calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
-    Route::get('appointments/feed', [AppointmentController::class, 'feed'])->name('appointments.feed');
     Route::post('appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::post('appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
