@@ -87,9 +87,12 @@ return new class extends Migration
             $table->foreignId('patient_id')->constrained('patients');
             $table->foreignId('dentist_id')->constrained('users');
             $table->dateTime('appointment_datetime');
-            $table->text('reason');
+            $table->integer('duration_minutes');
+            $table->string('appointment_type');
             $table->string('status'); // e.g., scheduled, confirmed, completed, cancelled
-            $table->text('notes')->nullable();
+            $table->text('reason_for_visit')->nullable();
+            $table->text('appointment_notes')->nullable();
+            $table->text('cancellation_reason')->nullable();
             $table->timestamps();
         });
 
