@@ -7,6 +7,18 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-4 flex justify-start">
+                <div>
+                    <label for="dentist_filter" class="block text-sm font-medium text-gray-700">Filter by Dentist:</label>
+                    <select id="dentist_filter" name="dentist_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">All Dentists</option>
+                        @foreach($dentists as $dentist)
+                            <option value="{{ $dentist->id }}">{{ $dentist->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
@@ -48,6 +60,7 @@
             var startDateInput = document.getElementById('summary_start_date');
             var endDateInput = document.getElementById('summary_end_date');
             var updateSummaryBtn = document.getElementById('update_summary_btn');
+            var dentistFilter = document.getElementById('dentist_filter');
 
             // --- Calendar Initialization ---
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -62,15 +75,17 @@
                         eventDisplay: 'list-item' // Render events as a list item
                     }
                 },
-                events: {
-                    url: '{{ route("appointments.feed") }}',
-                    failure: function(error) {
-                        let errorMsg = 'An unknown error occurred while fetching events.';
-                        if (error.xhr.responseJSON && error.xhr.responseJSON.message) {
-                            errorMsg = 'Error: ' + error.xhr.responseJSON.message + '\\nFile: ' + error.xhr.responseJSON.file + '\\nLine: ' + error.xhr.responseJSON.line;
-                        }
-                        alert(errorMsg);
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    var dentistId = dentistFilter.value;
+                    var url = '{{ route("appointments.feed") }}?start=' + fetchInfo.startStr + '&end=' + fetchInfo.endStr;
+                    if (dentistId) {
+                        url += '&dentist_id=' + dentistId;
                     }
+
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => successCallback(data))
+                        .catch(error => failureCallback(error));
                 },
                 eventClick: function(info) {
                     info.jsEvent.preventDefault();
@@ -86,6 +101,11 @@
                 }
             });
             calendar.render();
+
+            // --- Event Listeners ---
+            dentistFilter.addEventListener('change', function() {
+                calendar.refetchEvents();
+            });
 
             // --- Summary Panel Logic ---
             function updateSummary(startDate, endDate) {

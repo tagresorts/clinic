@@ -211,7 +211,8 @@ class AppointmentController extends Controller
      */
     public function calendar()
     {
-        return view('appointments.calendar');
+        $dentists = User::where('role', 'dentist')->orderBy('name')->get();
+        return view('appointments.calendar', compact('dentists'));
     }
 
     /**
@@ -232,7 +233,11 @@ class AppointmentController extends Controller
             ->whereHas('patient')
             ->whereHas('dentist');
 
-        if (auth()->user()->isDentist()) {
+        // If a specific dentist is requested, filter by them.
+        // Otherwise, if the logged-in user is a dentist, only show their appointments.
+        if ($request->has('dentist_id')) {
+            $query->byDentist($request->dentist_id);
+        } elseif (auth()->user()->isDentist()) {
             $query->byDentist(auth()->id());
         }
 
