@@ -98,11 +98,11 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     })->name('reports.treatments');
 });
 
+use App\Http\Controllers\UserController;
+
 // User Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('users', function () {
-        return view('users.index');
-    })->name('users.index');
+    Route::resource('users', UserController::class);
     
     Route::get('audit-logs', function () {
         return view('audit.index');
