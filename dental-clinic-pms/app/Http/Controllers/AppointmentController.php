@@ -229,6 +229,7 @@ class AppointmentController extends Controller
         $end = Carbon::parse($request->end)->endOfDay();
 
         $query = Appointment::with('patient', 'dentist')
+            ->where('status', '!=', Appointment::STATUS_CANCELLED)
             ->whereBetween('appointment_datetime', [$start, $end])
             ->whereHas('patient')
             ->whereHas('dentist');

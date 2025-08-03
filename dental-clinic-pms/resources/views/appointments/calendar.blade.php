@@ -75,17 +75,22 @@
                         eventDisplay: 'list-item' // Render events as a list item
                     }
                 },
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    var dentistId = dentistFilter.value;
-                    var url = '{{ route("appointments.feed") }}?start=' + fetchInfo.startStr + '&end=' + fetchInfo.endStr;
-                    if (dentistId) {
-                        url += '&dentist_id=' + dentistId;
+                events: {
+                    url: '{{ route("appointments.feed") }}',
+                    extraParams: function() {
+                        return {
+                            dentist_id: dentistFilter.value
+                        };
+                    },
+                    failure: function(error) {
+                        let errorMsg = 'An unknown error occurred while fetching events.';
+                        // Note: error object structure might differ with non-fetch sources
+                        // This part might need adjustment if the server error format is different.
+                        if (error.xhr && error.xhr.responseJSON && error.xhr.responseJSON.message) {
+                             errorMsg = 'Error: ' + error.xhr.responseJSON.message + '\\nFile: ' + error.xhr.responseJSON.file + '\\nLine: ' + error.xhr.responseJSON.line;
+                        }
+                        alert(errorMsg);
                     }
-
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => successCallback(data))
-                        .catch(error => failureCallback(error));
                 },
                 eventClick: function(info) {
                     info.jsEvent.preventDefault();
