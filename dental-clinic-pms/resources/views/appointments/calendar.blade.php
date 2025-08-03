@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="mb-4 flex justify-start">
+            <div class="mb-4 flex space-x-4">
                 <div>
                     <label for="dentist_filter" class="block text-sm font-medium text-gray-700">Filter by Dentist:</label>
                     <select id="dentist_filter" name="dentist_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
@@ -17,10 +17,19 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label for="type_filter" class="block text-sm font-medium text-gray-700">Filter by Type:</label>
+                    <select id="type_filter" name="type_filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">All Types</option>
+                        @foreach($appointmentTypes as $type)
+                            <option value="{{ $type }}">{{ $type }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="md:col-span-2 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="md:col-span-3 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
                         <div id='calendar'></div>
                     </div>
@@ -61,6 +70,7 @@
             var endDateInput = document.getElementById('summary_end_date');
             var updateSummaryBtn = document.getElementById('update_summary_btn');
             var dentistFilter = document.getElementById('dentist_filter');
+            var typeFilter = document.getElementById('type_filter');
 
             // --- Calendar Initialization ---
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -79,7 +89,8 @@
                     url: '{{ route("appointments.feed") }}',
                     extraParams: function() {
                         return {
-                            dentist_id: dentistFilter.value
+                            dentist_id: dentistFilter.value,
+                            appointment_type: typeFilter.value
                         };
                     },
                     failure: function(error) {
@@ -109,6 +120,9 @@
 
             // --- Event Listeners ---
             dentistFilter.addEventListener('change', function() {
+                calendar.refetchEvents();
+            });
+            typeFilter.addEventListener('change', function() {
                 calendar.refetchEvents();
             });
 
