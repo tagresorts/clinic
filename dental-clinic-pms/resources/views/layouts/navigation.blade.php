@@ -16,7 +16,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
-                        <x-dropdown align="left" width="48">
+                        <x-custom-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                     <div>{{ __('Patients') }}</div>
@@ -36,11 +36,11 @@
                                     {{ __('Add Patient') }}
                                 </x-dropdown-link>
                             </x-slot>
-                        </x-dropdown>
+                        </x-custom-dropdown>
                     </div>
                     @if(auth()->user()->hasRole(['dentist', 'administrator']))
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
-                        <x-dropdown align="left" width="48">
+                        <x-custom-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                     <div>{{ __('Treatments') }}</div>
@@ -62,11 +62,11 @@
                                 </x-dropdown-link>
                                 @endif
                             </x-slot>
-                        </x-dropdown>
+                        </x-custom-dropdown>
                     </div>
                     @endif
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
-                        <x-dropdown align="left" width="48">
+                        <x-custom-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                     <div>{{ __('Appointments') }}</div>
@@ -89,7 +89,7 @@
                                     {{ __('Add Appointment') }}
                                 </x-dropdown-link>
                             </x-slot>
-                        </x-dropdown>
+                        </x-custom-dropdown>
                     </div>
                     @if(auth()->user()->hasRole('administrator'))
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
