@@ -21,11 +21,11 @@ class TreatmentPlanFactory extends Factory
     public function definition(): array
     {
         $patient = Patient::inRandomOrder()->first();
-        $dentist = User::dentists()->inRandomOrder()->first();
+        $dentist = User::role('dentist')->inRandomOrder()->first();
 
         return [
             'patient_id' => $patient ? $patient->id : Patient::factory(),
-            'dentist_id' => $dentist ? $dentist->id : User::factory()->dentist(),
+            'dentist_id' => $dentist ? $dentist->id : User::factory(),
             'plan_title' => $this->faker->sentence(3),
             'diagnosis' => $this->faker->paragraph(2),
             'estimated_cost' => $this->faker->randomFloat(2, 100, 5000),
