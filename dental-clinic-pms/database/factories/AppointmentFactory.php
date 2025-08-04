@@ -21,7 +21,7 @@ class AppointmentFactory extends Factory
     public function definition(): array
     {
         $patientIds = Patient::pluck('id')->toArray();
-        $dentistIds = User::where('role', 'dentist')->pluck('id')->toArray();
+        $dentistIds = User::role('dentist')->pluck('id')->toArray();
 
         $appointmentDatetime = Carbon::parse($this->faker->dateTimeBetween('-3 months', '+3 months'));
         $status = $this->getRandomStatus($appointmentDatetime);

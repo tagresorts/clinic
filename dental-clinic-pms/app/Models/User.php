@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +24,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
         'phone',
         'address',
         'is_active',
@@ -53,57 +53,6 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Role constants
-     */
-    const ROLE_ADMINISTRATOR = 'administrator';
-    const ROLE_DENTIST = 'dentist';
-    const ROLE_RECEPTIONIST = 'receptionist';
-
-    /**
-     * Get all available roles
-     */
-    public static function getRoles(): array
-    {
-        return [
-            self::ROLE_ADMINISTRATOR,
-            self::ROLE_DENTIST,
-            self::ROLE_RECEPTIONIST,
-        ];
-    }
-
-    /**
-     * Check if user has a specific role
-     */
-    public function hasRole(string $role): bool
-    {
-        return $this->role === $role;
-    }
-
-    /**
-     * Check if user is an administrator
-     */
-    public function isAdministrator(): bool
-    {
-        return $this->hasRole(self::ROLE_ADMINISTRATOR);
-    }
-
-    /**
-     * Check if user is a dentist
-     */
-    public function isDentist(): bool
-    {
-        return $this->hasRole(self::ROLE_DENTIST);
-    }
-
-    /**
-     * Check if user is a receptionist
-     */
-    public function isReceptionist(): bool
-    {
-        return $this->hasRole(self::ROLE_RECEPTIONIST);
     }
 
     /**
@@ -168,37 +117,5 @@ class User extends Authenticatable
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope to get users by role
-     */
-    public function scopeByRole($query, string $role)
-    {
-        return $query->where('role', $role);
-    }
-
-    /**
-     * Scope to get dentists only
-     */
-    public function scopeDentists($query)
-    {
-        return $query->byRole(self::ROLE_DENTIST);
-    }
-
-    /**
-     * Scope to get receptionists only
-     */
-    public function scopeReceptionists($query)
-    {
-        return $query->byRole(self::ROLE_RECEPTIONIST);
-    }
-
-    /**
-     * Scope to get administrators only
-     */
-    public function scopeAdministrators($query)
-    {
-        return $query->byRole(self::ROLE_ADMINISTRATOR);
     }
 }

@@ -21,12 +21,12 @@ class TreatmentRecordFactory extends Factory
     public function definition(): array
     {
         $patient = Patient::inRandomOrder()->first();
-        $dentist = User::dentists()->inRandomOrder()->first();
+        $dentist = User::role('dentist')->inRandomOrder()->first();
         $treatmentPlan = TreatmentPlan::inRandomOrder()->first();
 
         return [
             'patient_id' => $patient ? $patient->id : Patient::factory(),
-            'dentist_id' => $dentist ? $dentist->id : User::factory()->dentist(),
+            'dentist_id' => $dentist ? $dentist->id : User::factory(),
             'treatment_plan_id' => $treatmentPlan ? $treatmentPlan->id : TreatmentPlan::factory(),
             'treatment_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'treatment_notes' => $this->faker->paragraph,
