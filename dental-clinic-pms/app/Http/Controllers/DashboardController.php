@@ -18,12 +18,14 @@ class DashboardController extends Controller
         $user = auth()->user();
         
         // Get role-specific dashboard data
-        $data = match($user->role) {
-            User::ROLE_ADMINISTRATOR => $this->getAdministratorData(),
-            User::ROLE_DENTIST => $this->getDentistData($user),
-            User::ROLE_RECEPTIONIST => $this->getReceptionistData(),
-            default => []
-        };
+        $data = [];
+        if ($user->hasRole('administrator')) {
+            $data = $this->getAdministratorData();
+        } elseif ($user->hasRole('dentist')) {
+            $data = $this->getDentistData($user);
+        } elseif ($user->hasRole('receptionist')) {
+            $data = $this->getReceptionistData();
+        }
 
         return view('dashboard', compact('data', 'user'));
     }
