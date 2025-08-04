@@ -106,14 +106,16 @@
                             </x-slot>
 
                             <x-slot name="content">
-                                <div class="relative group">
-                                    <x-dropdown-link href="#" class="flex items-center justify-between">
-                                        {{ __('User Management') }}
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </x-dropdown-link>
-                                    <div class="absolute left-full top-0 mt-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+                                <div x-data="{ open: false }" class="relative">
+                                    <button @click="open = !open" class="w-full text-left">
+                                        <x-dropdown-link href="#" class="flex items-center justify-between">
+                                            {{ __('User Management') }}
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </x-dropdown-link>
+                                    </button>
+                                    <div x-show="open" @click.away="open = false" class="absolute left-full top-0 mt-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
                                         <x-dropdown-link :href="route('users.index')">
                                             {{ __('Users') }}
                                         </x-dropdown-link>
