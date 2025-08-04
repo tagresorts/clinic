@@ -17,15 +17,44 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
+        // Start with a default structure to avoid view errors
+        $data = [
+            'total_patients' => 0,
+            'new_patients_this_month' => 0,
+            'total_appointments_today' => 0,
+            'upcoming_appointments' => 0,
+            'revenue_this_month' => 0,
+            'outstanding_balance' => 0,
+            'low_stock_items' => 0,
+            'active_dentists' => 0,
+            'active_staff' => 0,
+            'appointments_by_status' => [],
+            'revenue_trend' => [],
+            'recent_activities' => [],
+            'todays_appointments' => collect(),
+            'tomorrows_appointments' => collect(),
+            'active_treatment_plans' => 0,
+            'patients_treated_this_week' => 0,
+            'pending_treatment_plans' => collect(),
+            'pending_confirmations' => 0,
+            'patients_with_outstanding_balance' => 0,
+            'overdue_invoices' => 0,
+            'new_patients_today' => 0,
+            'recent_registrations' => collect(),
+        ];
+
         // Get role-specific dashboard data
-        $data = [];
+        $role_data = [];
         if ($user->hasRole('administrator')) {
-            $data = $this->getAdministratorData();
+            $role_data = $this->getAdministratorData();
         } elseif ($user->hasRole('dentist')) {
-            $data = $this->getDentistData($user);
+            $role_data = $this->getDentistData($user);
         } elseif ($user->hasRole('receptionist')) {
-            $data = $this->getReceptionistData();
+            $role_data = $this->getReceptionistData();
         }
+
+        // Merge role-specific data over the defaults
+        $data = array_merge($data, $role_data);
 
         return view('dashboard', compact('data', 'user'));
     }
@@ -47,7 +76,7 @@ class DashboardController extends Controller
                 ->sum('outstanding_balance'),
             'low_stock_items' => InventoryItem::where('quantity_in_stock', '<=', InventoryItem::raw('reorder_level'))
                 ->count(),
-            'active_dentists' => User::dentists()->active()->count(),
+            'active_dentists' => User::role('dentist')->active()->count(),
             'active_staff' => User::active()->count(),
             
             // Charts data
@@ -71,18 +100,17 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $thisWeek = Carbon::now()->startOfWeek();
+        $thisMonth = Carbon::now()->startOfMonth();
         
         return [
+            'total_patients' => Patient::active()->count(),
+            'new_patients_this_month' => Patient::where('created_at', '>=', $thisMonth)->count(),
+            'total_appointments_today' => Appointment::today()->count(),
+            'upcoming_appointments' => Appointment::upcoming()->count(),
             'todays_appointments' => Appointment::byDentist($dentist->id)
                 ->today()
                 ->with('patient')
                 ->orderBy('appointment_datetime')
-                ->get(),
-            'upcoming_appointments' => Appointment::byDentist($dentist->id)
-                ->upcoming()
-                ->with('patient')
-                ->orderBy('appointment_datetime')
-                ->take(10)
                 ->get(),
             'active_treatment_plans' => TreatmentPlan::byDentist($dentist->id)
                 ->active()
@@ -93,10 +121,6 @@ class DashboardController extends Controller
                 ->where('status', 'completed')
                 ->distinct('patient_id')
                 ->count(),
-            'total_patients' => Appointment::byDentist($dentist->id)
-                ->distinct('patient_id')
-                ->count(),
-                
             'pending_treatment_plans' => TreatmentPlan::byDentist($dentist->id)
                 ->byStatus(TreatmentPlan::STATUS_PROPOSED)
                 ->with('patient')
@@ -110,8 +134,13 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $tomorrow = Carbon::tomorrow();
+        $thisMonth = Carbon::now()->startOfMonth();
         
         return [
+            'total_patients' => Patient::active()->count(),
+            'new_patients_this_month' => Patient::where('created_at', '>=', $thisMonth)->count(),
+            'total_appointments_today' => Appointment::today()->count(),
+            'upcoming_appointments' => Appointment::upcoming()->count(),
             'todays_appointments' => Appointment::today()
                 ->with(['patient', 'dentist'])
                 ->orderBy('appointment_datetime')

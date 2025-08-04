@@ -21,7 +21,7 @@
                                     <a href="{{ route('appointments.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-white border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50">Clear</a>
                                 @endif
                             </form>
-                             @if (auth()->user()->isAdministrator() || auth()->user()->isReceptionist())
+                             @if (auth()->user()->hasRole(['administrator', 'receptionist']))
                             <a href="{{ route('appointments.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150 w-full sm:w-auto sm:ms-4">
                                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                                 Add Appointment
@@ -75,7 +75,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end space-x-2">
                                             <a href="{{ route('appointments.show', $appointment) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100">View</a>
-                                            @if(auth()->user()->isAdministrator() || auth()->user()->isReceptionist())
+                                            @if(auth()->user()->hasRole(['administrator', 'receptionist']))
                                                 <a href="{{ route('appointments.edit', $appointment) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200">Edit</a>
                                                 @if($appointment->status !== 'cancelled')
                                                 <form class="inline-block" action="{{ route('appointments.destroy', $appointment) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
@@ -128,7 +128,7 @@
                                     </div>
                                     <div class="mt-4 flex justify-end space-x-2">
                                         <a href="{{ route('appointments.show', $appointment) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100">View</a>
-                                        @if(auth()->user()->isAdministrator() || auth()->user()->isReceptionist())
+                                        @if(auth()->user()->hasRole(['administrator', 'receptionist']))
                                             <a href="{{ route('appointments.edit', $appointment) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200">Edit</a>
                                         @endif
                                     </div>

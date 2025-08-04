@@ -180,7 +180,7 @@
                 }
             });
             estimatedCostInput.value = totalCost.toFixed(2);
-            totalEstimatedCostDisplay.value = '$ ' + totalCost.toFixed(2);
+            totalEstimatedCostDisplay.value = '₱ ' + totalCost.toFixed(2);
         }
 
         procedureCheckboxes.forEach(checkbox => {

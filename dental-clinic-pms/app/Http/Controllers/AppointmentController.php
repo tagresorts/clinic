@@ -19,7 +19,7 @@ class AppointmentController extends Controller
         $query = Appointment::with(['patient', 'dentist']);
 
         // Role-based filtering
-        if (auth()->user()->isDentist()) {
+        if (auth()->user()->hasRole('dentist')) {
             $query->where('dentist_id', auth()->id());
         }
 
@@ -51,7 +51,7 @@ class AppointmentController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'You are not authorized to create appointments.');
         }
 
@@ -66,7 +66,7 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403);
         }
 
@@ -110,7 +110,7 @@ class AppointmentController extends Controller
         // Authorization: ensure user can view the appointment
         $user = auth()->user();
 
-        if ($user->isDentist() && $appointment->dentist_id !== $user->id) {
+        if ($user->hasRole('dentist') && $appointment->dentist_id !== $user->id) {
             abort(403, 'This appointment is not for one of your patients.');
         }
 
@@ -126,7 +126,7 @@ class AppointmentController extends Controller
      */
     public function edit(Appointment $appointment)
     {
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'You are not authorized to edit appointments.');
         }
 
@@ -141,7 +141,7 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403);
         }
 
@@ -187,7 +187,7 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment)
     {
-        if (!auth()->user()->isAdministrator()) {
+        if (!auth()->user()->hasRole('administrator')) {
             abort(403, 'Only administrators can delete appointments.');
         }
 
@@ -212,7 +212,7 @@ class AppointmentController extends Controller
      */
     public function calendar()
     {
-        $dentists = User::where('role', 'dentist')->orderBy('name')->get();
+        $dentists = User::role('dentist')->orderBy('name')->get();
         $appointmentStatuses = [
             Appointment::STATUS_SCHEDULED,
             Appointment::STATUS_CONFIRMED,
@@ -294,7 +294,7 @@ class AppointmentController extends Controller
         // Otherwise, if the logged-in user is a dentist, only show their appointments.
         if ($request->filled('dentist_id')) {
             $query->byDentist($request->dentist_id);
-        } elseif (auth()->user()->isDentist()) {
+        } elseif (auth()->user()->hasRole('dentist')) {
             $query->byDentist(auth()->id());
         }
 
