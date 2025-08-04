@@ -22,7 +22,7 @@ class TreatmentPlanController extends Controller
     public function create()
     {
         $patients = \App\Models\Patient::all();
-        $dentists = \App\Models\User::dentists()->get();
+        $dentists = \App\Models\User::role('dentist')->get();
         $procedures = \App\Models\Procedure::all();
 
         return view('treatment-plans.create', compact('patients', 'dentists', 'procedures'));
@@ -88,7 +88,7 @@ class TreatmentPlanController extends Controller
     {
         $plan = \App\Models\TreatmentPlan::with('procedures')->findOrFail($id);
         $patients = \App\Models\Patient::all();
-        $dentists = \App\Models\User::dentists()->get();
+        $dentists = \App\Models\User::role('dentist')->get();
         $procedures = \App\Models\Procedure::all();
 
         return view('treatment-plans.edit', compact('plan', 'patients', 'dentists', 'procedures'));

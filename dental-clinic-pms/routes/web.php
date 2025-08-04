@@ -99,10 +99,14 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 });
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 // User Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('users', UserController::class);
+    Route::resource('roles', RoleController::class);
+    Route::resource('permissions', PermissionController::class);
     
     Route::get('audit-logs', function () {
         return view('audit.index');

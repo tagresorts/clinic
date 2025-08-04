@@ -26,7 +26,7 @@ class PatientController extends Controller
         }
 
         // For dentists, only show their patients (from appointments)
-        if (auth()->user()->isDentist()) {
+        if (auth()->user()->hasRole('dentist')) {
             $query->whereHas('appointments', function ($q) {
                 $q->where('dentist_id', auth()->id());
             });
@@ -43,7 +43,7 @@ class PatientController extends Controller
     public function create()
     {
         // Only receptionists and administrators can create patients
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
@@ -57,7 +57,7 @@ class PatientController extends Controller
     {
         \Illuminate\Support\Facades\Log::info('Patient store method called.');
         // Only receptionists and administrators can create patients
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             \Illuminate\Support\Facades\Log::warning('Unauthorized attempt to create patient by user: ' . auth()->id());
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
@@ -123,7 +123,7 @@ class PatientController extends Controller
     public function edit(Patient $patient)
     {
         // Only receptionists and administrators can edit patient demographics
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'Only receptionists and administrators can edit patient information.');
         }
 
@@ -136,7 +136,7 @@ class PatientController extends Controller
     public function update(Request $request, Patient $patient)
     {
         // Only receptionists and administrators can edit patient demographics
-        if (!auth()->user()->isAdministrator() && !auth()->user()->isReceptionist()) {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'Only receptionists and administrators can edit patient information.');
         }
 
@@ -177,7 +177,7 @@ class PatientController extends Controller
     public function destroy(Patient $patient)
     {
         // Only administrators can delete patients
-        if (!auth()->user()->isAdministrator()) {
+        if (!auth()->user()->hasRole('administrator')) {
             abort(403, 'Only administrators can delete patients.');
         }
 
@@ -194,7 +194,7 @@ class PatientController extends Controller
     public function dentalChart(Patient $patient)
     {
         // Only dentists and administrators can view dental charts
-        if (!auth()->user()->isDentist() && !auth()->user()->isAdministrator()) {
+        if (!auth()->user()->hasRole(['dentist', 'administrator'])) {
             abort(403, 'Only dentists and administrators can view dental charts.');
         }
 
