@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 // Redirect root to dashboard if authenticated
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('welcome');
+    return redirect()->route('login');
 });
 
 // Dashboard - role-based access
