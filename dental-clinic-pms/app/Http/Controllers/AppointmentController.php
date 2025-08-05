@@ -56,7 +56,7 @@ class AppointmentController extends Controller
         }
 
         $patients = Patient::where('is_active', true)->orderBy('last_name')->get();
-        $dentists = User::where('role', 'dentist')->orderBy('name')->get();
+        $dentists = User::role('dentist')->orderBy('name')->get();
 
         return view('appointments.create', compact('patients', 'dentists'));
     }
@@ -131,7 +131,7 @@ class AppointmentController extends Controller
         }
 
         $patients = Patient::where('is_active', true)->orderBy('last_name')->get();
-        $dentists = User::where('role', 'dentist')->orderBy('name')->get();
+        $dentists = User::role('dentist')->orderBy('name')->get();
 
         return view('appointments.edit', compact('appointment', 'patients', 'dentists'));
     }
