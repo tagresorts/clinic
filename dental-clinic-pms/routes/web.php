@@ -19,6 +19,14 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', 'role'])
     ->name('dashboard');
 
+Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])
+    ->middleware(['auth'])
+    ->name('dashboard.saveLayout');
+
+Route::post('/dashboard/reset-layout', [DashboardController::class, 'resetLayout'])
+    ->middleware(['auth'])
+    ->name('dashboard.resetLayout');
+
 // Profile management for all authenticated users
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

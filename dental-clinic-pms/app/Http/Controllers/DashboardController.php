@@ -2,206 +2,89 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\DashboardService;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Patient;
-use App\Models\Appointment;
-use App\Models\TreatmentPlan;
-use App\Models\Invoice;
-use App\Models\InventoryItem;
-use Carbon\Carbon;
+use App\Models\UserDashboardPreference;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    protected $dashboardService;
+
+    public function __construct(DashboardService $dashboardService)
+    {
+        $this->dashboardService = $dashboardService;
+    }
+
     public function index()
     {
-        $user = auth()->user();
-        
-        // Start with a default structure to avoid view errors
-        $data = [
-            'total_patients' => 0,
-            'new_patients_this_month' => 0,
-            'total_appointments_today' => 0,
-            'upcoming_appointments' => 0,
-            'revenue_this_month' => 0,
-            'outstanding_balance' => 0,
-            'low_stock_items' => 0,
-            'active_dentists' => 0,
-            'active_staff' => 0,
-            'appointments_by_status' => [],
-            'revenue_trend' => [],
-            'recent_activities' => [],
-            'todays_appointments' => collect(),
-            'tomorrows_appointments' => collect(),
-            'active_treatment_plans' => 0,
-            'patients_treated_this_week' => 0,
-            'pending_treatment_plans' => collect(),
-            'pending_confirmations' => 0,
-            'patients_with_outstanding_balance' => 0,
-            'overdue_invoices' => 0,
-            'new_patients_today' => 0,
-            'recent_registrations' => collect(),
-        ];
+        $user = Auth::user();
+        $all_widgets = config('dashboard.widgets');
+        $user_preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
 
-        // Get role-specific dashboard data
+        $widgets = [];
+        foreach ($all_widgets as $key => $widget) {
+            if ($user->can($widget['permission'])) {
+                $preference = $user_preferences->get($key);
+
+                $widgets[] = [
+                    'key' => $key,
+                    'component' => $widget['component'],
+                    'layout' => [
+                        'x' => $preference->x_pos ?? $widget['default_layout']['x'],
+                        'y' => $preference->y_pos ?? $widget['default_layout']['y'],
+                        'w' => $preference->width ?? $widget['default_layout']['w'],
+                        'h' => $preference->height ?? $widget['default_layout']['h'],
+                    ],
+                    'visible' => $preference->is_visible ?? true,
+                ];
+            }
+        }
+
         $role_data = [];
         if ($user->hasRole('administrator')) {
-            $role_data = $this->getAdministratorData();
+            $role_data = $this->dashboardService->getAdministratorData();
         } elseif ($user->hasRole('dentist')) {
-            $role_data = $this->getDentistData($user);
+            $role_data = $this->dashboardService->getDentistData($user);
         } elseif ($user->hasRole('receptionist')) {
-            $role_data = $this->getReceptionistData();
+            $role_data = $this->dashboardService->getReceptionistData();
         }
 
-        // Merge role-specific data over the defaults
-        $data = array_merge($data, $role_data);
-
-        return view('dashboard', compact('data', 'user'));
+        return view('dashboard', [
+            'widgets' => $widgets,
+            'data' => $role_data,
+        ]);
     }
 
-    private function getAdministratorData(): array
+    public function saveLayout(Request $request)
     {
-        $today = Carbon::today();
-        $thisMonth = Carbon::now()->startOfMonth();
-        
-        return [
-            'total_patients' => Patient::active()->count(),
-            'new_patients_this_month' => Patient::where('created_at', '>=', $thisMonth)->count(),
-            'total_appointments_today' => Appointment::today()->count(),
-            'upcoming_appointments' => Appointment::upcoming()->count(),
-            'revenue_this_month' => Invoice::where('created_at', '>=', $thisMonth)
-                ->where('status', 'paid')
-                ->sum('total_amount'),
-            'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])
-                ->sum('outstanding_balance'),
-            'low_stock_items' => InventoryItem::where('quantity_in_stock', '<=', InventoryItem::raw('reorder_level'))
-                ->count(),
-            'active_dentists' => User::role('dentist')->active()->count(),
-            'active_staff' => User::active()->count(),
-            
-            // Charts data
-            'appointments_by_status' => Appointment::selectRaw('status, COUNT(*) as count')
-                ->whereDate('appointment_datetime', '>=', $today)
-                ->groupBy('status')
-                ->pluck('count', 'status'),
-            
-            'revenue_trend' => Invoice::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-                ->where('created_at', '>=', $today->subDays(30))
-                ->where('status', 'paid')
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('total', 'date'),
-                
-            'recent_activities' => $this->getRecentActivities(),
-        ];
-    }
+        $request->validate([
+            'layout' => 'required|array',
+        ]);
 
-    private function getDentistData(User $dentist): array
-    {
-        $today = Carbon::today();
-        $thisWeek = Carbon::now()->startOfWeek();
-        $thisMonth = Carbon::now()->startOfMonth();
-        
-        return [
-            'total_patients' => Patient::active()->count(),
-            'new_patients_this_month' => Patient::where('created_at', '>=', $thisMonth)->count(),
-            'total_appointments_today' => Appointment::today()->count(),
-            'upcoming_appointments' => Appointment::upcoming()->count(),
-            'todays_appointments' => Appointment::byDentist($dentist->id)
-                ->today()
-                ->with('patient')
-                ->orderBy('appointment_datetime')
-                ->get(),
-            'active_treatment_plans' => TreatmentPlan::byDentist($dentist->id)
-                ->active()
-                ->with('patient')
-                ->count(),
-            'patients_treated_this_week' => Appointment::byDentist($dentist->id)
-                ->where('appointment_datetime', '>=', $thisWeek)
-                ->where('status', 'completed')
-                ->distinct('patient_id')
-                ->count(),
-            'pending_treatment_plans' => TreatmentPlan::byDentist($dentist->id)
-                ->byStatus(TreatmentPlan::STATUS_PROPOSED)
-                ->with('patient')
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get(),
-        ];
-    }
-
-    private function getReceptionistData(): array
-    {
-        $today = Carbon::today();
-        $tomorrow = Carbon::tomorrow();
-        $thisMonth = Carbon::now()->startOfMonth();
-        
-        return [
-            'total_patients' => Patient::active()->count(),
-            'new_patients_this_month' => Patient::where('created_at', '>=', $thisMonth)->count(),
-            'total_appointments_today' => Appointment::today()->count(),
-            'upcoming_appointments' => Appointment::upcoming()->count(),
-            'todays_appointments' => Appointment::today()
-                ->with(['patient', 'dentist'])
-                ->orderBy('appointment_datetime')
-                ->get(),
-            'tomorrows_appointments' => Appointment::tomorrow()
-                ->with(['patient', 'dentist'])
-                ->orderBy('appointment_datetime')
-                ->get(),
-            'pending_confirmations' => Appointment::byStatus(Appointment::STATUS_SCHEDULED)
-                ->upcoming()
-                ->with(['patient', 'dentist'])
-                ->count(),
-            'patients_with_outstanding_balance' => Patient::withOutstandingBalance()->count(),
-            'overdue_invoices' => Invoice::where('due_date', '<', $today)
-                ->whereIn('status', ['sent', 'partially_paid'])
-                ->count(),
-            'new_patients_today' => Patient::whereDate('created_at', $today)->count(),
-            
-            'recent_registrations' => Patient::orderBy('created_at', 'desc')
-                ->take(5)
-                ->get(),
-        ];
-    }
-
-    private function getRecentActivities(): array
-    {
-        $activities = [];
-        
-        // Recent patient registrations
-        $recentPatients = Patient::orderBy('created_at', 'desc')->take(5)->get();
-        foreach ($recentPatients as $patient) {
-            $activities[] = [
-                'type' => 'patient_registered',
-                'message' => "New patient registered: {$patient->full_name}",
-                'time' => $patient->created_at,
-                'icon' => 'user-plus',
-                'color' => 'green'
-            ];
+        $user = Auth::user();
+        foreach ($request->layout as $item) {
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $item['id'],
+                ],
+                [
+                    'x_pos' => $item['x'],
+                    'y_pos' => $item['y'],
+                    'width' => $item['w'],
+                    'height' => $item['h'],
+                    'is_visible' => true, // Assuming visible if it's in the layout
+                ]
+            );
         }
-        
-        // Recent appointments
-        $recentAppointments = Appointment::where('status', 'completed')
-            ->orderBy('updated_at', 'desc')
-            ->with(['patient', 'dentist'])
-            ->take(5)
-            ->get();
-        foreach ($recentAppointments as $appointment) {
-            $activities[] = [
-                'type' => 'appointment_completed',
-                'message' => "Appointment completed: {$appointment->patient->full_name} with Dr. {$appointment->dentist->name}",
-                'time' => $appointment->updated_at,
-                'icon' => 'check-circle',
-                'color' => 'blue'
-            ];
-        }
-        
-        // Sort by time descending and take 10 most recent
-        usort($activities, function($a, $b) {
-            return $b['time'] <=> $a['time'];
-        });
-        
-        return array_slice($activities, 0, 10);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function resetLayout()
+    {
+        UserDashboardPreference::where('user_id', Auth::id())->delete();
+        return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
     }
 }

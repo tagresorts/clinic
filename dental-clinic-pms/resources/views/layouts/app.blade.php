@@ -16,6 +16,9 @@
 
         <!-- FullCalendar CSS -->
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+        <!-- Gridstack CSS -->
+        <link href="{{ asset('node_modules/gridstack/dist/gridstack.min.css') }}" rel="stylesheet"/>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
