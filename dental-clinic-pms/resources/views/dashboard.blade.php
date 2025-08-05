@@ -33,8 +33,9 @@
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
             let grid = GridStack.init({
+                column: 2,
                 float: true,
-                cellHeight: '8rem',
+                cellHeight: '8rem', // Maintain for consistency
                 minRow: 1,
             });
 
