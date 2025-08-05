@@ -42,6 +42,10 @@ class DashboardService
                 ->orderBy('date')
                 ->pluck('total', 'date'),
             'recent_activities' => $this->getRecentActivities(),
+            'todays_appointments' => Appointment::today()->with(['patient', 'dentist'])->orderBy('appointment_datetime')->get(),
+            'pending_confirmations' => Appointment::byStatus(Appointment::STATUS_SCHEDULED)->upcoming()->count(),
+            'overdue_invoices' => Invoice::where('due_date', '<', $today)->whereIn('status', ['sent', 'partially_paid'])->count(),
+            'pending_treatment_plans' => TreatmentPlan::where('status', TreatmentPlan::STATUS_PROPOSED)->with('patient')->orderBy('created_at', 'desc')->take(5)->get(),
         ];
     }
 
