@@ -63,22 +63,33 @@ return [
         'todays_appointments' => [
             'title' => "Today's Appointments",
             'icon' => 'fa-calendar-day',
+            'permission' => 'dashboard.widget.view_my_schedule',
         ],
         'active_patients' => [
             'title' => 'Active Patients',
             'icon' => 'fa-users',
+            'permission' => 'dashboard.view_active_patients', // New permission
         ],
         'daily_revenue' => [
             'title' => 'Daily Revenue',
             'icon' => 'fa-dollar-sign',
+            'permission' => 'dashboard.widget.view_financial_summary',
         ],
         'pending_payments' => [
             'title' => 'Pending Payments',
             'icon' => 'fa-file-invoice-dollar',
+            'permission' => 'dashboard.widget.view_financial_summary',
         ],
         'chair_utilization' => [
             'title' => 'Chair Utilization',
             'icon' => 'fa-chair',
+            'permission' => 'dashboard.view_chair_utilization', // New permission
+        ],
+    ],
+
+    'panels' => [
+        'staff_activity' => [
+            'permission' => 'dashboard.view_staff_activity', // New permission
         ],
     ],
 ];

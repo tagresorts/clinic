@@ -7,14 +7,16 @@
 
     <div class="flex h-screen bg-gray-100">
         <!-- Left Sidebar -->
-        <div class="w-64 bg-white shadow-md">
-            <div class="p-4 border-b">
-                <h3 class="text-lg font-semibold">Dentist/Staff Activity</h3>
+        @can(config('dashboard.panels.staff_activity.permission'))
+            <div class="w-64 bg-white shadow-md">
+                <div class="p-4 border-b">
+                    <h3 class="text-lg font-semibold">Dentist/Staff Activity</h3>
+                </div>
+                <div id="staff-activity-panel" class="p-4">
+                    <x-staff.activity-panel :staff="$staff" />
+                </div>
             </div>
-            <div id="staff-activity-panel" class="p-4">
-                <x-staff.activity-panel :staff="$staff" />
-            </div>
-        </div>
+        @endcan
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">

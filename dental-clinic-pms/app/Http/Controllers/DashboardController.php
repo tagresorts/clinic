@@ -17,9 +17,17 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $kpis = config('dashboard.kpis');
+        $user = Auth::user();
+        $kpis = collect(config('dashboard.kpis'))->filter(function ($kpi) use ($user) {
+            return $user->can($kpi['permission']);
+        });
+
         $kpiData = $this->dashboardService->getKpiData();
-        $staff = $this->dashboardService->getStaffActivityData();
+
+        $staff = [];
+        if ($user->can(config('dashboard.panels.staff_activity.permission'))) {
+            $staff = $this->dashboardService->getStaffActivityData();
+        }
 
         return view('dashboard-v2', compact('kpis', 'kpiData', 'staff'));
     }
