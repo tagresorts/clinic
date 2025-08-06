@@ -1,57 +1,57 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
-    <div class="flex h-screen bg-gray-100">
-        <!-- Left Sidebar -->
-        <div class="w-64 bg-white shadow-md">
-            <div class="p-4 border-b">
-                <h3 class="text-lg font-semibold">Dentist/Staff Activity</h3>
-            </div>
-            <div id="staff-activity-panel" class="p-4">
-                <x-staff.activity-panel :staff="$staff" />
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
-            <!-- Top Panel -->
-            <div class="bg-white shadow">
-                <div class="p-4">
-                    <h3 class="text-lg font-semibold">KPIs Summary</h3>
-                    <div id="kpi-summary-panel" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
-                        @foreach ($kpis as $key => $kpi)
-                            <x-kpi.widget :title="$kpi['title']" :value="$kpiData[$key]" :icon="$kpi['icon']" />
-                        @endforeach
-                    </div>
+    <div class="bg-gray-100 min-h-screen">
+        <div class="p-4 sm:p-6 lg:p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Dental Clinic</h1>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-search"></i></button>
+                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-user-circle fa-lg"></i></button>
                 </div>
             </div>
 
-            <!-- Center Section -->
-            <div class="flex-1 p-4">
-                <h3 class="text-lg font-semibold">Appointments Calendar</h3>
-                <div id="calendar-section" class="bg-white p-4 rounded-lg shadow-sm mt-4 h-full">
-                    <!-- Calendar will go here -->
-                </div>
+            <!-- KPI Widgets -->
+            <div id="kpi-summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                @foreach ($kpis as $key => $kpi)
+                    @if(in_array($key, ['todays_appointments', 'active_patients', 'daily_revenue', 'pending_payments']))
+                        <x-kpi.widget :title="$kpi['title']" :value="$kpiData[$key]" :icon="$kpi['icon']" />
+                    @endif
+                @endforeach
             </div>
 
-            <!-- Bottom Section -->
-            <div class="bg-white shadow">
-                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h3 class="text-lg font-semibold">Billing Summary</h3>
-                        <div id="billing-summary-widget" class="bg-white p-4 rounded-lg shadow-sm mt-4">
-                            <x-widgets.billing-summary />
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Sidebar -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Dentists</h3>
+                        <x-staff.activity-panel :staff="$staff" />
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Billing Summary</h3>
+                        <x-widgets.billing-summary />
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow h-full">
+                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Appointments</h3>
+                        <!-- Calendar Placeholder -->
+                        <div class="text-center text-gray-400 py-16">
+                            <i class="fas fa-calendar-alt fa-4x"></i>
+                            <p class="mt-4">Appointments Calendar Placeholder</p>
                         </div>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold">Admin Notices & Reminders</h3>
-                        <div id="admin-notices-widget" class="bg-white p-4 rounded-lg shadow-sm mt-4">
-                            <x-widgets.admin-notices />
-                        </div>
+                </div>
+
+                <!-- Right Sidebar -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <x-widgets.patient-section :patientData="$patientData" />
+                    </div>
+                     <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Admin Notices</h3>
+                        <x-widgets.admin-notices />
                     </div>
                 </div>
             </div>

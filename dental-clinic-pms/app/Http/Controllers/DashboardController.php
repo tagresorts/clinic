@@ -21,8 +21,9 @@ class DashboardController extends Controller
         $kpis = config('dashboard.kpis');
         $kpiData = $this->dashboardService->getKpiData();
         $staff = $this->dashboardService->getStaffActivityData();
+        $patientData = $this->dashboardService->getReceptionistData();
 
-        return view('dashboard-v3', compact('kpis', 'kpiData', 'staff'));
+        return view('dashboard-v3', compact('kpis', 'kpiData', 'staff', 'patientData'));
     }
 
     public function saveLayout(Request $request)

@@ -32,19 +32,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'procedure-list', 'procedure-create', 'procedure-edit', 'procedure-delete',
             'inventory-list', 'inventory-create', 'inventory-edit', 'inventory-delete',
             'report-list',
-
-            // Dashboard Widget Permissions
-            'dashboard.widget.view_my_schedule',
-            'dashboard.widget.view_clinic_calendar',
-            'dashboard.widget.view_quick_search',
-            'dashboard.widget.view_financial_summary',
-            'dashboard.widget.view_appointment_statistics',
-            'dashboard.widget.view_new_patients_report',
-            'dashboard.widget.view_inventory_alerts',
-            'dashboard.widget.view_user_activity',
-            'dashboard.widget.view_patient_check_in',
-            'dashboard.widget.view_pending_invoices',
-            'dashboard.widget.view_pending_treatment_plans',
+            'view_dashboard', // Single permission for the dashboard
         ];
 
         // Create permissions
@@ -57,20 +45,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'patient-list', 'patient-create', 'patient-edit',
             'appointment-list', 'appointment-create', 'appointment-edit',
             'invoice-list', 'invoice-create', 'invoice-edit',
-            'dashboard.widget.view_my_schedule',
-            'dashboard.widget.view_clinic_calendar',
-            'dashboard.widget.view_patient_check_in',
-            'dashboard.widget.view_pending_invoices',
-            'dashboard.widget.view_quick_search',
+            'view_dashboard',
         ];
 
         $dentist_permissions = [
             'patient-list', 'patient-create', 'patient-edit', 'patient-delete',
             'appointment-list', 'appointment-create', 'appointment-edit', 'appointment-delete',
             'treatment-plan-list', 'treatment-plan-create', 'treatment-plan-edit', 'treatment-plan-delete',
-            'dashboard.widget.view_my_schedule',
-            'dashboard.widget.view_pending_treatment_plans',
-            'dashboard.widget.view_quick_search',
+            'view_dashboard',
         ];
 
         // Create Roles and assign permissions

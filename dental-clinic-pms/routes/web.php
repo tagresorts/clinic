@@ -16,8 +16,12 @@ Route::get('/', function () {
 
 // Dashboard - role-based access
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'role'])
+    ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
     ->name('dashboard');
+
+Route::get('/dashboard-v3', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
+    ->name('dashboard-v3');
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])
     ->middleware(['auth'])
