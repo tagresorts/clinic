@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
+use App\Models\UserDashboardPreference;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -17,30 +18,42 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $user = Auth::user();
-        $kpis = collect(config('dashboard.kpis'))->filter(function ($kpi) use ($user) {
-            return $user->can($kpi['permission']);
-        });
-
+        $kpis = config('dashboard.kpis');
         $kpiData = $this->dashboardService->getKpiData();
+        $staff = $this->dashboardService->getStaffActivityData();
 
-        $staff = [];
-        if ($user->can(config('dashboard.panels.staff_activity.permission'))) {
-            $staff = $this->dashboardService->getStaffActivityData();
-        }
-
-        return view('dashboard-v2', compact('kpis', 'kpiData', 'staff'));
+        return view('dashboard-v3', compact('kpis', 'kpiData', 'staff'));
     }
 
     public function saveLayout(Request $request)
     {
-        // This functionality is no longer available
-        return response()->json(['success' => false, 'message' => 'Not implemented'], 404);
+        $request->validate([
+            'layout' => 'required|array',
+        ]);
+
+        $user = Auth::user();
+        foreach ($request->layout as $item) {
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $item['id'],
+                ],
+                [
+                    'x_pos' => $item['x'],
+                    'y_pos' => $item['y'],
+                    'width' => $item['w'],
+                    'height' => $item['h'],
+                    'is_visible' => true, // Assuming visible if it's in the layout
+                ]
+            );
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function resetLayout()
     {
-        // This functionality is no longer available
-        return redirect()->route('dashboard')->with('info', 'Dashboard layout reset is no longer available.');
+        UserDashboardPreference::where('user_id', Auth::id())->delete();
+        return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
     }
 }
