@@ -122,3 +122,16 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+use App\Http\Controllers\SmtpConfigurationController;
+
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::resource('smtp-configurations', SmtpConfigurationController::class);
+});
+
+
+use App\Http\Controllers\SmtpConfigController;
+
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::resource('smtp-configurations', SmtpConfigController::class);
+});
