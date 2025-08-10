@@ -116,12 +116,15 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\TablePreferenceController;
 
 // User Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
+    Route::post('preferences/table', [TablePreferenceController::class, 'store'])
+        ->name('preferences.table.store');
     
     Route::get('audit-logs', function () {
         return view('audit.index');

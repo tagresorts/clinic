@@ -32,16 +32,16 @@
 
                     <!-- Desktop Table View -->
                     <div class="hidden sm:block overflow-x-auto shadow-md rounded-lg border border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
+                        <table id="patients-table" class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th scope="col" class="relative px-6 py-3">
+                                <tr id="patients-table-header">
+                                    <th data-col="name" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Name</th>
+                                    <th data-col="dob" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Date of Birth</th>
+                                    <th data-col="gender" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Gender</th>
+                                    <th data-col="address" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Address</th>
+                                    <th data-col="phone" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Phone</th>
+                                    <th data-col="email" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Email</th>
+                                    <th data-col="actions" scope="col" class="relative px-6 py-3">
                                         <span class="sr-only">Actions</span>
                                     </th>
                                 </tr>
@@ -49,28 +49,28 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($patients as $patient)
                                 <tr class="hover:bg-gray-50 transition-colors duration-150 ease-in-out">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="name" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">
                                             {{ $patient->fullName }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="dob" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ $patient->date_of_birth->format('M d, Y') }}</div>
                                         <div class="text-xs text-gray-500">({{ $patient->age }} yrs old)</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="gender" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ ucfirst($patient->gender) }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="address" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ $patient->address }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="phone" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ $patient->phone }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-col="email" class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ $patient->email ?? 'N/A' }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td data-col="actions" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end space-x-2">
                                             <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
                                             <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
@@ -139,6 +139,128 @@
         </div>
     </div>
 </x-app-layout>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tableKey = 'patients.index.table';
+    const table = document.getElementById('patients-table');
+    if (!table) return;
 
+    const headerRow = document.getElementById('patients-table-header');
+    const initialColumns = ['name','dob','gender','address','phone','email','actions'];
 
+    function loadPreferences() {
+        try {
+            const raw = localStorage.getItem(tableKey);
+            return raw ? JSON.parse(raw) : { order: initialColumns, hidden: [] };
+        } catch { return { order: initialColumns, hidden: [] }; }
+    }
 
+    function savePreferences(prefs) {
+        localStorage.setItem(tableKey, JSON.stringify(prefs));
+        // Optional: also persist to server when logged in
+        fetch('{{ route('preferences.table.store') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ table_key: tableKey, preferences: prefs })
+        }).catch(() => {});
+    }
+
+    function applyPreferences(prefs) {
+        // Reorder columns in header and rows
+        const map = new Map();
+        Array.from(headerRow.children).forEach(th => map.set(th.dataset.col, th));
+        prefs.order.forEach((colKey, idx) => {
+            const th = map.get(colKey);
+            if (th) headerRow.appendChild(th);
+        });
+
+        const rows = table.tBodies[0].rows;
+        for (const row of rows) {
+            const cellMap = new Map();
+            Array.from(row.children).forEach(td => cellMap.set(td.dataset.col, td));
+            prefs.order.forEach(colKey => {
+                const td = cellMap.get(colKey);
+                if (td) row.appendChild(td);
+            });
+        }
+
+        // Hide/unhide
+        const allCols = initialColumns;
+        allCols.forEach(colKey => {
+            const display = prefs.hidden.includes(colKey) ? 'none' : '';
+            const th = headerRow.querySelector(`[data-col="${colKey}"]`);
+            if (th) th.style.display = display;
+            for (const row of rows) {
+                const td = row.querySelector(`[data-col="${colKey}"]`);
+                if (td) td.style.display = display;
+            }
+        });
+    }
+
+    // Enable drag-to-reorder on header (basic HTML5 drag and drop)
+    Array.from(headerRow.children).forEach(th => {
+        th.draggable = true;
+        th.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', th.dataset.col);
+        });
+        th.addEventListener('dragover', e => e.preventDefault());
+        th.addEventListener('drop', e => {
+            e.preventDefault();
+            const fromKey = e.dataTransfer.getData('text/plain');
+            const toKey = th.dataset.col;
+            const prefs = loadPreferences();
+            const order = prefs.order.filter(k => k !== fromKey);
+            const toIndex = order.indexOf(toKey);
+            order.splice(toIndex, 0, fromKey);
+            prefs.order = order;
+            savePreferences(prefs);
+            applyPreferences(prefs);
+        });
+    });
+
+    // Simple menu to toggle columns (press "c" to open)
+    document.addEventListener('keydown', e => {
+        if (e.key.toLowerCase() === 'c') {
+            const prefs = loadPreferences();
+            const toToggle = prompt('Hide/unhide columns (comma-separated keys):\n' + initialColumns.join(', ') + '\nCurrently hidden: ' + prefs.hidden.join(', '));
+            if (toToggle !== null) {
+                const keys = toToggle.split(',').map(s => s.trim()).filter(Boolean);
+                const hidden = initialColumns.filter(k => keys.includes(k));
+                prefs.hidden = hidden;
+                savePreferences(prefs);
+                applyPreferences(prefs);
+            }
+        }
+    });
+
+    // Column resizing (basic): drag right edge to resize
+    Array.from(headerRow.children).forEach(th => {
+        const handle = document.createElement('span');
+        handle.className = 'resizer';
+        handle.style.cssText = 'position:absolute;right:0;top:0;width:6px;cursor:col-resize;height:100%;';
+        th.style.position = 'relative';
+        th.appendChild(handle);
+        let startX = 0; let startWidth = 0;
+        handle.addEventListener('mousedown', e => {
+            startX = e.pageX; startWidth = th.offsetWidth;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp, { once: true });
+        });
+        function onMove(e) {
+            const newW = Math.max(80, startWidth + (e.pageX - startX));
+            th.style.width = newW + 'px';
+        }
+        function onUp() {
+            document.removeEventListener('mousemove', onMove);
+        }
+    });
+
+    // Initial apply
+    applyPreferences(loadPreferences());
+});
+</script>
+@endpush
