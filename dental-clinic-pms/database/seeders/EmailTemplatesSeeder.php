@@ -30,5 +30,15 @@ class EmailTemplatesSeeder extends Seeder
                 . '<div style="margin-top:12px;">{{expiring_stock_table}}</div>'
                 . '<p style="margin-top:12px;">Open Inventory: <a href="{{inventory_url}}">Inventory</a></p>',
         ]);
+
+        EmailTemplate::updateOrCreate([
+            'type' => 'stock_expiring',
+        ], [
+            'name' => 'Inventory Expiring Items',
+            'subject' => 'Expiring Items: {{expiring_count}} item(s) nearing expiry',
+            'body' => '<h2>Expiring Soon</h2>'
+                . '<div>{{expiring_stock_table}}</div>'
+                . '<p style="margin-top:12px;">Open Inventory: <a href="{{inventory_url}}">Inventory</a></p>',
+        ]);
     }
 }
