@@ -88,7 +88,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize a lightweight month calendar that fetches events
     try {
-        const calendar = new FullCalendar.Calendar(calendarEl, {
+        if (!window.FullCalendar && calendarEl) {
+            calendarEl.innerHTML = '<div class="text-gray-500">Calendar unavailable. <a class="text-indigo-600" href="{{ route('appointments.calendar', [], false) }}">Open full calendar</a></div>';
+        }
+        const calendar = window.FullCalendar ? new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
                 left: 'prev,next today',
@@ -105,10 +108,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.open(info.event.url, '_blank');
                 }
             }
-        });
-        calendar.render();
+        }) : null;
+        if (calendar) calendar.render();
     } catch (e) {
         console.warn('FullCalendar not available or failed to initialize:', e);
+    }
+
+    // Show loading state
+    if (container) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin"></i><p class="mt-2">Loading upcoming appointments...</p></div>';
     }
 
     fetch(url, {
