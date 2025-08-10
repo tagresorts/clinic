@@ -37,7 +37,7 @@
                     <div class="bg-white p-6 rounded-lg shadow h-full">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Appointments</h3>
-                            <a href="{{ route('appointments.calendar') }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
+                            <a href="{{ route('appointments.calendar', [], false) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
                         </div>
                         <div id="dashboard-appointments-list" class="space-y-3">
                             <div class="text-center text-gray-400 py-8">
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const startDate = formatDate(today);
     const endDate = formatDate(inSevenDays);
 
-    const url = new URL('{{ route('appointments.summary') }}');
+    const url = new URL('{{ route('appointments.summary', [], false) }}', window.location.origin);
     url.searchParams.append('start_date', startDate);
     url.searchParams.append('end_date', endDate);
 
