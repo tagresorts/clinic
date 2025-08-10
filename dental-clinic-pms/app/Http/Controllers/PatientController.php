@@ -55,14 +55,14 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('Patient store method called.');
+        // Intentionally avoid logging request bodies or PHI
         // Only receptionists and administrators can create patients
         if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             \Illuminate\Support\Facades\Log::warning('Unauthorized attempt to create patient by user: ' . auth()->id());
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
-        \Illuminate\Support\Facades\Log::info('Request data: ', $request->all());
+        // Avoid logging full request payloads containing PHI
 
         try {
             $validated = $request->validate([
@@ -88,7 +88,7 @@ class PatientController extends Controller
                 'insurance_group_number' => 'nullable|string|max:100',
                 'insurance_expiry_date' => 'nullable|date|after:today',
             ]);
-            \Illuminate\Support\Facades\Log::info('Validation successful: ', $validated);
+            // Avoid logging validated PHI
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::error('Validation failed: ', $e->errors());
             throw $e;
@@ -96,7 +96,6 @@ class PatientController extends Controller
 
         try {
             $patient = Patient::create($validated);
-            \Illuminate\Support\Facades\Log::info('Patient created successfully: ', $patient->toArray());
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating patient: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to register patient. Please try again.');
