@@ -33,6 +33,35 @@
     </div>
 
     <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Recipients (optional)</label>
+        <div class="mt-2 space-y-3">
+            <div class="flex items-center space-x-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="recipient_type" value="" class="mr-2" @checked(old('recipient_type', $emailTemplate->recipient_type ?? '')==='')>
+                    <span class="text-sm text-gray-700">Use system default</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="recipient_type" value="manual" class="mr-2" @checked(old('recipient_type', $emailTemplate->recipient_type ?? '')==='manual')>
+                    <span class="text-sm text-gray-700">Manual emails</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="recipient_type" value="roles" class="mr-2" @checked(old('recipient_type', $emailTemplate->recipient_type ?? '')==='roles')>
+                    <span class="text-sm text-gray-700">By roles</span>
+                </label>
+            </div>
+            <div id="recipient-manual" class="hidden">
+                <label for="recipient_emails" class="block text-xs text-gray-600">Emails (comma-separated)</label>
+                <input type="text" name="recipient_emails" id="recipient_emails" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('recipient_emails', $emailTemplate->recipient_emails ?? '') }}" placeholder="owner@clinic.com, manager@clinic.com">
+            </div>
+            <div id="recipient-roles" class="hidden">
+                <label for="recipient_roles" class="block text-xs text-gray-600">Roles (comma-separated)</label>
+                <input type="text" name="recipient_roles" id="recipient_roles" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('recipient_roles', $emailTemplate->recipient_roles ?? '') }}" placeholder="administrator, inventory_manager">
+            </div>
+            <p class="text-xs text-gray-500">If left as "Use system default", stock emails use `ALERT_STOCK_RECIPIENTS` env or all administrators.</p>
+        </div>
+    </div>
+
+    <div class="mb-4">
         <p class="text-sm text-gray-500">Available Placeholders:</p>
         <ul class="text-sm text-gray-500">
             <li><code>{{'{'.'user_name'.'}'}}</code> - The name of the user</li>
@@ -66,6 +95,9 @@
             const editor = document.getElementById('body-editor');
             const textarea = document.getElementById('body');
             const toolbar = editor.previousElementSibling;
+            const radios = document.querySelectorAll('input[name="recipient_type"]');
+            const manual = document.getElementById('recipient-manual');
+            const roles = document.getElementById('recipient-roles');
 
             function exec(cmd, val = null) {
                 document.execCommand(cmd, false, val);
@@ -96,6 +128,14 @@
                     textarea.value = editor.innerHTML;
                 });
             }
+
+            function toggleRecipients() {
+                const val = document.querySelector('input[name="recipient_type"]:checked')?.value || '';
+                manual.classList.toggle('hidden', val !== 'manual');
+                roles.classList.toggle('hidden', val !== 'roles');
+            }
+            radios.forEach(r => r.addEventListener('change', toggleRecipients));
+            toggleRecipients();
         })();
     </script>
 @endpush

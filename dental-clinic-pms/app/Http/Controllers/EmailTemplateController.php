@@ -25,6 +25,9 @@ class EmailTemplateController extends Controller
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
             'type' => 'required|string|max:255|unique:email_templates,type',
+            'recipient_type' => 'nullable|in:manual,roles',
+            'recipient_emails' => 'nullable|string',
+            'recipient_roles' => 'nullable|string',
         ]);
 
         EmailTemplate::create($validated);
@@ -44,6 +47,9 @@ class EmailTemplateController extends Controller
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
             'type' => 'required|string|max:255|unique:email_templates,type,' . $emailTemplate->id,
+            'recipient_type' => 'nullable|in:manual,roles',
+            'recipient_emails' => 'nullable|string',
+            'recipient_roles' => 'nullable|string',
         ]);
 
         $emailTemplate->update($validated);
