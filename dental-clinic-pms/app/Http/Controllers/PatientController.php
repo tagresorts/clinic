@@ -133,6 +133,12 @@ class PatientController extends Controller
             abort(403, 'Only receptionists and administrators can edit patient information.');
         }
 
+        if (method_exists($patient, 'trashed') && $patient->trashed()) {
+            return redirect()
+                ->route('patients.show', $patient->id)
+                ->with('error', 'This patient is deactivated. Reactivate to edit.');
+        }
+
         return view('patients.edit', compact('patient'));
     }
 
