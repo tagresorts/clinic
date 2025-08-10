@@ -39,12 +39,8 @@
                             <h3 class="text-lg font-semibold text-gray-800">Appointments</h3>
                             <a href="{{ route('appointments.calendar', [], false) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
                         </div>
-                        <div id="dashboard-appointments-list" class="space-y-3">
-                            <div class="text-center text-gray-400 py-8">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <p class="mt-2">Loading upcoming appointments...</p>
-                            </div>
-                        </div>
+                        <div id="dashboard-calendar" class="mb-4"></div>
+                        <div id="dashboard-appointments-list" class="space-y-3"></div>
                     </div>
                 </div>
 
@@ -67,6 +63,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('dashboard-appointments-list');
+    const calendarEl = document.getElementById('dashboard-calendar');
 
     function formatDate(date) {
         const d = new Date(date);
@@ -88,6 +85,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const url = new URL('{{ route('appointments.summary', [], false) }}', window.location.origin);
     url.searchParams.append('start_date', startDate);
     url.searchParams.append('end_date', endDate);
+
+    // Initialize a lightweight month calendar that fetches events
+    try {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: ''
+            },
+            height: 400,
+            events: {
+                url: '{{ route('appointments.feed', [], false) }}',
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                if (info.event.url) {
+                    window.open(info.event.url, '_blank');
+                }
+            }
+        });
+        calendar.render();
+    } catch (e) {
+        console.warn('FullCalendar not available or failed to initialize:', e);
+    }
 
     fetch(url, {
         headers: {
