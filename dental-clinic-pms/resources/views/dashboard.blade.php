@@ -29,7 +29,8 @@
     </div>
 
     @push('scripts')
-    <script src="{{ asset('node_modules/gridstack/dist/gridstack.all.js') }}"></script>
+    <!-- Gridstack JS via CDN; node_modules path is not web-accessible -->
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack-all.js"></script>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
             let grid = GridStack.init({

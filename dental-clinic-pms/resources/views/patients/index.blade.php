@@ -32,12 +32,23 @@
                                 </svg>
                                 Add Patient
                             </a>
+                            <!-- Columns visibility control -->
+                            <div class="relative">
+                                <button id="columns-toggle" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Columns
+                                    <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.114l3.71-3.883a.75.75 0 111.08 1.04l-4.24 4.44a.75.75 0 01-1.08 0l-4.24-4.44a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                                </button>
+                                <div id="columns-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3 z-20">
+                                    <p class="text-xs text-gray-500 mb-2">Show/Hide columns</p>
+                                    <div class="space-y-2" id="columns-checkboxes"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Desktop Table View -->
                     <div class="hidden sm:block overflow-x-auto shadow-md rounded-lg border border-gray-200">
-                        <table id="patients-table" class="min-w-full divide-y divide-gray-200">
+                        <table id="patients-table" class="min-w-full divide-y divide-gray-200" data-prefs-url="{{ route('preferences.table.store') }}">
                             <thead class="bg-gray-50">
                                 <tr id="patients-table-header">
                                     <th data-col="name" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move">Name</th>
@@ -77,8 +88,10 @@
                                     </td>
                                     <td data-col="actions" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end space-x-2">
-                                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
-                                            <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                                            @if(!(method_exists($patient, 'trashed') && $patient->trashed()))
+                                                <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
+                                                <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                                            @endif
                                             @if(method_exists($patient, 'trashed') && $patient->trashed())
                                                 @can('patient-edit')
                                                     <form class="inline-block" action="{{ route('patients.restore', $patient->id) }}" method="POST" onsubmit="return confirm('Reactivate this patient?');">
@@ -126,8 +139,10 @@
                                         <p class="text-sm text-gray-600"><span class="font-medium">Email:</span> {{ $patient->email ?? 'N/A' }}</p>
                                     </div>
                                     <div class="mt-4 flex justify-end space-x-2">
-                                        <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
-                                        <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                                        @if(!(method_exists($patient, 'trashed') && $patient->trashed()))
+                                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">View</a>
+                                            <a href="{{ route('patients.edit', $patient) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                                        @endif
                                         @if(method_exists($patient, 'trashed') && $patient->trashed())
                                             @can('patient-edit')
                                                 <form class="inline-block" action="{{ route('patients.restore', $patient->id) }}" method="POST" onsubmit="return confirm('Reactivate this patient?');">
@@ -163,127 +178,5 @@
     </div>
 </x-app-layout>
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tableKey = 'patients.index.table';
-    const table = document.getElementById('patients-table');
-    if (!table) return;
-
-    const headerRow = document.getElementById('patients-table-header');
-    const initialColumns = ['name','dob','gender','address','phone','email','actions'];
-
-    function loadPreferences() {
-        try {
-            const raw = localStorage.getItem(tableKey);
-            return raw ? JSON.parse(raw) : { order: initialColumns, hidden: [] };
-        } catch { return { order: initialColumns, hidden: [] }; }
-    }
-
-    function savePreferences(prefs) {
-        localStorage.setItem(tableKey, JSON.stringify(prefs));
-        // Optional: also persist to server when logged in
-        fetch('{{ route('preferences.table.store') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ table_key: tableKey, preferences: prefs })
-        }).catch(() => {});
-    }
-
-    function applyPreferences(prefs) {
-        // Reorder columns in header and rows
-        const map = new Map();
-        Array.from(headerRow.children).forEach(th => map.set(th.dataset.col, th));
-        prefs.order.forEach((colKey, idx) => {
-            const th = map.get(colKey);
-            if (th) headerRow.appendChild(th);
-        });
-
-        const rows = table.tBodies[0].rows;
-        for (const row of rows) {
-            const cellMap = new Map();
-            Array.from(row.children).forEach(td => cellMap.set(td.dataset.col, td));
-            prefs.order.forEach(colKey => {
-                const td = cellMap.get(colKey);
-                if (td) row.appendChild(td);
-            });
-        }
-
-        // Hide/unhide
-        const allCols = initialColumns;
-        allCols.forEach(colKey => {
-            const display = prefs.hidden.includes(colKey) ? 'none' : '';
-            const th = headerRow.querySelector(`[data-col="${colKey}"]`);
-            if (th) th.style.display = display;
-            for (const row of rows) {
-                const td = row.querySelector(`[data-col="${colKey}"]`);
-                if (td) td.style.display = display;
-            }
-        });
-    }
-
-    // Enable drag-to-reorder on header (basic HTML5 drag and drop)
-    Array.from(headerRow.children).forEach(th => {
-        th.draggable = true;
-        th.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', th.dataset.col);
-        });
-        th.addEventListener('dragover', e => e.preventDefault());
-        th.addEventListener('drop', e => {
-            e.preventDefault();
-            const fromKey = e.dataTransfer.getData('text/plain');
-            const toKey = th.dataset.col;
-            const prefs = loadPreferences();
-            const order = prefs.order.filter(k => k !== fromKey);
-            const toIndex = order.indexOf(toKey);
-            order.splice(toIndex, 0, fromKey);
-            prefs.order = order;
-            savePreferences(prefs);
-            applyPreferences(prefs);
-        });
-    });
-
-    // Simple menu to toggle columns (press "c" to open)
-    document.addEventListener('keydown', e => {
-        if (e.key.toLowerCase() === 'c') {
-            const prefs = loadPreferences();
-            const toToggle = prompt('Hide/unhide columns (comma-separated keys):\n' + initialColumns.join(', ') + '\nCurrently hidden: ' + prefs.hidden.join(', '));
-            if (toToggle !== null) {
-                const keys = toToggle.split(',').map(s => s.trim()).filter(Boolean);
-                const hidden = initialColumns.filter(k => keys.includes(k));
-                prefs.hidden = hidden;
-                savePreferences(prefs);
-                applyPreferences(prefs);
-            }
-        }
-    });
-
-    // Column resizing (basic): drag right edge to resize
-    Array.from(headerRow.children).forEach(th => {
-        const handle = document.createElement('span');
-        handle.className = 'resizer';
-        handle.style.cssText = 'position:absolute;right:0;top:0;width:6px;cursor:col-resize;height:100%;';
-        th.style.position = 'relative';
-        th.appendChild(handle);
-        let startX = 0; let startWidth = 0;
-        handle.addEventListener('mousedown', e => {
-            startX = e.pageX; startWidth = th.offsetWidth;
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp, { once: true });
-        });
-        function onMove(e) {
-            const newW = Math.max(80, startWidth + (e.pageX - startX));
-            th.style.width = newW + 'px';
-        }
-        function onUp() {
-            document.removeEventListener('mousemove', onMove);
-        }
-    });
-
-    // Initial apply
-    applyPreferences(loadPreferences());
-});
-</script>
+<!-- Patients table scripts are now bundled in Vite (resources/js/app.js) to avoid inline script blocking. -->
 @endpush

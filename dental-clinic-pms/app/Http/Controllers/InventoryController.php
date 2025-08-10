@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryItem;
 use App\Models\Supplier;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -74,7 +75,22 @@ class InventoryController extends Controller
             'has_expiry' => 'boolean',
             'expiry_date' => 'nullable|date',
         ]);
+        $oldQty = $inventory->quantity_in_stock;
         $inventory->update($validated);
+        // Record stock adjustment when quantity changes
+        if (isset($validated['quantity_in_stock']) && $validated['quantity_in_stock'] != $oldQty) {
+            $delta = (int)$validated['quantity_in_stock'] - (int)$oldQty;
+            if ($delta !== 0) {
+                StockMovement::create([
+                    'inventory_item_id' => $inventory->id,
+                    'type' => $delta > 0 ? 'in' : 'out',
+                    'quantity' => abs($delta),
+                    'reference' => 'manual_adjustment',
+                    'notes' => 'Adjusted via inventory edit',
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
         return redirect()->route('inventory.show', $inventory)->with('success', 'Item updated.');
     }
 

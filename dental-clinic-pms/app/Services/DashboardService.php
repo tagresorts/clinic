@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Carbon\Carbon;
@@ -28,8 +29,10 @@ class DashboardService
                 ->sum('total_amount'),
             'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])
                 ->sum('outstanding_balance'),
-            // Compare stock columns without raw expressions for portability
-            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')
+            // Stock KPIs
+            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count(),
+            'expiring_items' => InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', Carbon::today()->addDays(30))
                 ->count(),
             'active_dentists' => User::role('dentist')->active()->count(),
             'active_staff' => User::active()->count(),
@@ -147,13 +150,16 @@ class DashboardService
     public function getKpiData(): array
     {
         $today = Carbon::today();
+        $expirationThreshold = Setting::where('key', 'expiration_threshold')->first()->value ?? 30;
 
         return [
             'todays_appointments' => Appointment::today()->count(),
             'active_patients' => Patient::active()->count(),
-            'daily_revenue' => Invoice::whereDate('created_at', $today)->where('status', 'paid')->sum('total_amount'),
-            'pending_payments' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])->sum('outstanding_balance'),
             'chair_utilization' => '75%', // Mock data for now
+            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count(),
+            'expiring_items' => InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', $today->copy()->addDays($expirationThreshold))
+                ->count(),
         ];
     }
 
