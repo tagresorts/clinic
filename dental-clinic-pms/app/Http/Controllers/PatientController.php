@@ -175,9 +175,9 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
-        // Only administrators can delete patients
-        if (!auth()->user()->hasRole('administrator')) {
-            abort(403, 'Only administrators can delete patients.');
+        // Authorization via permission
+        if (!auth()->user()->can('patient-delete')) {
+            abort(403, 'You are not authorized to delete patients.');
         }
 
         // Soft delete
