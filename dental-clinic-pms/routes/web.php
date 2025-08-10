@@ -7,6 +7,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProcedureController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to dashboard if authenticated
@@ -86,13 +87,7 @@ Route::middleware(['auth', 'role:receptionist,administrator'])->group(function (
 
 // Inventory Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('inventory', function () {
-        return view('inventory.index');
-    })->name('inventory.index');
-    
-    Route::get('suppliers', function () {
-        return view('suppliers.index');
-    })->name('suppliers.index');
+    Route::resource('suppliers', SupplierController::class);
 });
 
 // Reports - Administrators only
