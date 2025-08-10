@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
 // Patient Management - Accessible by all roles (with different permissions)
 Route::middleware(['auth', 'role'])->group(function () {
     Route::resource('patients', PatientController::class);
+    Route::post('patients/{id}/restore', [PatientController::class, 'restore'])->name('patients.restore');
     Route::get('patients/{patient}/dental-chart', [PatientController::class, 'dentalChart'])->name('patients.dental-chart');
     Route::get('patients/{patient}/medical-history', [PatientController::class, 'medicalHistory'])->name('patients.medical-history');
     // Local-only debug routes

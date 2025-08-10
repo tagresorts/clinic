@@ -20,9 +20,16 @@ class PatientController extends Controller
             $query->search($request->search);
         }
 
-        // Filter by status
-        if ($request->has('status') && $request->status === 'active') {
-            $query->active();
+        // Filter by status: active (default), deactivated (soft-deleted), or all
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                // default behavior (exclude soft-deleted)
+                $query->active();
+            } elseif ($request->status === 'deactivated') {
+                $query = Patient::onlyTrashed();
+            } elseif ($request->status === 'all') {
+                $query = Patient::withTrashed();
+            }
         }
 
         // For dentists, only show their patients (from appointments)
@@ -185,6 +192,22 @@ class PatientController extends Controller
 
         return redirect()->route('patients.index')
             ->with('success', 'Patient has been deactivated successfully.');
+    }
+
+    /**
+     * Restore a previously deactivated (soft-deleted) patient.
+     */
+    public function restore(int $id)
+    {
+        if (!auth()->user()->can('patient-edit')) {
+            abort(403, 'You are not authorized to restore patients.');
+        }
+
+        $patient = Patient::withTrashed()->findOrFail($id);
+        $patient->restore();
+
+        return redirect()->route('patients.show', $patient)
+            ->with('success', 'Patient has been reactivated successfully.');
     }
 
     /**
