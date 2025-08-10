@@ -81,8 +81,8 @@ class EmailTemplateController extends Controller
         try {
             [$subject, $body] = $this->renderForTest($emailTemplate);
 
-            $this->withSmtp(function () use ($data, $subject, $body) {
-                Mail::send('emails.custom', ['body' => $body], function ($message) use ($data, $subject) {
+            $this->withSmtp(function ($mailer) use ($data, $subject, $body) {
+                $mailer->send('emails.custom', ['body' => $body], function ($message) use ($data, $subject) {
                     $message->to($data['to'])
                         ->subject($subject);
                 });
@@ -172,7 +172,7 @@ class EmailTemplateController extends Controller
     private function withSmtp(callable $callback): void
     {
         $cfg = SmtpConfig::where('is_default', true)->where('is_active', true)->first();
-        if (!$cfg) { $callback(); return; }
+        if (!$cfg) { $callback(app('mailer')); return; }
 
         $password = $cfg->password ? Crypt::decryptString($cfg->password) : null;
         $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport(
@@ -185,14 +185,6 @@ class EmailTemplateController extends Controller
         $laravelMailer = new \Illuminate\Mail\Mailer('smtp-test', app('view'), $transport, app('events'));
         $laravelMailer->alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
         $laravelMailer->setQueue(app('queue'));
-
-        // Swap Mail manager just for this call
-        $original = Mail::getFacadeRoot();
-        app()->instance('mail.manager', new class($laravelMailer) extends \Illuminate\Mail\MailManager { public function __construct($mailer){ $this->app = app(); $this->setDefaultDriver('smtp-test'); $this->mailers = ['smtp-test' => $mailer]; } });
-        Mail::alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
-
-        try { $callback(); } finally {
-            // No persistent override; next mail resolution will use default config again
-        }
+        $callback($laravelMailer);
     }
 }
