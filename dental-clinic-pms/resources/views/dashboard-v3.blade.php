@@ -40,7 +40,23 @@
                             <a href="{{ route('appointments.calendar', [], false) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
                         </div>
                         <div id="dashboard-calendar" class="mb-4"></div>
-                        <div id="dashboard-appointments-list" class="space-y-3"></div>
+                        <div id="dashboard-appointments-list" class="space-y-3">
+                            @if(isset($upcomingAppointments) && $upcomingAppointments->count())
+                                <ul class="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                                    @foreach($upcomingAppointments as $appt)
+                                        <li class="p-3 hover:bg-gray-50 transition">
+                                            <a href="{{ route('appointments.show', $appt) }}" class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">{{ $appt->patient->full_name }}</p>
+                                                    <p class="text-sm text-gray-600">{{ $appt->appointment_datetime->format('M j, Y g:i A') }} • {{ $appt->appointment_type }} • Dr. {{ $appt->dentist->name }}</p>
+                                                </div>
+                                                <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">{{ ucfirst(str_replace('_', ' ', $appt->status)) }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -83,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDate = formatDate(inSevenDays);
 
     const url = new URL('{{ route('appointments.summary', [], false) }}', window.location.origin);
+    console.debug('Dashboard summary URL:', url.toString());
     url.searchParams.append('start_date', startDate);
     url.searchParams.append('end_date', endDate);
 
@@ -123,7 +140,8 @@ document.addEventListener('DOMContentLoaded', function () {
         headers: {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content
-        }
+        },
+        credentials: 'same-origin'
     })
     .then(response => {
         if (!response.ok) throw new Error('Failed to load appointments');

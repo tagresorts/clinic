@@ -9,6 +9,7 @@ use App\Models\Patient;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardService
 {
@@ -166,5 +167,24 @@ class DashboardService
         }
 
         return $staff;
+    }
+
+    /**
+     * Upcoming appointments for dashboard (next 7 days), role-aware.
+     */
+    public function getUpcomingAppointmentsForDashboard(User $user): Collection
+    {
+        $start = Carbon::today();
+        $end = Carbon::today()->addDays(7)->endOfDay();
+
+        $query = Appointment::with(['patient', 'dentist'])
+            ->whereBetween('appointment_datetime', [$start, $end])
+            ->orderBy('appointment_datetime');
+
+        if ($user->hasRole('dentist')) {
+            $query->byDentist($user->id);
+        }
+
+        return $query->take(10)->get();
     }
 }
