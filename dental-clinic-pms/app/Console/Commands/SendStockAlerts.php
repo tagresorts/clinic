@@ -13,8 +13,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Mailer as SymfonyMailer;
-use Symfony\Component\Mailer\Transport\Dsn;
-use Symfony\Component\Mailer\Transport\TransportFactory;
 
 class SendStockAlerts extends Command
 {
@@ -78,8 +76,13 @@ class SendStockAlerts extends Command
         if (!$cfg) { $callback(); return; }
 
         $password = $cfg->password ? Crypt::decryptString($cfg->password) : null;
-        $dsn = new Dsn('smtp', $cfg->host, $cfg->username, $password, $cfg->port, $cfg->encryption ?: null);
-        $transport = (new TransportFactory())->fromDsnObject($dsn);
+        $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport(
+            $cfg->host,
+            $cfg->port,
+            $cfg->encryption === 'ssl'
+        );
+        if ($cfg->username) { $transport->setUsername($cfg->username); }
+        if ($password) { $transport->setPassword($password); }
         $symfonyMailer = new SymfonyMailer($transport);
 
         $laravelMailer = new \Illuminate\Mail\Mailer('stock', app('view'), $symfonyMailer);

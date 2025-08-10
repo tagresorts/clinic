@@ -11,6 +11,7 @@ use App\Models\InventoryItem;
 use App\Models\Setting;
 use App\Models\SmtpConfig;
 use Carbon\Carbon;
+// use Symfony\Component\Mailer\Transport\TransportFactory; // not used; we build SMTP transport directly
 
 class EmailTemplateController extends Controller
 {
@@ -92,8 +93,9 @@ class EmailTemplateController extends Controller
             Log::error('Email template test failed', [
                 'template_id' => $emailTemplate->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
-            return back()->with('error', 'Failed to send test: '.$e->getMessage());
+            return back()->with('error', 'Failed to send test: '.$e->getMessage().' Check logs for details.');
         }
     }
 
@@ -173,8 +175,13 @@ class EmailTemplateController extends Controller
         if (!$cfg) { $callback(); return; }
 
         $password = $cfg->password ? Crypt::decryptString($cfg->password) : null;
-        $dsn = new \Symfony\Component\Mailer\Transport\Dsn('smtp', $cfg->host, $cfg->username, $password, $cfg->port, $cfg->encryption ?: null);
-        $transport = (new \Symfony\Component\Mailer\Transport\TransportFactory())->fromDsnObject($dsn);
+        $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport(
+            $cfg->host,
+            $cfg->port,
+            $cfg->encryption === 'ssl'
+        );
+        if ($cfg->username) { $transport->setUsername($cfg->username); }
+        if ($password) { $transport->setPassword($password); }
         $symfonyMailer = new \Symfony\Component\Mailer\Mailer($transport);
 
         $laravelMailer = new \Illuminate\Mail\Mailer('smtp-test', app('view'), $symfonyMailer);
