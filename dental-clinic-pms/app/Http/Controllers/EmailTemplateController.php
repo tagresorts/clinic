@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Models\InventoryItem;
+use App\Models\Setting;
+use Carbon\Carbon;
 
 class EmailTemplateController extends Controller
 {
@@ -62,5 +66,88 @@ class EmailTemplateController extends Controller
         $emailTemplate->delete();
 
         return redirect()->route('email_templates.index')->with('success', 'Email template deleted successfully.');
+    }
+
+    public function test(Request $request, EmailTemplate $emailTemplate)
+    {
+        $data = $request->validate([
+            'to' => 'required|email',
+        ]);
+
+        [$subject, $body] = $this->renderForTest($emailTemplate);
+
+        Mail::send('emails.custom', ['body' => $body], function ($message) use ($data, $subject) {
+            $message->to($data['to'])
+                ->subject($subject);
+        });
+
+        return back()->with('success', 'Test email sent to '.$data['to']);
+    }
+
+    private function renderForTest(EmailTemplate $template): array
+    {
+        $type = $template->type;
+        $replacements = [];
+
+        if ($type === 'password_reset') {
+            $userName = auth()->user()->name ?? 'Test User';
+            $resetLink = url(route('password.reset', [
+                'token' => 'test-token',
+                'email' => auth()->user()->email ?? 'test@example.com',
+            ], false));
+            $replacements = [
+                '{{user_name}}' => $userName,
+                '{{reset_link}}' => $resetLink,
+            ];
+        } elseif (in_array($type, ['stock_digest', 'stock_expiring'])) {
+            $today = Carbon::today();
+            $expirationThreshold = Setting::where('key', 'expiration_threshold')->first()->value ?? 30;
+            $low = InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')
+                ->limit(5)->get(['item_name','quantity_in_stock','reorder_level'])->toArray();
+            $expiring = InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', $today->copy()->addDays($expirationThreshold))
+                ->limit(5)->get(['item_name','expiry_date'])->toArray();
+
+            $lowTable = $this->renderLowTable($low);
+            $expTable = $this->renderExpTable($expiring);
+            $replacements = [
+                '{{low_stock_table}}' => $lowTable,
+                '{{expiring_stock_table}}' => $expTable,
+                '{{inventory_url}}' => route('inventory.index'),
+                '{{low_count}}' => (string) count($low),
+                '{{expiring_count}}' => (string) count($expiring),
+            ];
+        }
+
+        $subject = strtr($template->subject, $replacements);
+        $body = strtr($template->body, $replacements);
+        return [$subject, $body];
+    }
+
+    private function renderLowTable(array $items): string
+    {
+        if (!$items) return '';
+        $rows = '';
+        foreach ($items as $i) {
+            $rows .= '<tr><td>'.e($i['item_name']).'</td><td>'.e($i['quantity_in_stock']).'</td><td>'.e($i['reorder_level']).'</td></tr>';
+        }
+        return '<h3>Low Stock</h3><table border="1" cellpadding="6" cellspacing="0" width="100%">'
+            .'<tr><th align="left">Item</th><th align="left">Qty</th><th align="left">Reorder</th></tr>'
+            .$rows
+            .'</table>';
+    }
+
+    private function renderExpTable(array $items): string
+    {
+        if (!$items) return '';
+        $rows = '';
+        foreach ($items as $i) {
+            $date = Carbon::parse($i['expiry_date'])->format('M d, Y');
+            $rows .= '<tr><td>'.e($i['item_name']).'</td><td>'.e($date).'</td></tr>';
+        }
+        return '<h3>Expiring Soon</h3><table border="1" cellpadding="6" cellspacing="0" width="100%">'
+            .'<tr><th align="left">Item</th><th align="left">Expiry Date</th></tr>'
+            .$rows
+            .'</table>';
     }
 }
