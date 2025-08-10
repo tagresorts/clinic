@@ -83,9 +83,7 @@ class SendStockAlerts extends Command
         );
         if ($cfg->username) { $transport->setUsername($cfg->username); }
         if ($password) { $transport->setPassword($password); }
-        $symfonyMailer = new SymfonyMailer($transport);
-
-        $laravelMailer = new \Illuminate\Mail\Mailer('stock', app('view'), $symfonyMailer);
+        $laravelMailer = new \Illuminate\Mail\Mailer('stock', app('view'), $transport, app('events'));
         $laravelMailer->alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
         $laravelMailer->setQueue(app('queue'));
 

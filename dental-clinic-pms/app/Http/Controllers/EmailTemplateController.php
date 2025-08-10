@@ -182,9 +182,7 @@ class EmailTemplateController extends Controller
         );
         if ($cfg->username) { $transport->setUsername($cfg->username); }
         if ($password) { $transport->setPassword($password); }
-        $symfonyMailer = new \Symfony\Component\Mailer\Mailer($transport);
-
-        $laravelMailer = new \Illuminate\Mail\Mailer('smtp-test', app('view'), $symfonyMailer);
+        $laravelMailer = new \Illuminate\Mail\Mailer('smtp-test', app('view'), $transport, app('events'));
         $laravelMailer->alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
         $laravelMailer->setQueue(app('queue'));
 
