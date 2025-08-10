@@ -25,12 +25,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'user-list', 'user-create', 'user-edit', 'user-delete',
             'role-list', 'role-create', 'role-edit', 'role-delete',
             'permission-list', 'permission-create', 'permission-edit', 'permission-delete',
+            // Patients & Appointments
             'patient-list', 'patient-create', 'patient-edit', 'patient-delete',
             'appointment-list', 'appointment-create', 'appointment-edit', 'appointment-delete',
             'treatment-plan-list', 'treatment-plan-create', 'treatment-plan-edit', 'treatment-plan-delete',
             'invoice-list', 'invoice-create', 'invoice-edit', 'invoice-delete',
             'procedure-list', 'procedure-create', 'procedure-edit', 'procedure-delete',
+            // Inventory & Suppliers
             'inventory-list', 'inventory-create', 'inventory-edit', 'inventory-delete',
+            'supplier-list', 'supplier-create', 'supplier-edit', 'supplier-delete',
             'report-list',
             'view_dashboard', // Single permission for the dashboard
         ];
