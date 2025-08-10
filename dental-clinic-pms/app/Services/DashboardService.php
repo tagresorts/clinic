@@ -27,7 +27,8 @@ class DashboardService
                 ->sum('total_amount'),
             'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])
                 ->sum('outstanding_balance'),
-            'low_stock_items' => InventoryItem::where('quantity_in_stock', '<=', InventoryItem::raw('reorder_level'))
+            // Compare stock columns without raw expressions for portability
+            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')
                 ->count(),
             'active_dentists' => User::role('dentist')->active()->count(),
             'active_staff' => User::active()->count(),
@@ -36,7 +37,7 @@ class DashboardService
                 ->groupBy('status')
                 ->pluck('count', 'status'),
             'revenue_trend' => Invoice::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-                ->where('created_at', '>=', $today->subDays(30))
+                ->where('created_at', '>=', $today->copy()->subDays(30))
                 ->where('status', 'paid')
                 ->groupBy('date')
                 ->orderBy('date')
