@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
 use App\Models\InventoryItem;
 use App\Models\Setting;
+use App\Models\SmtpConfig;
 use Carbon\Carbon;
 
 class EmailTemplateController extends Controller
@@ -74,14 +77,24 @@ class EmailTemplateController extends Controller
             'to' => 'required|email',
         ]);
 
-        [$subject, $body] = $this->renderForTest($emailTemplate);
+        try {
+            [$subject, $body] = $this->renderForTest($emailTemplate);
 
-        Mail::send('emails.custom', ['body' => $body], function ($message) use ($data, $subject) {
-            $message->to($data['to'])
-                ->subject($subject);
-        });
+            $this->withSmtp(function () use ($data, $subject, $body) {
+                Mail::send('emails.custom', ['body' => $body], function ($message) use ($data, $subject) {
+                    $message->to($data['to'])
+                        ->subject($subject);
+                });
+            });
 
-        return back()->with('success', 'Test email sent to '.$data['to']);
+            return back()->with('success', 'Test email sent to '.$data['to']);
+        } catch (\Throwable $e) {
+            Log::error('Email template test failed', [
+                'template_id' => $emailTemplate->id,
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Failed to send test: '.$e->getMessage());
+        }
     }
 
     private function renderForTest(EmailTemplate $template): array
@@ -149,5 +162,32 @@ class EmailTemplateController extends Controller
             .'<tr><th align="left">Item</th><th align="left">Expiry Date</th></tr>'
             .$rows
             .'</table>';
+    }
+
+    /**
+     * Use the app's default active SMTP config for the duration of the callback if available.
+     */
+    private function withSmtp(callable $callback): void
+    {
+        $cfg = SmtpConfig::where('is_default', true)->where('is_active', true)->first();
+        if (!$cfg) { $callback(); return; }
+
+        $password = $cfg->password ? Crypt::decryptString($cfg->password) : null;
+        $dsn = new \Symfony\Component\Mailer\Transport\Dsn('smtp', $cfg->host, $cfg->username, $password, $cfg->port, $cfg->encryption ?: null);
+        $transport = (new \Symfony\Component\Mailer\Transport\TransportFactory())->fromDsnObject($dsn);
+        $symfonyMailer = new \Symfony\Component\Mailer\Mailer($transport);
+
+        $laravelMailer = new \Illuminate\Mail\Mailer('smtp-test', app('view'), $symfonyMailer);
+        $laravelMailer->alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
+        $laravelMailer->setQueue(app('queue'));
+
+        // Swap Mail manager just for this call
+        $original = Mail::getFacadeRoot();
+        app()->instance('mail.manager', new class($laravelMailer) extends \Illuminate\Mail\MailManager { public function __construct($mailer){ $this->app = app(); $this->setDefaultDriver('smtp-test'); $this->mailers = ['smtp-test' => $mailer]; } });
+        Mail::alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
+
+        try { $callback(); } finally {
+            // No persistent override; next mail resolution will use default config again
+        }
     }
 }
