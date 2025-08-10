@@ -20,9 +20,16 @@ class PatientController extends Controller
             $query->search($request->search);
         }
 
-        // Filter by status
-        if ($request->has('status') && $request->status === 'active') {
-            $query->active();
+        // Filter by status: active (default), deactivated (soft-deleted), or all
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                // default behavior (exclude soft-deleted)
+                $query->active();
+            } elseif ($request->status === 'deactivated') {
+                $query = Patient::onlyTrashed();
+            } elseif ($request->status === 'all') {
+                $query = Patient::withTrashed();
+            }
         }
 
         // For dentists, only show their patients (from appointments)
@@ -55,14 +62,14 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('Patient store method called.');
+        // Intentionally avoid logging request bodies or PHI
         // Only receptionists and administrators can create patients
         if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             \Illuminate\Support\Facades\Log::warning('Unauthorized attempt to create patient by user: ' . auth()->id());
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
-        \Illuminate\Support\Facades\Log::info('Request data: ', $request->all());
+        // Avoid logging full request payloads containing PHI
 
         try {
             $validated = $request->validate([
@@ -88,7 +95,7 @@ class PatientController extends Controller
                 'insurance_group_number' => 'nullable|string|max:100',
                 'insurance_expiry_date' => 'nullable|date|after:today',
             ]);
-            \Illuminate\Support\Facades\Log::info('Validation successful: ', $validated);
+            // Avoid logging validated PHI
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Illuminate\Support\Facades\Log::error('Validation failed: ', $e->errors());
             throw $e;
@@ -96,7 +103,6 @@ class PatientController extends Controller
 
         try {
             $patient = Patient::create($validated);
-            \Illuminate\Support\Facades\Log::info('Patient created successfully: ', $patient->toArray());
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating patient: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to register patient. Please try again.');
@@ -125,6 +131,12 @@ class PatientController extends Controller
         // Only receptionists and administrators can edit patient demographics
         if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
             abort(403, 'Only receptionists and administrators can edit patient information.');
+        }
+
+        if (method_exists($patient, 'trashed') && $patient->trashed()) {
+            return redirect()
+                ->route('patients.show', $patient->id)
+                ->with('error', 'This patient is deactivated. Reactivate to edit.');
         }
 
         return view('patients.edit', compact('patient'));
@@ -176,9 +188,9 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
-        // Only administrators can delete patients
-        if (!auth()->user()->hasRole('administrator')) {
-            abort(403, 'Only administrators can delete patients.');
+        // Authorization via permission
+        if (!auth()->user()->can('patient-delete')) {
+            abort(403, 'You are not authorized to delete patients.');
         }
 
         // Soft delete
@@ -186,6 +198,22 @@ class PatientController extends Controller
 
         return redirect()->route('patients.index')
             ->with('success', 'Patient has been deactivated successfully.');
+    }
+
+    /**
+     * Restore a previously deactivated (soft-deleted) patient.
+     */
+    public function restore(int $id)
+    {
+        if (!auth()->user()->can('patient-edit')) {
+            abort(403, 'You are not authorized to restore patients.');
+        }
+
+        $patient = Patient::withTrashed()->findOrFail($id);
+        $patient->restore();
+
+        return redirect()->route('patients.show', $patient)
+            ->with('success', 'Patient has been reactivated successfully.');
     }
 
     /**

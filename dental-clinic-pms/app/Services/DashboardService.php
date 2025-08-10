@@ -6,9 +6,11 @@ use App\Models\Appointment;
 use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\Patient;
+use App\Models\Setting;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardService
 {
@@ -27,7 +29,10 @@ class DashboardService
                 ->sum('total_amount'),
             'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])
                 ->sum('outstanding_balance'),
-            'low_stock_items' => InventoryItem::where('quantity_in_stock', '<=', InventoryItem::raw('reorder_level'))
+            // Stock KPIs
+            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count(),
+            'expiring_items' => InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', Carbon::today()->addDays(30))
                 ->count(),
             'active_dentists' => User::role('dentist')->active()->count(),
             'active_staff' => User::active()->count(),
@@ -36,7 +41,7 @@ class DashboardService
                 ->groupBy('status')
                 ->pluck('count', 'status'),
             'revenue_trend' => Invoice::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-                ->where('created_at', '>=', $today->subDays(30))
+                ->where('created_at', '>=', $today->copy()->subDays(30))
                 ->where('status', 'paid')
                 ->groupBy('date')
                 ->orderBy('date')
@@ -145,13 +150,16 @@ class DashboardService
     public function getKpiData(): array
     {
         $today = Carbon::today();
+        $expirationThreshold = Setting::where('key', 'expiration_threshold')->first()->value ?? 30;
 
         return [
             'todays_appointments' => Appointment::today()->count(),
             'active_patients' => Patient::active()->count(),
-            'daily_revenue' => Invoice::whereDate('created_at', $today)->where('status', 'paid')->sum('total_amount'),
-            'pending_payments' => Invoice::whereIn('status', ['sent', 'partially_paid', 'overdue'])->sum('outstanding_balance'),
             'chair_utilization' => '75%', // Mock data for now
+            'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count(),
+            'expiring_items' => InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', $today->copy()->addDays($expirationThreshold))
+                ->count(),
         ];
     }
 
@@ -165,5 +173,24 @@ class DashboardService
         }
 
         return $staff;
+    }
+
+    /**
+     * Upcoming appointments for dashboard (next 7 days), role-aware.
+     */
+    public function getUpcomingAppointmentsForDashboard(User $user): Collection
+    {
+        $start = Carbon::today();
+        $end = Carbon::today()->addDays(7)->endOfDay();
+
+        $query = Appointment::with(['patient', 'dentist'])
+            ->whereBetween('appointment_datetime', [$start, $end])
+            ->orderBy('appointment_datetime');
+
+        if ($user->hasRole('dentist')) {
+            $query->byDentist($user->id);
+        }
+
+        return $query->take(10)->get();
     }
 }

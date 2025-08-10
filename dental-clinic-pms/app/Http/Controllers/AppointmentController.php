@@ -38,6 +38,7 @@ class AppointmentController extends Controller
 
         // Filter by date
         if ($request->has('date')) {
+            $request->validate(['date' => 'date']);
             $query->whereDate('appointment_datetime', Carbon::parse($request->date));
         }
 
@@ -245,7 +246,7 @@ class AppointmentController extends Controller
                     'id' => $appointment->id,
                     'title' => $appointment->patient->full_name . ' (' . $appointment->appointment_type . ')',
                     'start' => $appointment->appointment_datetime->toIso8601String(),
-                    'end' => $appointment->getEndTimeAttribute()->toIso8601String(),
+                    'end' => $appointment->end_time->toIso8601String(),
                     'url' => route('appointments.show', $appointment),
                     'backgroundColor' => $this->getStatusColor($appointment->status),
                     'borderColor' => $this->getStatusColor($appointment->status),
@@ -258,11 +259,11 @@ class AppointmentController extends Controller
             });
             return response()->json($events);
         } catch (\Throwable $e) {
+            Log::error('Calendar feed error', [
+                'exception' => $e,
+            ]);
             return response()->json([
-                'error' => 'An error occurred while processing appointments.',
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'error' => 'Unable to load appointments at this time.'
             ], 500);
         }
     }

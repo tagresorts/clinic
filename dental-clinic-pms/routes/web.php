@@ -7,7 +7,12 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProcedureController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\InventoryController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SmtpConfigController;
 
 // Redirect root to dashboard if authenticated
 Route::get('/', function () {
@@ -41,10 +46,14 @@ Route::middleware('auth')->group(function () {
 // Patient Management - Accessible by all roles (with different permissions)
 Route::middleware(['auth', 'role'])->group(function () {
     Route::resource('patients', PatientController::class);
+    Route::post('patients/{id}/restore', [PatientController::class, 'restore'])->name('patients.restore');
     Route::get('patients/{patient}/dental-chart', [PatientController::class, 'dentalChart'])->name('patients.dental-chart');
     Route::get('patients/{patient}/medical-history', [PatientController::class, 'medicalHistory'])->name('patients.medical-history');
-Route::get('patients/{patient}/debug-medical-history', [PatientController::class, 'debugMedicalHistory'])->name('patients.debug-medical-history');
-Route::get('treatment-plans/{treatmentPlan}/debug', [TreatmentPlanController::class, 'debugShow'])->name('treatment-plans.debug-show');
+    // Local-only debug routes
+    if (app()->environment('local')) {
+        Route::get('patients/{patient}/debug-medical-history', [PatientController::class, 'debugMedicalHistory'])->name('patients.debug-medical-history');
+        Route::get('treatment-plans/{treatmentPlan}/debug', [TreatmentPlanController::class, 'debugShow'])->name('treatment-plans.debug-show');
+    }
 });
 
 // Procedure Management - Administrators only
@@ -82,13 +91,10 @@ Route::middleware(['auth', 'role:receptionist,administrator'])->group(function (
 
 // Inventory Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('inventory', function () {
-        return view('inventory.index');
-    })->name('inventory.index');
-    
-    Route::get('suppliers', function () {
-        return view('suppliers.index');
-    })->name('suppliers.index');
+    Route::resource('suppliers', SupplierController::class);
+    Route::resource('inventory', InventoryController::class);
+    Route::resource('purchase-orders', PurchaseOrderController::class)->parameters(['purchase-orders' => 'purchaseOrder']);
+    Route::resource('stock-movements', StockMovementController::class)->only(['index']);
 });
 
 // Reports - Administrators only
@@ -110,9 +116,17 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     })->name('reports.treatments');
 });
 
+// SMTP Management - Administrators only
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::resource('smtp', SmtpConfigController::class)->parameters(['smtp' => 'smtp'])->except(['show']);
+    Route::post('smtp/{smtp}/default', [SmtpConfigController::class, 'setDefault'])->name('smtp.set-default');
+    Route::post('smtp/{smtp}/test', [SmtpConfigController::class, 'testSend'])->name('smtp.test');
+});
+
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\TablePreferenceController;
 
 // User Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
@@ -120,9 +134,26 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
     
+    
     Route::get('audit-logs', function () {
         return view('audit.index');
     })->name('audit.index');
+});
+
+// Table preferences should be available to any authenticated user
+Route::middleware(['auth'])->group(function () {
+    Route::post('preferences/table', [TablePreferenceController::class, 'store'])
+        ->name('preferences.table.store');
+});
+
+// Settings - Administrators only
+use App\Http\Controllers\ExpirationThresholdController;
+use App\Http\Controllers\EmailTemplateController;
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('expiration-threshold', [ExpirationThresholdController::class, 'index'])->name('expiration_threshold.index');
+    Route::post('expiration-threshold', [ExpirationThresholdController::class, 'store'])->name('expiration_threshold.store');
+    Route::resource('email-templates', EmailTemplateController::class)->parameters(['email-templates' => 'emailTemplate']);
+    Route::post('email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('email-templates.test');
 });
 
 require __DIR__.'/auth.php';

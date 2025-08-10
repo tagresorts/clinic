@@ -93,6 +93,32 @@
                     </div>
                     @if(auth()->user()->hasRole('administrator'))
                     <div class="hidden sm:flex sm:items-center sm:ms-10">
+                        <x-custom-dropdown align="left" width="56">
+                            <x-slot name="trigger">
+                                <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                    <div>{{ __('Stock Management') }}</div>
+                                    <div class="ms-1">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </button>
+                            </x-slot>
+
+                            <x-slot name="content">
+                                <x-dropdown-link :href="route('inventory.index')">{{ __('Inventory') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('suppliers.index')">{{ __('Suppliers') }}</x-dropdown-link>
+                                @if(Route::has('purchase-orders.index'))
+                                <x-dropdown-link :href="route('purchase-orders.index')">{{ __('Purchase Orders') }}</x-dropdown-link>
+                                @endif
+                                @if(Route::has('stock-movements.index'))
+                                <x-dropdown-link :href="route('stock-movements.index')">{{ __('Stock Movements') }}</x-dropdown-link>
+                                @endif
+                            </x-slot>
+                        </x-custom-dropdown>
+                    </div>
+
+                    <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-custom-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
@@ -106,28 +132,12 @@
                             </x-slot>
 
                             <x-slot name="content">
-                                <x-custom-dropdown align="right" width="48">
-                                    <x-slot name="trigger">
-                                        <button class="inline-flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full justify-between">
-                                            <span>{{ __('User Management') }}</span>
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </x-slot>
-
-                                    <x-slot name="content">
-                                        <x-dropdown-link :href="route('users.index')">
-                                            {{ __('Users') }}
-                                        </x-dropdown-link>
-                                        <x-dropdown-link :href="route('roles.index')">
-                                            {{ __('Roles') }}
-                                        </x-dropdown-link>
-                                        <x-dropdown-link :href="route('permissions.index')">
-                                            {{ __('Permissions') }}
-                                        </x-dropdown-link>
-                                    </x-slot>
-                                </x-custom-dropdown>
+                                <x-dropdown-link :href="route('users.index')">{{ __('Users') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('roles.index')">{{ __('Roles') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('permissions.index')">{{ __('Permissions') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('smtp.index')">{{ __('SMTP Settings') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('expiration_threshold.index')">{{ __('Expiration Threshold') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('email-templates.index')">{{ __('Email Templates') }}</x-dropdown-link>
                             </x-slot>
                         </x-custom-dropdown>
                     </div>

@@ -13,10 +13,12 @@
             <!-- KPI Widgets -->
             <div id="kpi-summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 @foreach ($kpis as $key => $kpi)
-                    @if(in_array($key, ['todays_appointments', 'active_patients', 'daily_revenue', 'pending_payments']))
+                    @if(in_array($key, ['todays_appointments', 'active_patients']))
                         <x-kpi.widget :title="$kpi['title']" :value="$kpiData[$key]" :icon="$kpi['icon']" />
                     @endif
                 @endforeach
+                <x-kpi.widget :title="'Low Stock'" :value="$kpiData['low_stock_items'] ?? 0" :icon="'exclamation-triangle'" />
+                <x-kpi.widget :title="'Expiring Soon'" :value="$kpiData['expiring_items'] ?? 0" :icon="'clock'" />
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -35,11 +37,27 @@
                 <!-- Main Content -->
                 <div class="lg:col-span-6 space-y-6">
                     <div class="bg-white p-6 rounded-lg shadow h-full">
-                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Appointments</h3>
-                        <!-- Calendar Placeholder -->
-                        <div class="text-center text-gray-400 py-16">
-                            <i class="fas fa-calendar-alt fa-4x"></i>
-                            <p class="mt-4">Appointments Calendar Placeholder</p>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Appointments</h3>
+                            <a href="{{ route('appointments.calendar', [], false) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
+                        </div>
+                        <div id="dashboard-calendar" class="mb-4"></div>
+                        <div id="dashboard-appointments-list" class="space-y-3">
+                            @if(isset($upcomingAppointments) && $upcomingAppointments->count())
+                                <ul class="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                                    @foreach($upcomingAppointments as $appt)
+                                        <li class="p-3 hover:bg-gray-50 transition">
+                                            <a href="{{ route('appointments.show', $appt) }}" class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">{{ $appt->patient->full_name }}</p>
+                                                    <p class="text-sm text-gray-600">{{ $appt->appointment_datetime->format('M j, Y g:i A') }} • {{ $appt->appointment_type }} • Dr. {{ $appt->dentist->name }}</p>
+                                                </div>
+                                                <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">{{ ucfirst(str_replace('_', ' ', $appt->status)) }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -58,3 +76,110 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('dashboard-appointments-list');
+    const calendarEl = document.getElementById('dashboard-calendar');
+
+    function formatDate(date) {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        return [year, month, day].join('-');
+    }
+
+    const today = new Date();
+    const inSevenDays = new Date();
+    inSevenDays.setDate(today.getDate() + 7);
+
+    const startDate = formatDate(today);
+    const endDate = formatDate(inSevenDays);
+
+    const url = new URL('{{ route('appointments.summary', [], false) }}', window.location.origin);
+    console.debug('Dashboard summary URL:', url.toString());
+    url.searchParams.append('start_date', startDate);
+    url.searchParams.append('end_date', endDate);
+
+    // Initialize a lightweight month calendar that fetches events
+    try {
+        if (!window.FullCalendar && calendarEl) {
+            calendarEl.innerHTML = '<div class="text-gray-500">Calendar unavailable. <a class="text-indigo-600" href="{{ route('appointments.calendar', [], false) }}">Open full calendar</a></div>';
+        }
+        const calendar = window.FullCalendar ? new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: ''
+            },
+            height: 400,
+            events: {
+                url: '{{ route('appointments.feed', [], false) }}',
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                if (info.event.url) {
+                    window.open(info.event.url, '_blank');
+                }
+            }
+        }) : null;
+        if (calendar) calendar.render();
+    } catch (e) {
+        console.warn('FullCalendar not available or failed to initialize:', e);
+    }
+
+    // Show loading state
+    if (container) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin"></i><p class="mt-2">Loading upcoming appointments...</p></div>';
+    }
+
+    fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to load appointments');
+        return response.json();
+    })
+    .then(appointments => {
+        container.innerHTML = '';
+        if (!appointments.length) {
+            container.innerHTML = '<p class="text-gray-500">No upcoming appointments in the next 7 days.</p>';
+            return;
+        }
+
+        const list = document.createElement('ul');
+        list.className = 'divide-y divide-gray-100 border border-gray-100 rounded-lg';
+
+        appointments.slice(0, 10).forEach(appt => {
+            const li = document.createElement('li');
+            li.className = 'p-3 hover:bg-gray-50 transition';
+            li.innerHTML = `
+                <a href="${appt.url}" class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-900">${appt.patient_name}</p>
+                        <p class="text-sm text-gray-600">${appt.time} • ${appt.type} • ${appt.dentist_name}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">${appt.status}</span>
+                </a>
+            `;
+            list.appendChild(li);
+        });
+
+        container.appendChild(list);
+    })
+    .catch(err => {
+        container.innerHTML = `<p class="text-red-500">${err.message}</p>`;
+        console.error(err);
+    });
+});
+</script>
+@endpush
