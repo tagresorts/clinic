@@ -65,7 +65,7 @@ class SendStockAlerts extends Command
             }
         }
         // Fallback to env or admins
-        $envList = array_filter(array_map('trim', explode(',', (string)env('ALERT_STOCK_RECIPIENTS', ''))));
+        $envList = array_filter(array_map('trim', explode(',', (string)config('mail.stock_recipients', ''))));
         if ($envList) return $envList;
         return User::role('administrator')->pluck('email')->all();
     }

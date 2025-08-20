@@ -41,6 +41,7 @@ class PatientController extends Controller
 
         $patients = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        /** @var view-string */
         return view('patients.index', compact('patients'));
     }
 
@@ -54,6 +55,7 @@ class PatientController extends Controller
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
+        /** @var view-string */
         return view('patients.create');
     }
 
@@ -120,6 +122,7 @@ class PatientController extends Controller
         // Load relationships
         $patient->load(['appointments.dentist', 'treatmentPlans', 'invoices', 'dentalCharts']);
 
+        /** @var view-string */
         return view('patients.show', compact('patient'));
     }
 
@@ -133,12 +136,13 @@ class PatientController extends Controller
             abort(403, 'Only receptionists and administrators can edit patient information.');
         }
 
-        if (method_exists($patient, 'trashed') && $patient->trashed()) {
+        if ($patient->trashed()) {
             return redirect()
                 ->route('patients.show', $patient->id)
                 ->with('error', 'This patient is deactivated. Reactivate to edit.');
         }
 
+        /** @var view-string */
         return view('patients.edit', compact('patient'));
     }
 
@@ -228,6 +232,7 @@ class PatientController extends Controller
 
         $dentalChart = $patient->dentalCharts()->orderBy('tooth_number')->get();
 
+        /** @var view-string */
         return view('patients.dental-chart', compact('patient', 'dentalChart'));
     }
 
@@ -246,6 +251,7 @@ class PatientController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        /** @var view-string */
         return view('patients.medical-history', compact('patient', 'treatmentRecords', 'treatmentPlans'));
     }
 

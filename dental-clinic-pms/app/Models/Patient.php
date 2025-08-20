@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property-read string $full_name
+ */
 class Patient extends Model
 {
     use HasFactory, SoftDeletes;
@@ -59,7 +62,7 @@ class Patient extends Model
     /**
      * Generate a unique patient ID
      */
-    private static function generatePatientId(): string
+    protected static function generatePatientId(): string
     {
         $prefix = 'PAT';
         $year = date('Y');
@@ -78,7 +81,7 @@ class Patient extends Model
             $number = 1;
         }
         
-        return $prefix . $year . str_pad($number, 4, '0', STR_PAD_LEFT);
+        return $prefix . $year . str_pad((string) $number, 4, '0', STR_PAD_LEFT);
     }
 
     /**

@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
+/**
+ * @property-read Patient $patient
+ * @property-read User $dentist
+ * @property bool $reminder_sent
+ */
 class Appointment extends Model
 {
     use HasFactory;
@@ -191,7 +196,7 @@ class Appointment extends Model
      */
     public function scopeTomorrow($query)
     {
-        return $query->whereDate('appointment_datetime', today()->addDay());
+        return $query->whereDate('appointment_datetime', tomorrow());
     }
 
     /**
@@ -265,7 +270,7 @@ class Appointment extends Model
             ->whereIn('status', [self::STATUS_SCHEDULED, self::STATUS_CONFIRMED, self::STATUS_IN_PROGRESS])
             ->where(function ($q) use ($datetime, $endTime) {
                 $q->whereBetween('appointment_datetime', [$datetime, $endTime])
-                  ->orWhere(function ($q2) use ($datetime, $endTime) {
+                  ->orWhere(function ($q2) use ($datetime) {
                       $q2->where('appointment_datetime', '<=', $datetime)
                          ->whereRaw('DATE_ADD(appointment_datetime, INTERVAL duration_minutes MINUTE) > ?', [$datetime]);
                   });

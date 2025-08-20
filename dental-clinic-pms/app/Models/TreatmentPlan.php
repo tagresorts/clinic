@@ -150,4 +150,12 @@ class TreatmentPlan extends Model
     {
         return $query->where('priority', $priority);
     }
+
+    /**
+     * Scope by dentist
+     */
+    public function scopeByDentist($query, int $dentistId)
+    {
+        return $query->where('dentist_id', $dentistId);
+    }
 }
