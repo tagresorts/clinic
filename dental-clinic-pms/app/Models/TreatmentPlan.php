@@ -92,6 +92,14 @@ class TreatmentPlan extends Model
     }
 
     /**
+     * Appointments for this plan
+     */
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    /**
      * Check if plan is active
      */
     public function isActive(): bool

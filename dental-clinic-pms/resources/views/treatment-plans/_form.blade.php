@@ -128,6 +128,15 @@
         </div>
 
         <!-- Additional Notes -->
+        @if($plan)
+        <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Tentative Appointments</h3>
+            <div id="tentative-appointments-container" class="space-y-4">
+                <!-- Dynamic date fields will be inserted here -->
+            </div>
+        </div>
+        @endif
+
         <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Notes</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,6 +198,33 @@
 
         // Initial calculation on page load
         calculateTotalCost();
+
+        const sessionsInput = document.getElementById('estimated_duration_sessions');
+        const appointmentsContainer = document.getElementById('tentative-appointments-container');
+        const existingAppointments = @json($tentativeAppointments ?? []);
+
+        function generateAppointmentFields() {
+            const sessions = parseInt(sessionsInput.value, 10) || 0;
+            appointmentsContainer.innerHTML = '';
+
+            for (let i = 0; i < sessions; i++) {
+                const appointment = existingAppointments[i] || {};
+                const date = appointment.appointment_datetime ? new Date(appointment.appointment_datetime).toISOString().slice(0, 16) : '';
+
+                const field = `
+                    <div class="flex items-center space-x-4">
+                        <label for="appointment_date_${i}" class="block text-sm font-medium text-gray-700">Session ${i + 1}</label>
+                        <input type="datetime-local" id="appointment_date_${i}" name="appointment_dates[]" value="${date}" class="block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                `;
+                appointmentsContainer.insertAdjacentHTML('beforeend', field);
+            }
+        }
+
+        if (sessionsInput && appointmentsContainer) {
+            sessionsInput.addEventListener('input', generateAppointmentFields);
+            generateAppointmentFields();
+        }
     });
 </script>
 @endpush

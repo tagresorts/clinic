@@ -40,6 +40,7 @@ class Appointment extends Model
     ];
 
     // Status constants
+    const STATUS_TENTATIVE = 'tentative';
     const STATUS_SCHEDULED = 'scheduled';
     const STATUS_CONFIRMED = 'confirmed';
     const STATUS_IN_PROGRESS = 'in_progress';
@@ -53,6 +54,7 @@ class Appointment extends Model
     public static function getStatuses(): array
     {
         return [
+            self::STATUS_TENTATIVE,
             self::STATUS_SCHEDULED,
             self::STATUS_CONFIRMED,
             self::STATUS_COMPLETED,
@@ -83,6 +85,14 @@ class Appointment extends Model
     public function treatmentRecords(): HasMany
     {
         return $this->hasMany(TreatmentRecord::class);
+    }
+
+    /**
+     * Treatment plan for this appointment
+     */
+    public function treatmentPlan(): BelongsTo
+    {
+        return $this->belongsTo(TreatmentPlan::class);
     }
 
     /**

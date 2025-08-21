@@ -150,7 +150,7 @@ class DashboardService
     public function getKpiData(): array
     {
         $today = Carbon::today();
-        $expirationThreshold = Setting::where('key', 'expiration_threshold')->first()->value ?? 30;
+        $expirationThreshold = (int) (Setting::where('key', 'expiration_threshold')->first()->value ?? 30);
 
         return [
             'todays_appointments' => Appointment::today()->count(),

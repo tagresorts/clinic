@@ -82,6 +82,9 @@
                                 <x-dropdown-link :href="route('appointments.index')">
                                     {{ __('All Appointments') }}
                                 </x-dropdown-link>
+                                <x-dropdown-link :href="route('appointments.tentative')">
+                                    {{ __('Tentative Appointments') }}
+                                </x-dropdown-link>
                                 <x-dropdown-link :href="route('appointments.calendar')">
                                     {{ __('Calendar') }}
                                 </x-dropdown-link>
@@ -136,8 +139,8 @@
                                 <x-dropdown-link :href="route('roles.index')">{{ __('Roles') }}</x-dropdown-link>
                                 <x-dropdown-link :href="route('permissions.index')">{{ __('Permissions') }}</x-dropdown-link>
                                 <x-dropdown-link :href="route('smtp.index')">{{ __('SMTP Settings') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('expiration_threshold.index')">{{ __('Expiration Threshold') }}</x-dropdown-link>
                                 <x-dropdown-link :href="route('email-templates.index')">{{ __('Email Templates') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('ops-settings.index')">{{ __('Operational Settings') }}</x-dropdown-link>
                             </x-slot>
                         </x-custom-dropdown>
                     </div>
