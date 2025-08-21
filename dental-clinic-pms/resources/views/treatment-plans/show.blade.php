@@ -70,6 +70,25 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Tentative Appointments Card -->
+                    <div class="md:col-span-3 bg-gray-50 p-6 rounded-lg shadow-md mt-8">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Tentative Appointments</h3>
+                        @if($tentativeAppointments->count() > 0)
+                            <ul class="divide-y divide-gray-200">
+                                @foreach($tentativeAppointments as $appointment)
+                                    <li class="py-3 flex justify-between items-center">
+                                        <div>
+                                            <p class="text-lg font-medium text-gray-900">{{ $appointment->appointment_datetime->format('F d, Y') }} at {{ $appointment->appointment_datetime->format('g:i A') }}</p>
+                                            <p class="text-sm text-gray-500">Status: {{ ucfirst($appointment->status) }}</p>
+                                        </div>
+                                        <a href="{{ route('appointments.show', $appointment) }}" class="text-indigo-600 hover:underline">View Appointment</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-gray-500">No tentative appointments for this treatment plan.</p>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

@@ -14,6 +14,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SmtpConfigController;
 
+
 // Redirect root to dashboard if authenticated
 Route::get('/', function () {
     return redirect()->route('login');
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 Route::middleware(['auth', 'role'])->group(function () {
     Route::get('appointments/feed', [AppointmentController::class, 'feed'])->name('appointments.feed');
     Route::get('appointments/summary', [AppointmentController::class, 'summary'])->name('appointments.summary');
+    Route::get('appointments/tentative', [AppointmentController::class, 'tentative'])->name('appointments.tentative');
     Route::resource('appointments', AppointmentController::class);
     Route::get('calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
     Route::post('appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
@@ -149,13 +151,13 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Settings - Administrators only
-use App\Http\Controllers\ExpirationThresholdController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\OperationalSettingsController;
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('expiration-threshold', [ExpirationThresholdController::class, 'index'])->name('expiration_threshold.index');
-    Route::post('expiration-threshold', [ExpirationThresholdController::class, 'store'])->name('expiration_threshold.store');
     Route::resource('email-templates', EmailTemplateController::class)->parameters(['email-templates' => 'emailTemplate']);
     Route::post('email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('email-templates.test');
+    Route::get('ops-settings', [OperationalSettingsController::class, 'index'])->name('ops-settings.index');
+    Route::patch('ops-settings', [OperationalSettingsController::class, 'update'])->name('ops-settings.update');
 });
 
 require __DIR__.'/auth.php';

@@ -365,4 +365,16 @@ class AppointmentController extends Controller
 
         return response()->json(['has_conflict' => $hasConflict]);
     }
+
+    public function tentative()
+    {
+        $dentistId = auth()->id();
+        $appointments = Appointment::with('patient')
+            ->where('dentist_id', $dentistId)
+            ->where('status', Appointment::STATUS_TENTATIVE)
+            ->orderBy('appointment_datetime')
+            ->paginate(15);
+
+        return view('appointments.tentative', compact('appointments'));
+    }
 }

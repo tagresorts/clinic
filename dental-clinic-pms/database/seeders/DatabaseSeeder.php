@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             TreatmentRecordSeeder::class,
             StockDemoSeeder::class,
             EmailTemplatesSeeder::class,
+            TreatmentPlanAppointmentReminderSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Appointment;
 
 class TreatmentPlanController extends Controller
 {
@@ -49,6 +50,27 @@ class TreatmentPlanController extends Controller
         $plan = \App\Models\TreatmentPlan::create($validated);
         $plan->procedures()->sync($validated['procedure_ids']);
 
+        // If the treatment plan is created with a proposed or approved status, create tentative appointments
+        if (in_array($validated['status'], [
+            \App\Models\TreatmentPlan::STATUS_PROPOSED,
+            \App\Models\TreatmentPlan::STATUS_PATIENT_APPROVED
+        ])) {
+            $sessions = (int) $validated['estimated_duration_sessions'];
+            $startDate = now()->addWeek()->startOfWeek();
+
+            for ($i = 0; $i < $sessions; $i++) {
+                Appointment::create([
+                    'patient_id' => $plan->patient_id,
+                    'dentist_id' => $plan->dentist_id,
+                    'appointment_datetime' => $startDate->copy()->addWeeks($i),
+                    'duration_minutes' => 60, // Default to 60 minutes
+                    'appointment_type' => 'Treatment Plan Session',
+                    'status' => \App\Models\Appointment::STATUS_TENTATIVE,
+                    'reason_for_visit' => $plan->plan_title,
+                ]);
+            }
+        }
+
         // If the treatment plan is created with a completed status, create a treatment record
         if ($validated['status'] === \App\Models\TreatmentPlan::STATUS_COMPLETED) {
             $record = \App\Models\TreatmentRecord::create([
@@ -71,8 +93,13 @@ class TreatmentPlanController extends Controller
     public function show(string $id)
     {
         $plan = \App\Models\TreatmentPlan::with(['patient', 'dentist', 'procedures'])->findOrFail($id);
+        $tentativeAppointments = Appointment::where('patient_id', $plan->patient_id)
+            ->where('status', Appointment::STATUS_TENTATIVE)
+            ->where('reason_for_visit', $plan->plan_title)
+            ->orderBy('appointment_datetime')
+            ->get();
 
-        return view('treatment-plans.show', compact('plan'));
+        return view('treatment-plans.show', compact('plan', 'tentativeAppointments'));
     }
 
     public function debugShow(string $id)
@@ -90,8 +117,13 @@ class TreatmentPlanController extends Controller
         $patients = \App\Models\Patient::all();
         $dentists = \App\Models\User::role('dentist')->get();
         $procedures = \App\Models\Procedure::all();
+        $tentativeAppointments = Appointment::where('patient_id', $plan->patient_id)
+            ->where('status', Appointment::STATUS_TENTATIVE)
+            ->where('reason_for_visit', $plan->plan_title)
+            ->orderBy('appointment_datetime')
+            ->get();
 
-        return view('treatment-plans.edit', compact('plan', 'patients', 'dentists', 'procedures'));
+        return view('treatment-plans.edit', compact('plan', 'patients', 'dentists', 'procedures', 'tentativeAppointments'));
     }
 
     /**
@@ -112,6 +144,8 @@ class TreatmentPlanController extends Controller
             'estimated_duration_sessions' => 'required|integer',
             'priority' => 'required|in:low,medium,high,urgent',
             'status' => 'required|in:proposed,patient_approved,in_progress,completed,cancelled',
+            'appointment_dates' => 'nullable|array',
+            'appointment_dates.*' => 'nullable|date',
         ]);
 
         $plan->update($validated);
@@ -128,6 +162,43 @@ class TreatmentPlanController extends Controller
             ]);
             $record->procedures()->sync($validated['procedure_ids']);
         }
+
+        // Update tentative appointments
+        if (isset($validated['appointment_dates'])) {
+            $existingAppointments = Appointment::where('patient_id', $plan->patient_id)
+                ->where('status', Appointment::STATUS_TENTATIVE)
+                ->where('reason_for_visit', $plan->plan_title)
+                ->orderBy('appointment_datetime')
+                ->get();
+
+            $submittedDates = $validated['appointment_dates'];
+
+            // Update existing appointments and create new ones
+            foreach ($submittedDates as $index => $date) {
+                if (isset($existingAppointments[$index])) {
+                    $existingAppointments[$index]->update(['appointment_datetime' => $date]);
+                } else {
+                    Appointment::create([
+                        'patient_id' => $plan->patient_id,
+                        'dentist_id' => $plan->dentist_id,
+                        'treatment_plan_id' => $plan->id,
+                        'appointment_datetime' => $date,
+                        'duration_minutes' => 60, // Default to 60 minutes
+                        'appointment_type' => 'Treatment Plan Session',
+                        'status' => \App\Models\Appointment::STATUS_TENTATIVE,
+                        'reason_for_visit' => $plan->plan_title,
+                    ]);
+                }
+            }
+
+            // Delete extra appointments
+            if (count($existingAppointments) > count($submittedDates)) {
+                for ($i = count($submittedDates); $i < count($existingAppointments); $i++) {
+                    $existingAppointments[$i]->delete();
+                }
+            }
+        }
+
 
         return redirect()->route('treatment-plans.index')
             ->with('success', 'Treatment plan updated successfully.');
