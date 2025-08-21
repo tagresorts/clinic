@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\Appointment;
+use App\Models\TreatmentRecord;
+use App\Models\Procedure;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 
 class PatientController extends Controller
 {
@@ -263,5 +268,77 @@ class PatientController extends Controller
             ->get();
 
         dd($treatmentRecords);
+    }
+
+    /**
+     * Show the form for creating a walk-in appointment and treatment.
+     */
+    public function walkIn(Patient $patient)
+    {
+        // @todo: Add authorization check
+        $dentists = User::whereHas('roles', function ($query) {
+            $query->where('name', 'dentist');
+        })->get();
+        $procedures = Procedure::all();
+
+        return view('patients.walk-in', compact('patient', 'dentists', 'procedures'));
+    }
+
+    /**
+     * Store a newly created walk-in appointment and treatment in storage.
+     */
+    public function storeWalkIn(Request $request, Patient $patient)
+    {
+        // @todo: Add authorization check
+        $validated = $request->validate([
+            'appointment_datetime' => 'required|date',
+            'dentist_id' => 'required|exists:users,id',
+            'duration_minutes' => 'required|integer|min:15',
+            'appointment_type' => 'required|string',
+            'reason_for_visit' => 'nullable|string',
+            'appointment_notes' => 'nullable|string',
+            'procedure_ids' => 'required|array',
+            'procedure_ids.*' => 'exists:procedures,id',
+            'description' => 'nullable|string',
+            'teeth' => 'nullable|string',
+            'treatment_notes' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validated, $patient) {
+                $appointment = Appointment::create([
+                    'patient_id' => $patient->id,
+                    'dentist_id' => $validated['dentist_id'],
+                    'appointment_datetime' => $validated['appointment_datetime'],
+                    'duration_minutes' => $validated['duration_minutes'],
+                    'appointment_type' => $validated['appointment_type'],
+                    'status' => Appointment::STATUS_IN_PROGRESS,
+                    'reason_for_visit' => $validated['reason_for_visit'],
+                    'appointment_notes' => $validated['appointment_notes'],
+                ]);
+
+                $procedures = Procedure::whereIn('id', $validated['procedure_ids'])->get();
+                $totalCost = $procedures->sum('cost');
+
+                $treatmentRecord = TreatmentRecord::create([
+                    'patient_id' => $patient->id,
+                    'dentist_id' => $validated['dentist_id'],
+                    'appointment_id' => $appointment->id,
+                    'treatment_date' => now(),
+                    'description' => $validated['description'],
+                    'teeth' => $validated['teeth'],
+                    'treatment_cost' => $totalCost,
+                    'notes' => $validated['treatment_notes'],
+                ]);
+
+                $treatmentRecord->procedures()->attach($validated['procedure_ids']);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error creating walk-in appointment and treatment: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create walk-in session. Please try again.');
+        }
+
+        return redirect()->route('patients.show', $patient)
+            ->with('success', 'Walk-in session created successfully.');
     }
 }

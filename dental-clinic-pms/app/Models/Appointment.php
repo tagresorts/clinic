@@ -188,7 +188,7 @@ class Appointment extends Model
      */
     public function scopeToday($query)
     {
-        return $query->whereDate('appointment_datetime', today());
+        return $query->whereDate('appointment_datetime', now()->today());
     }
 
     /**
@@ -196,7 +196,7 @@ class Appointment extends Model
      */
     public function scopeTomorrow($query)
     {
-        return $query->whereDate('appointment_datetime', tomorrow());
+        return $query->whereDate('appointment_datetime', now()->tomorrow());
     }
 
     /**

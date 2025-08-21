@@ -1,31 +1,12 @@
-import './bootstrap';
-
-import Alpine from 'alpinejs';
-import flatpickr from "flatpickr";
-import 'flatpickr/dist/flatpickr.css';
-
-window.Alpine = Alpine;
-
-Alpine.start();
-
-if (document.getElementById('date_range')) {
-    flatpickr("#date_range", {
-        mode: "range",
-        dateFormat: "Y-m-d",
-    });
-}
-
-import './appointments-table.js';
-
-// Patients table init (moved from Blade)
-(function initPatientsTableWhenReady() {
+// Appointments table init
+(function initAppointmentsTableWhenReady() {
   function init() {
-    const tableKey = 'patients.index.table';
-    const table = document.getElementById('patients-table');
+    const tableKey = 'appointments.index.table';
+    const table = document.getElementById('appointments-table');
     if (!table) return;
 
-    const headerRow = document.getElementById('patients-table-header');
-    const initialColumns = ['name','dob','gender','address','phone','email','actions'];
+    const headerRow = document.getElementById('appointments-table-header');
+    const initialColumns = ['patient', 'dentist', 'date_time', 'type', 'status', 'actions'];
 
     function loadPreferences() {
       try {

@@ -49,6 +49,8 @@ Route::middleware(['auth', 'role'])->group(function () {
     Route::post('patients/{id}/restore', [PatientController::class, 'restore'])->name('patients.restore');
     Route::get('patients/{patient}/dental-chart', [PatientController::class, 'dentalChart'])->name('patients.dental-chart');
     Route::get('patients/{patient}/medical-history', [PatientController::class, 'medicalHistory'])->name('patients.medical-history');
+    Route::get('patients/{patient}/walk-in', [PatientController::class, 'walkIn'])->name('patients.walk-in');
+    Route::post('patients/{patient}/walk-in', [PatientController::class, 'storeWalkIn'])->name('patients.store-walk-in');
     // Local-only debug routes
     if (app()->environment('local')) {
         Route::get('patients/{patient}/debug-medical-history', [PatientController::class, 'debugMedicalHistory'])->name('patients.debug-medical-history');

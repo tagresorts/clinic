@@ -12,13 +12,13 @@
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
                         <h3 class="text-2xl font-bold text-gray-900 hidden sm:block">Patient List</h3>
                         <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 w-full sm:w-auto">
-                            <form action="{{ route('patients.index') }}" method="GET" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                                                        <form action="{{ route('patients.index') }}" method="GET" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                                 <x-text-input id="search" name="search" type="text" class="block w-full sm:w-48" placeholder="Search..." value="{{ request('search') }}" />
                                 <x-primary-button class="w-full sm:w-auto">
                                     {{ __('Search') }}
                                 </x-primary-button>
                                 @if(request('search'))
-                                    <a href="{{ route('patients.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 w-full sm:w-auto">Clear</a>
+                                    <a href="{{ route('patients.index') }}" class="inline-flex items-center justify-center px-4 py-2 bg-white border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 w-full sm:w-auto">Clear</a>
                                 @endif
                                 <select name="status" class="block w-full sm:w-40 border-gray-300 rounded-md">
                                     <option value="">Active</option>

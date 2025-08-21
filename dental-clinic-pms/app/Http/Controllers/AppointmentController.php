@@ -36,10 +36,14 @@ class AppointmentController extends Controller
             });
         }
 
-        // Filter by date
-        if ($request->has('date')) {
-            $request->validate(['date' => 'date']);
-            $query->whereDate('appointment_datetime', Carbon::parse($request->date));
+        // Filter by date range
+        if ($request->has('date_range') && !empty($request->date_range)) {
+            $dates = explode(' to ', $request->date_range);
+            if (count($dates) === 2) {
+                $startDate = Carbon::parse($dates[0])->startOfDay();
+                $endDate = Carbon::parse($dates[1])->endOfDay();
+                $query->whereBetween('appointment_datetime', [$startDate, $endDate]);
+            }
         }
 
         $appointments = $query->orderBy('appointment_datetime', 'desc')->paginate(15);
@@ -341,5 +345,24 @@ class AppointmentController extends Controller
         });
 
         return response()->json($formattedAppointments);
+    }
+
+    public function checkConflict(Request $request)
+    {
+        $validated = $request->validate([
+            'dentist_id' => 'required|exists:users,id',
+            'appointment_datetime' => 'required|date',
+            'duration_minutes' => 'required|integer|min:15',
+            'exclude_id' => 'nullable|exists:appointments,id',
+        ]);
+
+        $hasConflict = Appointment::hasConflict(
+            $validated['dentist_id'],
+            new \Carbon\Carbon($validated['appointment_datetime']),
+            $validated['duration_minutes'],
+            $validated['exclude_id'] ?? null
+        );
+
+        return response()->json(['has_conflict' => $hasConflict]);
     }
 }
