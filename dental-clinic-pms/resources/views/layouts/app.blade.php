@@ -26,7 +26,7 @@
             <x-sidebar />
 
             <!-- Main content -->
-            <div class="flex-1 transition-all duration-300" :class="{'lg:ml-64': sidebarOpen, 'lg:ml-20': !sidebarOpen}">
+            <div class="flex-1" :class="{'lg:ml-64': sidebarOpen, 'lg:ml-20': !sidebarOpen}">
                 <!-- Header -->
                 <header class="flex justify-between items-center p-4 bg-white border-b">
                     <div class="flex items-center">
