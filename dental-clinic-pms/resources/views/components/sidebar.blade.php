@@ -30,17 +30,17 @@ $adminMenu = AdminMenu::build();
     <nav class="flex-1 overflow-y-auto overflow-x-hidden">
         <div class="px-2 py-4 space-y-2">
             @foreach ($adminMenu as $item)
-                @if ($item->hasChildren())
+                @if ($item->isSubmenu())
                     <div x-data="{ open: {{ $item->isActive() ? 'true' : 'false' }} }">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
                             <div class="flex items-center">
-                                {!! $item->getProperty('icon') !!}
-                                <span class="ml-4" x-show="sidebarOpen">{{ $item->text }}</span>
+                                {!! $item->getIcon() !!}
+                                <span class="ml-4" x-show="sidebarOpen">{{ $item->getName() }}</span>
                             </div>
                             <svg x-show="sidebarOpen" :class="{'rotate-180': open}" class="h-5 w-5 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                         </button>
                         <div x-show="open && sidebarOpen" class="pl-12 mt-2 space-y-2">
-                            @foreach ($item->children() as $child)
+                            @foreach ($item as $child)
                                 <a href="{{ $child->url() }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child->isActive()) text-white @endif">
                                     <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
                                     {{ $child->text }}
