@@ -29,7 +29,7 @@ $adminMenu = AdminMenu::build();
     <!-- Navigation Links -->
     <nav class="flex-1 overflow-y-auto overflow-x-hidden">
         <div class="px-2 py-4 space-y-2">
-            @foreach ($adminMenu->items() as $item)
+            @foreach ($adminMenu as $item)
                 @if ($item->hasChildren())
                     <div x-data="{ open: {{ $item->isActive() ? 'true' : 'false' }} }">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
