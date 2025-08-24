@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'user-list', 'user-create', 'user-edit', 'user-delete',
             'role-list', 'role-create', 'role-edit', 'role-delete',
             'permission-list', 'permission-create', 'permission-edit', 'permission-delete',
+            'profile-edit',
             // Patients & Appointments
             'patient-list', 'patient-create', 'patient-edit', 'patient-delete',
             'appointment-list', 'appointment-create', 'appointment-edit', 'appointment-delete',
@@ -34,8 +35,15 @@ class RolesAndPermissionsSeeder extends Seeder
             // Inventory & Suppliers
             'inventory-list', 'inventory-create', 'inventory-edit', 'inventory-delete',
             'supplier-list', 'supplier-create', 'supplier-edit', 'supplier-delete',
+            'purchase-order-list', 'purchase-order-create', 'purchase-order-edit', 'purchase-order-delete',
+            'stock-movement-list', 'stock-movement-create', 'stock-movement-edit', 'stock-movement-delete',
             'report-list',
             'view_dashboard', // Single permission for the dashboard
+            // Settings
+            'email-template-list', 'email-template-create', 'email-template-edit', 'email-template-delete',
+            'operational-setting-list', 'operational-setting-create', 'operational-setting-edit', 'operational-setting-delete',
+            'smtp-config-list', 'smtp-config-create', 'smtp-config-edit', 'smtp-config-delete',
+            'table-preference-list', 'table-preference-create', 'table-preference-edit', 'table-preference-delete',
         ];
 
         // Create permissions
@@ -49,6 +57,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'appointment-list', 'appointment-create', 'appointment-edit',
             'invoice-list', 'invoice-create', 'invoice-edit',
             'view_dashboard',
+            'profile-edit',
         ];
 
         $dentist_permissions = [
@@ -56,6 +65,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'appointment-list', 'appointment-create', 'appointment-edit', 'appointment-delete',
             'treatment-plan-list', 'treatment-plan-create', 'treatment-plan-edit', 'treatment-plan-delete',
             'view_dashboard',
+            'profile-edit',
+        ];
+
+        $inventory_manager_permissions = [
+            'inventory-list', 'inventory-create', 'inventory-edit', 'inventory-delete',
+            'supplier-list', 'supplier-create', 'supplier-edit', 'supplier-delete',
+            'purchase-order-list', 'purchase-order-create', 'purchase-order-edit', 'purchase-order-delete',
+            'stock-movement-list', 'stock-movement-create', 'stock-movement-edit', 'stock-movement-delete',
+            'view_dashboard',
+            'profile-edit',
         ];
 
         // Create Roles and assign permissions
@@ -64,6 +83,9 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $dentist_role = Role::firstOrCreate(['name' => 'dentist']);
         $dentist_role->syncPermissions($dentist_permissions);
+
+        $inventory_manager_role = Role::firstOrCreate(['name' => 'inventory_manager']);
+        $inventory_manager_role->syncPermissions($inventory_manager_permissions);
 
         // Administrator gets all permissions
         $admin_role = Role::firstOrCreate(['name' => 'administrator']);
