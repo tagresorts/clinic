@@ -54,9 +54,7 @@
                                             <div class="text-sm text-gray-500">{{ $plan->dentist->name }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                {{ ucfirst($plan->status) }}
-                                            </span>
+                                            <x-status-badge :status="$plan->status" />
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end space-x-2">
@@ -92,9 +90,7 @@
                                             <p class="text-sm text-gray-600">Patient: {{ $plan->patient->fullName }}</p>
                                             <p class="text-sm text-gray-600">Dentist: {{ $plan->dentist->name }}</p>
                                         </div>
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            {{ ucfirst($plan->status) }}
-                                        </span>
+                                        <x-status-badge :status="$plan->status" />
                                     </div>
                                     <div class="mt-4">
                                         <p class="text-sm text-gray-600"><span class="font-medium">Diagnosis:</span> {{ $plan->diagnosis }}</p>

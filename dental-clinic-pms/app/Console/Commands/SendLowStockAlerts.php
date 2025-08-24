@@ -8,27 +8,24 @@ use App\Models\Setting;
 use App\Models\EmailTemplate;
 use App\Models\SmtpConfig;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Mailer as SymfonyMailer;
 
-class SendStockAlerts extends Command
+class SendLowStockAlerts extends Command
 {
-    protected $signature = 'stock:check-alerts';
-    protected $description = 'Send digest email for low stock and expiring items';
+    protected $signature = 'stock:send-low-stock-alerts';
+    protected $description = 'Send digest email for low stock items';
 
     public function handle(): int
     {
-        $expirationThreshold = Setting::where('key', 'expiration_threshold')->first()->value ?? 30;
-        $today = Carbon::today();
+        $reminderDays = Setting::where('key', 'stock_digest_reminder_days')->first()->value;
 
         $low = InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->get(['item_name','quantity_in_stock','reorder_level'])->toArray();
-        $expiring = InventoryItem::where('has_expiry', true)->whereDate('expiry_date', '<=', $today->copy()->addDays($expirationThreshold))->get(['item_name','expiry_date'])->toArray();
 
-        if (empty($low) && empty($expiring)) {
-            $this->info('No stock alerts to send.');
+        if (empty($low)) {
+            $this->info('No low stock alerts to send.');
             return self::SUCCESS;
         }
 
@@ -38,13 +35,13 @@ class SendStockAlerts extends Command
             return self::SUCCESS;
         }
 
-        $this->withSmtp(function () use ($recipients, $low, $expiring) {
+        $this->withSmtp(function () use ($recipients, $low) {
             foreach ($recipients as $email) {
-                Mail::to($email)->queue(new StockDigestMail($low, $expiring));
+                Mail::to($email)->queue(new StockDigestMail($low, []));
             }
         });
 
-        $this->info('Stock digest queued to '.count($recipients).' recipient(s).');
+        $this->info('Low stock digest queued to '.count($recipients).' recipient(s).');
         return self::SUCCESS;
     }
 

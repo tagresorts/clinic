@@ -14,9 +14,21 @@
                         @method('patch')
 
                         <div class="mb-4">
-                            <x-input-label for="treatment_plan_reminder_days" :value="__('Treatment Plan Reminder Days')" />
-                            <x-text-input id="treatment_plan_reminder_days" name="treatment_plan_reminder_days" type="number" class="mt-1 block w-full" :value="old('treatment_plan_reminder_days', $settings['treatment_plan_reminder_days'] ?? '')" required />
-                            <x-input-error class="mt-2" :messages="$errors->get('treatment_plan_reminder_days')" />
+                            <x-input-label for="treatment_appointment_reminder_days" :value="__('Treatment Appointment Reminder Days')" />
+                            <x-text-input id="treatment_appointment_reminder_days" name="treatment_appointment_reminder_days" type="number" class="mt-1 block w-full" :value="old('treatment_appointment_reminder_days', $settings['treatment_appointment_reminder_days'] ?? '')" required />
+                            <x-input-error class="mt-2" :messages="$errors->get('treatment_appointment_reminder_days')" />
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="stock_digest_reminder_days" :value="__('Stock Digest Reminder Days')" />
+                            <x-text-input id="stock_digest_reminder_days" name="stock_digest_reminder_days" type="number" class="mt-1 block w-full" :value="old('stock_digest_reminder_days', $settings['stock_digest_reminder_days'] ?? '')" required />
+                            <x-input-error class="mt-2" :messages="$errors->get('stock_digest_reminder_days')" />
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="expiring_items_reminder_days" :value="__('Expiring Items Reminder Days')" />
+                            <x-text-input id="expiring_items_reminder_days" name="expiring_items_reminder_days" type="number" class="mt-1 block w-full" :value="old('expiring_items_reminder_days', $settings['expiring_items_reminder_days'] ?? '')" required />
+                            <x-input-error class="mt-2" :messages="$errors->get('expiring_items_reminder_days')" />
                         </div>
 
                         <div class="mb-4">
