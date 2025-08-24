@@ -40,5 +40,13 @@ class EmailTemplatesSeeder extends Seeder
                 . '<div>{{expiring_stock_table}}</div>'
                 . '<p style="margin-top:12px;">Open Inventory: <a href="{{inventory_url}}">Inventory</a></p>',
         ]);
+
+        EmailTemplate::updateOrCreate([
+            'type' => 'treatment_appointment_reminder',
+        ], [
+            'name' => 'Treatment Appointment Reminder',
+            'subject' => 'Upcoming Appointment Reminder',
+            'body' => '<p>Dear Dr. {{doctor_name}},</p><p>This is a reminder for your upcoming appointment with {{patient_name}} on {{appointment_date}} at {{appointment_time}}.</p><p>Thank you.</p>',
+        ]);
     }
 }

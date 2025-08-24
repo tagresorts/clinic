@@ -17,7 +17,9 @@ class OperationalSettingsController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'treatment_plan_reminder_days' => 'required|integer|min:1',
+            'treatment_appointment_reminder_days' => 'required|integer|min:1',
+            'stock_digest_reminder_days' => 'required|integer|min:1',
+            'expiring_items_reminder_days' => 'required|integer|min:1',
             'expiration_threshold' => 'required|integer|min:1',
         ]);
 

@@ -13,10 +13,10 @@ $adminMenu = AdminMenu::build();
     }">
 
     <!-- Logo -->
-    <div class="flex items-center justify-center h-16 border-b border-gray-700 flex-shrink-0">
+    <div class="flex items-center justify-center h-16 bg-white">
         <a href="{{ route('dashboard') }}">
             <div :class="sidebarOpen ? 'block' : 'hidden'">
-                <x-application-logo class="block h-9 w-auto fill-current text-white" />
+                <x-application-logo class="block h-16 w-auto fill-current text-gray-800" />
             </div>
             <div :class="sidebarOpen ? 'hidden' : 'block'">
                 <svg class="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
