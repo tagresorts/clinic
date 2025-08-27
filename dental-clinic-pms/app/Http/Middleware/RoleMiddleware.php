@@ -22,8 +22,8 @@ class RoleMiddleware
 
         $user = auth()->user();
         
-        // Check if user is active
-        if (!$user->is_active) {
+        // Check if user is active (treat null / missing column as active)
+        if (isset($user->is_active) && $user->is_active === false) {
             auth()->logout();
             return redirect()->route('login')->with('error', 'Your account has been deactivated. Please contact an administrator.');
         }
