@@ -21,12 +21,12 @@
         <link href="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack.min.css" rel="stylesheet"/>
     </head>
     <body class="font-sans antialiased">
-        <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" x-on:keydown.escape.window="sidebarOpen = false" class="relative min-h-screen lg:flex">
+        <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024" x-on:keydown.escape.window="sidebarOpen = false" class="flex h-screen">
             <!-- Sidebar -->
             <x-sidebar />
 
             <!-- Main content -->
-             <div class="flex-1 transition-all duration-300" :class="{'lg:ml-44': sidebarOpen, 'lg:ml-20': !sidebarOpen}" style="margin-left:0; margin-right:0;">
+             <div class="flex-1 flex flex-col transition-all duration-300">
                 <!-- Header -->
                 <header class="flex justify-between items-center p-4 bg-white border-b">
                     <div class="flex items-center">

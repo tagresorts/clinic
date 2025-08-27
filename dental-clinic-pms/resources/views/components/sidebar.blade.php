@@ -4,7 +4,7 @@ $adminMenu = AdminMenu::build();
 @endphp
 <!-- resources/views/components/sidebar.blade.php -->
 <aside
-    class="bg-gray-800 text-gray-300 h-screen fixed top-0 left-0 z-40 flex flex-col w-64 transition-transform duration-300 transform lg:relative lg:translate-x-0 lg:transition-all"
+    class="bg-gray-800 text-gray-300 h-screen flex flex-col w-64 transition-transform duration-300 transform lg:fixed lg:translate-x-0 lg:transition-all z-40"
     :class="{
         'translate-x-0': sidebarOpen,
         '-translate-x-full lg:translate-x-0': !sidebarOpen,
