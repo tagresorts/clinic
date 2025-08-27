@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SmtpConfigController;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 
 // Redirect root to dashboard if authenticated
@@ -158,6 +160,11 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::post('email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('email-templates.test');
     Route::get('ops-settings', [OperationalSettingsController::class, 'index'])->name('ops-settings.index');
     Route::patch('ops-settings', [OperationalSettingsController::class, 'update'])->name('ops-settings.update');
+});
+
+// Log Viewer - Administrators only
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('logs', [App\Http\Controllers\LogViewerController::class, 'index'])->name('logs.index');
 });
 
 require __DIR__.'/auth.php';
