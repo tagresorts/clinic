@@ -24,14 +24,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Left Sidebar -->
                 <div class="lg:col-span-3 space-y-6">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Dentists</h3>
-                        <x-staff.activity-panel :staff="$staff" />
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Billing Summary</h3>
-                        <x-widgets.billing-summary />
-                    </div>
+                    <x-widgets.quick-actions />
                 </div>
 
                 <!-- Main Content -->

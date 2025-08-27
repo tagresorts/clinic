@@ -9,7 +9,11 @@ class PermissionController extends Controller
 {
     public function index()
     {
-        $permissions = Permission::all();
+        $permissions = Permission::all()->groupBy(function ($permission) {
+            $parts = explode('-', $permission->name);
+            return ucwords(str_replace('-', ' ', $parts[0]));
+        });
+
         return view('permissions.index', compact('permissions'));
     }
 
