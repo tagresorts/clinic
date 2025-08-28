@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,10 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('audit_logs', function (Blueprint $table) {
-            // Add new columns (checking if they already exist)
-            if (!Schema::hasColumn('audit_logs', 'user_name')) {
-                $table->string('user_name')->nullable();
-            }
+            // Add only the columns that don't already exist
             if (!Schema::hasColumn('audit_logs', 'user_role')) {
                 $table->string('user_role')->nullable();
             }
@@ -93,7 +91,7 @@ return new class extends Migration
         Schema::table('audit_logs', function (Blueprint $table) {
             // Remove new columns (checking if they exist)
             $columnsToDrop = [
-                'user_name', 'user_role', 'action', 'entity_type', 'entity_id', 
+                'user_role', 'action', 'entity_type', 'entity_id', 
                 'entity_description', 'request_method', 'request_url', 'old_values', 
                 'new_values', 'changed_fields', 'severity', 'session_id', 'event_time', 
                 'is_sensitive_data', 'requires_review', 'metadata'
@@ -107,13 +105,13 @@ return new class extends Migration
 
             // Restore old columns (only if they don't exist)
             if (!Schema::hasColumn('audit_logs', 'event_type')) {
-                $table->string('event_type')->after('user_id');
+                $table->string('event_type');
             }
             if (!Schema::hasColumn('audit_logs', 'auditable_type')) {
-                $table->string('auditable_type')->after('event_type');
+                $table->string('auditable_type');
             }
             if (!Schema::hasColumn('audit_logs', 'auditable_id')) {
-                $table->unsignedBigInteger('auditable_id')->after('auditable_type');
+                $table->unsignedBigInteger('auditable_id');
             }
         });
     }
