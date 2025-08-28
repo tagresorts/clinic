@@ -28,6 +28,26 @@ class DashboardController extends Controller
         return view('dashboard-v3', compact('kpis', 'kpiData', 'staff', 'patientData', 'upcomingAppointments'));
     }
 
+    /**
+     * Return KPI panel HTML partial for dynamic refresh.
+     */
+    public function kpisHtml()
+    {
+        $kpis = config('dashboard.kpis');
+        $kpiData = $this->dashboardService->getKpiData();
+
+        return view('dashboard._kpi_panel', compact('kpis', 'kpiData'));
+    }
+
+    /**
+     * Return KPI data as JSON for API-style consumption.
+     */
+    public function kpisJson()
+    {
+        $kpiData = $this->dashboardService->getKpiData();
+        return response()->json($kpiData);
+    }
+
     public function saveLayout(Request $request)
     {
         $request->validate([

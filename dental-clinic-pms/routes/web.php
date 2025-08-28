@@ -31,6 +31,11 @@ Route::get('/dashboard-v3', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
     ->name('dashboard-v3');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard/kpis/html', [DashboardController::class, 'kpisHtml'])->name('dashboard.kpis.html');
+    Route::get('/dashboard/kpis/json', [DashboardController::class, 'kpisJson'])->name('dashboard.kpis.json');
+});
+
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])
     ->middleware(['auth'])
     ->name('dashboard.saveLayout');

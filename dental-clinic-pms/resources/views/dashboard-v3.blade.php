@@ -10,16 +10,8 @@
                 </div>
             </div>
 
-            <!-- KPI Widgets -->
-            <div id="kpi-summary-panel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                @foreach ($kpis as $key => $kpi)
-                    @if(in_array($key, ['todays_appointments', 'active_patients']))
-                        <x-kpi.widget :title="$kpi['title']" :value="$kpiData[$key]" :icon="$kpi['icon']" />
-                    @endif
-                @endforeach
-                <x-kpi.widget :title="'Low Stock'" :value="$kpiData['low_stock_items'] ?? 0" :icon="'exclamation-triangle'" />
-                <x-kpi.widget :title="'Expiring Soon'" :value="$kpiData['expiring_items'] ?? 0" :icon="'clock'" />
-            </div>
+            <!-- KPI Widgets (dynamic) -->
+            @include('dashboard._kpi_panel')
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Left Sidebar -->
@@ -74,6 +66,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('dashboard-appointments-list');
+    const kpiPanel = document.getElementById('kpi-summary-panel');
     const calendarEl = document.getElementById('dashboard-calendar');
 
     function formatDate(date) {
@@ -173,6 +166,33 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = `<p class="text-red-500">${err.message}</p>`;
         console.error(err);
     });
+
+    // Lightweight polling to keep KPIs fresh (every 30s)
+    function refreshKpis() {
+        if (!kpiPanel) return;
+        fetch('{{ route('dashboard.kpis.html', [], false) }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+            .then(r => {
+                if (!r.ok) throw new Error('Failed to refresh KPIs');
+                return r.text();
+            })
+            .then(html => {
+                // Replace only the KPI grid contents
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const newPanel = temp.querySelector('#kpi-summary-panel');
+                if (newPanel) {
+                    kpiPanel.replaceWith(newPanel);
+                }
+            })
+            .catch(e => console.warn(e.message));
+    }
+
+    setInterval(refreshKpis, 30000);
+    // Initial refresh shortly after load to ensure parity
+    setTimeout(refreshKpis, 5000);
 });
 </script>
 @endpush
