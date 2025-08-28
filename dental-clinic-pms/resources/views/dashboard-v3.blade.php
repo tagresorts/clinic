@@ -15,25 +15,25 @@
             </div>
 
             <div class="grid-stack" id="dashboard-grid">
-                <div class="grid-stack-item" gs-id="card-kpi" gs-x="0" gs-y="0" gs-w="6" gs-h="2">
+                <div class="grid-stack-item" gs-id="card-kpi" data-gs-x="0" data-gs-y="0" data-gs-w="6" data-gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">KPIs</h3>
                         <p class="text-gray-600 text-sm">Place KPI summary here.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-appointments" gs-x="6" gs-y="0" gs-w="6" gs-h="4">
+                <div class="grid-stack-item" gs-id="card-appointments" data-gs-x="6" data-gs-y="0" data-gs-w="6" data-gs-h="4">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow h-full">
                         <h3 class="font-semibold mb-2">Appointments</h3>
                         <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-alerts" gs-x="0" gs-y="2" gs-w="6" gs-h="2">
+                <div class="grid-stack-item" gs-id="card-alerts" data-gs-x="0" data-gs-y="2" data-gs-w="6" data-gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">Alerts</h3>
                         <p class="text-gray-600 text-sm">Important notifications.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-report" gs-x="6" gs-y="4" gs-w="6" gs-h="2">
+                <div class="grid-stack-item" gs-id="card-report" data-gs-x="6" data-gs-y="4" data-gs-w="6" data-gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">Mini Report</h3>
                         <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function initGrid() {
         if (!window.GridStack) return;
         if (grid) return; // avoid duplicate init
-        grid = GridStack.init({ float: false, cellHeight: '8rem', minRow: 1, column: 12, margin: 5 }, '#dashboard-grid');
+        grid = GridStack.init({ float: true, cellHeight: 110, minRow: 1, column: 12, margin: 5 }, '#dashboard-grid');
         // Load saved layout
         fetch('{{ route('dashboard.layout', [], false) }}', { credentials: 'same-origin' })
             .then(r => r.json())
@@ -261,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                     grid.commit();
+                    grid.compact();
                 } catch (e) {
                     console.warn('Grid load skipped:', e.message);
                 }
