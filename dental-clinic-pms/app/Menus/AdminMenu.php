@@ -59,7 +59,7 @@ class AdminMenu
             [
                 'title' => 'Admin',
                 'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226m-2.22 2.452a11.95 11.95 0 00-3.832 4.122m5.051-4.336a11.95 11.95 0 013.832 4.122m-5.051-4.336c.362-1.03.813-1.99 1.364-2.882m-1.364 2.882A11.95 11.95 0 007.5 9.25m3.832 4.122a11.95 11.95 0 01-5.051 4.336m5.051-4.336a11.95 11.95 0 013.832-4.122m3.832 4.122a11.95 11.95 0 00-5.051 4.336m5.051-4.336c-.362 1.03-.813 1.99-1.364 2.882m1.364-2.882a11.95 11.95 0 015.051-4.336m-5.051 4.336a11.95 11.95 0 003.832-4.122" /></svg>',
-                'active' => request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*'),
+                'active' => request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*') || request()->routeIs('logs.*') || request()->routeIs('audit-logs.*'),
                 'children' => [
                     ['title' => 'Users', 'url' => route('users.index'), 'active' => request()->routeIs('users.index')],
                     ['title' => 'Roles', 'url' => route('roles.index'), 'active' => request()->routeIs('roles.index')],
@@ -67,6 +67,8 @@ class AdminMenu
                     ['title' => 'SMTP Settings', 'url' => route('smtp.index'), 'active' => request()->routeIs('smtp.index')],
                     ['title' => 'Email Templates', 'url' => route('email-templates.index'), 'active' => request()->routeIs('email-templates.index')],
                     ['title' => 'Operational Settings', 'url' => route('ops-settings.index'), 'active' => request()->routeIs('ops-settings.index')],
+                    ['title' => 'System Logs', 'url' => route('logs.index'), 'active' => request()->routeIs('logs.index')],
+                    ['title' => 'Audit Logs', 'url' => route('audit-logs.index'), 'active' => request()->routeIs('audit-logs.index')],
                 ],
                 'can' => 'administrator',
             ],

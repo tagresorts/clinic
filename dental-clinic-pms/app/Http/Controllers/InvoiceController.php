@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceController extends Controller
 {
@@ -60,5 +61,58 @@ class InvoiceController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Send an invoice.
+     */
+    public function send(string $id)
+    {
+        // Placeholder implementation
+        Log::channel('log_viewer')->info("Invoice send attempted by " . auth()->user()->name, [
+            'invoice_id' => $id,
+            'action' => 'send',
+            'status' => 'Not implemented yet'
+        ]);
+
+        return back()->with('error', 'Invoice sending not yet implemented.');
+    }
+
+    /**
+     * Generate PDF for an invoice.
+     */
+    public function generatePdf(string $id)
+    {
+        // Placeholder implementation
+        Log::channel('log_viewer')->info("Invoice PDF generation attempted by " . auth()->user()->name, [
+            'invoice_id' => $id,
+            'action' => 'generate_pdf',
+            'status' => 'Not implemented yet'
+        ]);
+
+        return back()->with('error', 'PDF generation not yet implemented.');
+    }
+
+    /**
+     * Display payments index.
+     */
+    public function payments()
+    {
+        // Placeholder implementation
+        return view('payments.index');
+    }
+
+    /**
+     * Store a payment.
+     */
+    public function storePayment(Request $request)
+    {
+        // Placeholder implementation
+        Log::channel('log_viewer')->info("Payment storage attempted by " . auth()->user()->name, [
+            'action' => 'store_payment',
+            'status' => 'Not implemented yet'
+        ]);
+
+        return back()->with('error', 'Payment storage not yet implemented.');
     }
 }

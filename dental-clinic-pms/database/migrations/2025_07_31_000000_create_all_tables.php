@@ -93,6 +93,7 @@ return new class extends Migration
             $table->text('reason_for_visit')->nullable();
             $table->text('appointment_notes')->nullable();
             $table->text('cancellation_reason')->nullable();
+            $table->json('modification_history')->nullable(); // Add this line
             $table->timestamps();
         });
 

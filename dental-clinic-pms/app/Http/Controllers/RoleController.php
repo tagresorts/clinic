@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Services\AuditLogService;
 
 class RoleController extends Controller
 {
@@ -31,6 +32,9 @@ class RoleController extends Controller
         $role = Role::create(['name' => $request->name]);
         $role->givePermissionTo($request->permissions);
 
+        $newPermissions = $request->permissions ?? [];
+        AuditLogService::logModelChange($role, 'created', null, ['name' => $role->name, 'permissions' => implode(', ', $newPermissions)]);
+
         return redirect()->route('roles.index')->with('success', 'Role created successfully.');
     }
 
@@ -49,15 +53,30 @@ class RoleController extends Controller
             'permissions.*' => 'exists:permissions,name',
         ]);
 
+        $oldName = $role->name;
+        $oldPermissions = $role->permissions->pluck('name')->toArray();
+        
         $role->update(['name' => $request->name]);
         $role->syncPermissions($request->permissions);
+
+        $newName = $request->name;
+        $newPermissions = $request->permissions ?? [];
+
+        $oldValues = ['name' => $oldName, 'permissions' => implode(', ', $oldPermissions)];
+        $newValues = ['name' => $newName, 'permissions' => implode(', ', $newPermissions)];
+
+        AuditLogService::logModelChange($role, 'updated', $oldValues, $newValues);
 
         return redirect()->route('roles.index')->with('success', 'Role updated successfully.');
     }
 
     public function destroy(Role $role)
     {
+        $roleName = $role->name;
         $role->delete();
+        
+        AuditLogService::logModelChange($role, 'deleted', ['name' => $roleName]);
+        
         return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
     }
 }

@@ -6,6 +6,7 @@ use App\Models\SmtpConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class SmtpConfigController extends Controller
 {
@@ -33,8 +34,20 @@ class SmtpConfigController extends Controller
             'from_name' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ]);
+        
         $validated['password'] = $validated['password'] ? Crypt::encryptString($validated['password']) : null;
         $config = SmtpConfig::create($validated);
+        
+        Log::channel('log_viewer')->info("SMTP configuration '{$config->name}' created by " . auth()->user()->name, [
+            'config_id' => $config->id,
+            'host' => $config->host,
+            'port' => $config->port,
+            'encryption' => $config->encryption,
+            'has_username' => !empty($config->username),
+            'has_password' => !empty($config->password),
+            'from_email' => $config->from_email
+        ]);
+        
         return redirect()->route('smtp.index')->with('success', 'SMTP configuration added.');
     }
 
@@ -56,18 +69,44 @@ class SmtpConfigController extends Controller
             'from_name' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ]);
+        
+        $oldName = $smtp->name;
+        $oldHost = $smtp->host;
+        $oldPort = $smtp->port;
+        
         if (!empty($validated['password'])) {
             $validated['password'] = Crypt::encryptString($validated['password']);
         } else {
             unset($validated['password']);
         }
+        
         $smtp->update($validated);
+        
+        Log::channel('log_viewer')->info("SMTP configuration '{$oldName}' updated by " . auth()->user()->name, [
+            'config_id' => $smtp->id,
+            'old_name' => $oldName,
+            'new_name' => $validated['name'],
+            'old_host' => $oldHost,
+            'new_host' => $validated['host'],
+            'old_port' => $oldPort,
+            'new_port' => $validated['port'],
+            'password_changed' => isset($validated['password'])
+        ]);
+        
         return redirect()->route('smtp.index')->with('success', 'SMTP configuration updated.');
     }
 
     public function destroy(SmtpConfig $smtp)
     {
+        $configName = $smtp->name;
+        $configId = $smtp->id;
+        
         $smtp->delete();
+        
+        Log::channel('log_viewer')->info("SMTP configuration '{$configName}' deleted by " . auth()->user()->name, [
+            'config_id' => $configId
+        ]);
+        
         return redirect()->route('smtp.index')->with('success', 'SMTP configuration deleted.');
     }
 
@@ -75,6 +114,11 @@ class SmtpConfigController extends Controller
     {
         SmtpConfig::query()->update(['is_default' => false]);
         $smtp->update(['is_default' => true]);
+        
+        Log::channel('log_viewer')->info("Default SMTP configuration changed to '{$smtp->name}' by " . auth()->user()->name, [
+            'config_id' => $smtp->id
+        ]);
+        
         return redirect()->route('smtp.index')->with('success', 'Default SMTP updated.');
     }
 
@@ -101,8 +145,21 @@ class SmtpConfigController extends Controller
                 $message->to($to)->subject('SMTP Configuration Test');
             });
 
+            Log::channel('log_viewer')->info("SMTP test email sent successfully by " . auth()->user()->name, [
+                'config_id' => $smtp->id,
+                'config_name' => $smtp->name,
+                'test_recipient' => $to
+            ]);
+
             return back()->with('success', 'Test email sent successfully!');
         } catch (\Exception $e) {
+            Log::channel('log_viewer')->error("SMTP test email failed by " . auth()->user()->name, [
+                'config_id' => $smtp->id,
+                'config_name' => $smtp->name,
+                'test_recipient' => $to,
+                'error' => $e->getMessage()
+            ]);
+            
             return back()->with('error', 'Failed to send test email: ' . $e->getMessage());
         }
     }

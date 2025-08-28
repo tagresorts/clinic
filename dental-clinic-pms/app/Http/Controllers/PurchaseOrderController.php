@@ -8,6 +8,7 @@ use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PurchaseOrderController extends Controller
 {
@@ -37,7 +38,10 @@ class PurchaseOrderController extends Controller
             'lines.*.unit_cost' => 'required|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $order = null;
+        $supplierName = Supplier::find($validated['supplier_id'])->supplier_name;
+        
+        DB::transaction(function () use ($validated, &$order) {
             $order = PurchaseOrder::create([
                 'supplier_id' => $validated['supplier_id'],
                 'status' => 'submitted',
@@ -64,6 +68,14 @@ class PurchaseOrderController extends Controller
             $order->update(['total_cost' => $total]);
         });
 
+        Log::channel('log_viewer')->info("Purchase Order created by " . auth()->user()->name, [
+            'order_id' => $order->id,
+            'supplier' => $supplierName,
+            'total_cost' => $order->total_cost,
+            'line_items' => count($validated['lines']),
+            'expected_date' => $validated['expected_date'] ?? 'Not specified'
+        ]);
+
         return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created.');
     }
 
@@ -76,6 +88,12 @@ class PurchaseOrderController extends Controller
     public function receive(PurchaseOrder $purchaseOrder)
     {
         // Placeholder: receiving flow would increase stock and create stock movements
+        Log::channel('log_viewer')->info("Purchase Order receiving attempted by " . auth()->user()->name, [
+            'order_id' => $purchaseOrder->id,
+            'supplier' => $purchaseOrder->supplier->supplier_name ?? 'Unknown',
+            'status' => 'Not implemented yet'
+        ]);
+        
         return back()->with('success', 'Receiving not yet implemented.');
     }
 }

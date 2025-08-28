@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Procedure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProcedureController extends Controller
 {
@@ -35,7 +36,13 @@ class ProcedureController extends Controller
             'cost' => 'required|numeric|min:0',
         ]);
 
-        Procedure::create($validated);
+        $procedure = Procedure::create($validated);
+
+        Log::channel('log_viewer')->info("Procedure '{$procedure->name}' created by " . auth()->user()->name, [
+            'procedure_id' => $procedure->id,
+            'cost' => $procedure->cost,
+            'description' => $procedure->description
+        ]);
 
         return redirect()->route('procedures.index')
             ->with('success', 'Procedure created successfully.');
@@ -68,7 +75,21 @@ class ProcedureController extends Controller
             'cost' => 'required|numeric|min:0',
         ]);
 
+        $oldName = $procedure->name;
+        $oldCost = $procedure->cost;
+        $oldDescription = $procedure->description;
+
         $procedure->update($validated);
+
+        Log::channel('log_viewer')->info("Procedure '{$oldName}' updated by " . auth()->user()->name, [
+            'procedure_id' => $procedure->id,
+            'old_name' => $oldName,
+            'new_name' => $validated['name'],
+            'old_cost' => $oldCost,
+            'new_cost' => $validated['cost'],
+            'old_description' => $oldDescription,
+            'new_description' => $validated['description']
+        ]);
 
         return redirect()->route('procedures.index')
             ->with('success', 'Procedure updated successfully.');
@@ -79,7 +100,14 @@ class ProcedureController extends Controller
      */
     public function destroy(Procedure $procedure)
     {
+        $procedureName = $procedure->name;
+        $procedureId = $procedure->id;
+
         $procedure->delete();
+
+        Log::channel('log_viewer')->info("Procedure '{$procedureName}' deleted by " . auth()->user()->name, [
+            'procedure_id' => $procedureId
+        ]);
 
         return redirect()->route('procedures.index')
             ->with('success', 'Procedure deleted successfully.');

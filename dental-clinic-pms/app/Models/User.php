@@ -43,7 +43,6 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
         'password',
         'phone',
         'address',
-        'is_active',
         'last_login_at',
     ];
 
@@ -67,7 +66,6 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_active' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }
@@ -126,13 +124,5 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'user_id');
-    }
-
-    /**
-     * Scope to get only active users
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
     }
 }

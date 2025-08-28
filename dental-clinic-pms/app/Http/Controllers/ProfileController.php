@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -26,13 +27,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $oldEmail = $user->email;
+        $oldName = $user->name;
+        
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        Log::channel('log_viewer')->info("User profile updated by " . $user->name, [
+            'user_id' => $user->id,
+            'old_name' => $oldName,
+            'new_name' => $user->name,
+            'old_email' => $oldEmail,
+            'new_email' => $user->email,
+            'email_verification_reset' => $user->isDirty('email')
+        ]);
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -47,10 +61,17 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $userId = $user->id;
+        $userName = $user->name;
 
         Auth::logout();
 
         $user->delete();
+
+        Log::channel('log_viewer')->info("User account deleted by " . $userName, [
+            'user_id' => $userId,
+            'deleted_by' => $userName
+        ]);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

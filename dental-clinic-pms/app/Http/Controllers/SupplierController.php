@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SupplierController extends Controller
 {
@@ -37,7 +38,15 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
+        
         $supplier = Supplier::create($validated);
+        
+        Log::channel('log_viewer')->info("Supplier '{$supplier->supplier_name}' created by " . auth()->user()->name, [
+            'supplier_id' => $supplier->id,
+            'email' => $supplier->email,
+            'phone' => $supplier->phone
+        ]);
+        
         return redirect()->route('suppliers.show', $supplier)->with('success', 'Supplier created.');
     }
 
@@ -60,13 +69,37 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
+        
+        $oldName = $supplier->supplier_name;
+        $oldEmail = $supplier->email;
+        $oldPhone = $supplier->phone;
+        
         $supplier->update($validated);
+        
+        Log::channel('log_viewer')->info("Supplier '{$oldName}' updated by " . auth()->user()->name, [
+            'supplier_id' => $supplier->id,
+            'old_name' => $oldName,
+            'new_name' => $validated['supplier_name'],
+            'old_email' => $oldEmail,
+            'new_email' => $validated['email'],
+            'old_phone' => $oldPhone,
+            'new_phone' => $validated['phone']
+        ]);
+        
         return redirect()->route('suppliers.show', $supplier)->with('success', 'Supplier updated.');
     }
 
     public function destroy(Supplier $supplier)
     {
+        $supplierName = $supplier->supplier_name;
+        $supplierId = $supplier->id;
+        
         $supplier->delete();
+        
+        Log::channel('log_viewer')->info("Supplier '{$supplierName}' deleted by " . auth()->user()->name, [
+            'supplier_id' => $supplierId
+        ]);
+        
         return redirect()->route('suppliers.index')->with('success', 'Supplier deleted.');
     }
 }

@@ -165,6 +165,22 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 // Log Viewer - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('logs', [App\Http\Controllers\LogViewerController::class, 'index'])->name('logs.index');
+Route::get('logs/download/{filename}', [App\Http\Controllers\LogViewerController::class, 'download'])->name('logs.download');
+Route::post('logs/clear/{filename}', [App\Http\Controllers\LogViewerController::class, 'clear'])->name('logs.clear');
+Route::delete('logs/delete/{filename}', [App\Http\Controllers\LogViewerController::class, 'delete'])->name('logs.delete');
+
+// Audit Logs
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('audit-logs/debug', function() { return view('audit-logs.debug'); })->name('audit-logs.debug');
+    Route::get('audit-logs/test', function() { return view('audit-logs.test'); })->name('audit-logs.test');
+    Route::get('audit-logs/{auditLog}', [App\Http\Controllers\AuditLogController::class, 'show'])->name('audit-logs.show');
+    Route::get('audit-logs/export', [App\Http\Controllers\AuditLogController::class, 'export'])->name('audit-logs.export');
+    Route::patch('audit-logs/{auditLog}/review', [App\Http\Controllers\AuditLogController::class, 'markReviewed'])->name('audit-logs.review');
+    Route::patch('audit-logs/{auditLog}/mark-review', [App\Http\Controllers\AuditLogController::class, 'markForReview'])->name('audit-logs.mark-review');
+    Route::get('audit-logs/entity-timeline', [App\Http\Controllers\AuditLogController::class, 'entityTimeline'])->name('audit-logs.entity-timeline');
+    Route::get('audit-logs/user-timeline', [App\Http\Controllers\AuditLogController::class, 'userTimeline'])->name('audit-logs.user-timeline');
+});
 });
 
 require __DIR__.'/auth.php';
