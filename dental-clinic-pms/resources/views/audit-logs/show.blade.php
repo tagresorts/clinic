@@ -1,8 +1,9 @@
-@extends('layouts.app')
-
-@section('title', 'Audit Log Details')
-
-@section('content')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Audit Log Details') }}
+        </h2>
+    </x-slot>
 <div class="container mx-auto px-4 py-8">
     <div class="mb-6">
         <a href="{{ route('audit-logs.index') }}" class="text-blue-600 hover:text-blue-900 flex items-center">
@@ -230,6 +231,6 @@
                 </div>
             </div>
         </div>
+            </div>
     </div>
-</div>
-@endsection
+</x-app-layout>

@@ -1,8 +1,9 @@
-@extends('layouts.app')
-
-@section('title', 'Audit Logs')
-
-@section('content')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Audit Logs') }}
+        </h2>
+    </x-slot>
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Audit Logs</h1>
@@ -263,5 +264,5 @@
             {{ $auditLogs->links() }}
         </div>
     </div>
-</div>
-@endsection
+    </div>
+</x-app-layout>
