@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class AuditLogController extends Controller
@@ -14,7 +15,13 @@ class AuditLogController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AuditLog::query();
+        try {
+            // Check if the audit_logs table exists and has the right structure
+            if (!Schema::hasTable('audit_logs')) {
+                throw new \Exception('Audit logs table does not exist. Please run migrations.');
+            }
+            
+            $query = AuditLog::query();
 
         // Filter by user
         if ($request->filled('user_id')) {
@@ -78,6 +85,19 @@ class AuditLogController extends Controller
             'severities',
             'stats'
         ));
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error('Audit log index error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return a simple error view
+            return view('audit-logs.error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     /**

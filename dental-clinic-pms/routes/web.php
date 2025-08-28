@@ -172,6 +172,8 @@ Route::delete('logs/delete/{filename}', [App\Http\Controllers\LogViewerControlle
 // Audit Logs
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('audit-logs/debug', function() { return view('audit-logs.debug'); })->name('audit-logs.debug');
+    Route::get('audit-logs/test', function() { return view('audit-logs.test'); })->name('audit-logs.test');
     Route::get('audit-logs/{auditLog}', [App\Http\Controllers\AuditLogController::class, 'show'])->name('audit-logs.show');
     Route::get('audit-logs/export', [App\Http\Controllers\AuditLogController::class, 'export'])->name('audit-logs.export');
     Route::patch('audit-logs/{auditLog}/review', [App\Http\Controllers\AuditLogController::class, 'markReviewed'])->name('audit-logs.review');

@@ -4,7 +4,9 @@
             {{ __('Audit Log Details') }}
         </h2>
     </x-slot>
-<div class="container mx-auto px-4 py-8">
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
     <div class="mb-6">
         <a href="{{ route('audit-logs.index') }}" class="text-blue-600 hover:text-blue-900 flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,5 +234,6 @@
             </div>
         </div>
             </div>
+        </div>
     </div>
 </x-app-layout>

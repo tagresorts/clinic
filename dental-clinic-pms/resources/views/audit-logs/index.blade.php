@@ -4,7 +4,9 @@
             {{ __('Audit Logs') }}
         </h2>
     </x-slot>
-<div class="container mx-auto px-4 py-8">
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Audit Logs</h1>
         <div class="flex space-x-3">
@@ -263,6 +265,7 @@
         <div class="px-6 py-4 border-t border-gray-200">
             {{ $auditLogs->links() }}
         </div>
-    </div>
+        </div>
+        </div>
     </div>
 </x-app-layout>
