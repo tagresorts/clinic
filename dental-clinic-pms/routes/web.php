@@ -34,6 +34,9 @@ Route::get('/dashboard-v3', [DashboardController::class, 'index'])
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/kpis/html', [DashboardController::class, 'kpisHtml'])->name('dashboard.kpis.html');
     Route::get('/dashboard/kpis/json', [DashboardController::class, 'kpisJson'])->name('dashboard.kpis.json');
+    Route::get('/dashboard/layout', [DashboardController::class, 'getLayout'])->name('dashboard.layout');
+    Route::get('/dashboard/alerts', [DashboardController::class, 'alertsJson'])->name('dashboard.alerts');
+    Route::get('/dashboard/mini-report/appointments', [DashboardController::class, 'miniReportAppointments'])->name('dashboard.mini-report.appointments');
 });
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])

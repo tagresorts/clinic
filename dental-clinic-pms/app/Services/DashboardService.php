@@ -147,13 +147,18 @@ class DashboardService
         return array_slice($activities, 0, 10);
     }
 
-    public function getKpiData(): array
+    public function getKpiData(string $timeframe = 'today'): array
     {
         $today = Carbon::today();
+        $start = match ($timeframe) {
+            'week' => Carbon::now()->startOfWeek(),
+            'month' => Carbon::now()->startOfMonth(),
+            default => $today,
+        };
         $expirationThreshold = (int) (Setting::where('key', 'expiration_threshold')->first()->value ?? 30);
 
         return [
-            'todays_appointments' => Appointment::today()->count(),
+            'todays_appointments' => Appointment::where('appointment_datetime', '>=', $start)->count(),
             'active_patients' => Patient::active()->count(),
             'chair_utilization' => '75%', // Mock data for now
             'low_stock_items' => InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count(),

@@ -31,10 +31,11 @@ class DashboardController extends Controller
     /**
      * Return KPI panel HTML partial for dynamic refresh.
      */
-    public function kpisHtml()
+    public function kpisHtml(Request $request)
     {
         $kpis = config('dashboard.kpis');
-        $kpiData = $this->dashboardService->getKpiData();
+        $timeframe = $request->get('timeframe', 'today');
+        $kpiData = $this->dashboardService->getKpiData($timeframe);
 
         return view('dashboard._kpi_panel', compact('kpis', 'kpiData'));
     }
@@ -42,10 +43,80 @@ class DashboardController extends Controller
     /**
      * Return KPI data as JSON for API-style consumption.
      */
-    public function kpisJson()
+    public function kpisJson(Request $request)
     {
-        $kpiData = $this->dashboardService->getKpiData();
+        $timeframe = $request->get('timeframe', 'today');
+        $kpiData = $this->dashboardService->getKpiData($timeframe);
         return response()->json($kpiData);
+    }
+
+    /**
+     * Get saved layout for current user.
+     */
+    public function getLayout()
+    {
+        $user = Auth::user();
+        $prefs = UserDashboardPreference::where('user_id', $user->id)
+            ->get(['widget_key', 'x_pos as x', 'y_pos as y', 'width as w', 'height as h']);
+        return response()->json($prefs);
+    }
+
+    /**
+     * Alerts for dashboard widgets.
+     */
+    public function alertsJson()
+    {
+        $alerts = [];
+        try {
+            // Low stock items
+            $lowStockCount = \App\Models\InventoryItem::whereColumn('quantity_in_stock', '<=', 'reorder_level')->count();
+            if ($lowStockCount > 0) {
+                $alerts[] = [
+                    'type' => 'inventory',
+                    'level' => 'warning',
+                    'message' => "$lowStockCount items are at or below reorder level",
+                ];
+            }
+            // Expiring items
+            $expiringCount = \App\Models\InventoryItem::where('has_expiry', true)
+                ->whereDate('expiry_date', '<=', Carbon\Carbon::today()->addDays(30))
+                ->count();
+            if ($expiringCount > 0) {
+                $alerts[] = [
+                    'type' => 'inventory',
+                    'level' => 'info',
+                    'message' => "$expiringCount items expiring within 30 days",
+                ];
+            }
+            // Late appointments (scheduled in past 30 mins not completed/cancelled)
+            $lateCount = \App\Models\Appointment::where('appointment_datetime', '<', Carbon\Carbon::now()->subMinutes(30))
+                ->whereIn('status', ['scheduled','confirmed'])
+                ->count();
+            if ($lateCount > 0) {
+                $alerts[] = [
+                    'type' => 'appointments',
+                    'level' => 'danger',
+                    'message' => "$lateCount appointments may be running late",
+                ];
+            }
+        } catch (\Throwable $e) {
+            $alerts[] = [ 'type' => 'system', 'level' => 'error', 'message' => 'Unable to load alerts at this time.' ];
+        }
+        return response()->json($alerts);
+    }
+
+    /**
+     * Mini report: appointments per day over last 7 days.
+     */
+    public function miniReportAppointments()
+    {
+        $start = Carbon\Carbon::today()->subDays(6);
+        $data = \App\Models\Appointment::selectRaw('DATE(appointment_datetime) as date, COUNT(*) as count')
+            ->where('appointment_datetime', '>=', $start)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date');
+        return response()->json($data);
     }
 
     public function saveLayout(Request $request)
