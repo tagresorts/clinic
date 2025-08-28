@@ -57,7 +57,39 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $prefs = UserDashboardPreference::where('user_id', $user->id)
-            ->get(['widget_key', 'x_pos as x', 'y_pos as y', 'width as w', 'height as h']);
+            ->get(['widget_key as id', 'x_pos as x', 'y_pos as y', 'width as w', 'height as h']);
+
+        if ($prefs->isEmpty()) {
+            // Role-based defaults
+            if ($user->hasRole('dentist')) {
+                $defaults = [
+                    ['id' => 'kpi', 'x' => 0, 'y' => 0, 'w' => 6, 'h' => 2],
+                    ['id' => 'appointments', 'x' => 0, 'y' => 2, 'w' => 8, 'h' => 6],
+                    ['id' => 'patient', 'x' => 8, 'y' => 2, 'w' => 4, 'h' => 3],
+                    ['id' => 'alerts', 'x' => 8, 'y' => 5, 'w' => 4, 'h' => 3],
+                    ['id' => 'mini-report', 'x' => 0, 'y' => 8, 'w' => 6, 'h' => 3],
+                ];
+            } elseif ($user->hasRole('administrator')) {
+                $defaults = [
+                    ['id' => 'kpi', 'x' => 0, 'y' => 0, 'w' => 6, 'h' => 2],
+                    ['id' => 'alerts', 'x' => 6, 'y' => 0, 'w' => 6, 'h' => 2],
+                    ['id' => 'appointments', 'x' => 0, 'y' => 2, 'w' => 7, 'h' => 5],
+                    ['id' => 'patient', 'x' => 7, 'y' => 2, 'w' => 5, 'h' => 3],
+                    ['id' => 'admin-notices', 'x' => 7, 'y' => 5, 'w' => 5, 'h' => 2],
+                    ['id' => 'mini-report', 'x' => 0, 'y' => 7, 'w' => 6, 'h' => 3],
+                ];
+            } else {
+                // Receptionist/staff default
+                $defaults = [
+                    ['id' => 'kpi', 'x' => 0, 'y' => 0, 'w' => 6, 'h' => 2],
+                    ['id' => 'appointments', 'x' => 0, 'y' => 2, 'w' => 8, 'h' => 6],
+                    ['id' => 'patient', 'x' => 8, 'y' => 2, 'w' => 4, 'h' => 4],
+                    ['id' => 'mini-report', 'x' => 0, 'y' => 8, 'w' => 6, 'h' => 3],
+                ];
+            }
+            return response()->json($defaults);
+        }
+
         return response()->json($prefs);
     }
 
