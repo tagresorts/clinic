@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use App\Services\AuditLogService;
 
 class PatientController extends Controller
 {
@@ -110,6 +111,14 @@ class PatientController extends Controller
 
         try {
             $patient = Patient::create($validated);
+            
+            // Log the patient creation action
+            AuditLogService::logFrontendAction(
+                'patient_registered',
+                $patient,
+                ['registered_by' => auth()->id(), 'registration_method' => 'manual']
+            );
+            
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating patient: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to register patient. Please try again.');

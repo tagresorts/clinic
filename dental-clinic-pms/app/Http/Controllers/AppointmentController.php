@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogService;
 
 class AppointmentController extends Controller
 {
@@ -170,6 +171,13 @@ class AppointmentController extends Controller
             return redirect()->back()->withInput()->with('error', 'The selected dentist has a conflicting appointment at that time.');
         }
 
+        // Log the specific action before update
+        AuditLogService::logFrontendAction(
+            'appointment_updated',
+            $appointment,
+            ['updated_by' => auth()->id(), 'changes_requested' => $validated]
+        );
+
         $appointment->update([
             'patient_id' => $validated['patient_id'],
             'dentist_id' => $validated['dentist_id'],
@@ -202,14 +210,51 @@ class AppointmentController extends Controller
                 'status' => Appointment::STATUS_CANCELLED,
                 'cancellation_reason' => 'Deleted by administrator.'
              ]);
+             
+             // Log the cancellation action
+             AuditLogService::logFrontendAction(
+                 'appointment_cancelled',
+                 $appointment,
+                 ['cancelled_by' => auth()->id(), 'reason' => 'Deleted by administrator.']
+             );
+             
              $message = 'Appointment cancelled successfully.';
         } else {
             // Or if it's already cancelled, then permanently delete.
             $appointment->delete();
+            
+            // Log the permanent deletion
+            AuditLogService::logFrontendAction(
+                'appointment_permanently_deleted',
+                $appointment,
+                ['deleted_by' => auth()->id(), 'reason' => 'Already cancelled appointment']
+            );
+            
             $message = 'Appointment permanently deleted.';
         }
 
         return redirect()->route('appointments.index')->with('success', $message);
+    }
+
+    /**
+     * Confirm an appointment.
+     */
+    public function confirm(Appointment $appointment)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
+            abort(403, 'You are not authorized to confirm appointments.');
+        }
+
+        $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
+
+        // Log the specific action
+        AuditLogService::logFrontendAction(
+            'appointment_confirmed',
+            $appointment,
+            ['status' => Appointment::STATUS_CONFIRMED, 'confirmed_by' => auth()->id()]
+        );
+
+        return redirect()->route('appointments.index')->with('success', 'Appointment confirmed successfully.');
     }
 
     /**
