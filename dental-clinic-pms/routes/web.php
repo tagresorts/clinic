@@ -165,6 +165,9 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
 // Log Viewer - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('logs', [App\Http\Controllers\LogViewerController::class, 'index'])->name('logs.index');
+    Route::get('logs/download/{filename}', [App\Http\Controllers\LogViewerController::class, 'download'])->name('logs.download');
+    Route::post('logs/clear/{filename}', [App\Http\Controllers\LogViewerController::class, 'clear'])->name('logs.clear');
+    Route::delete('logs/delete/{filename}', [App\Http\Controllers\LogViewerController::class, 'delete'])->name('logs.delete');
 });
 
 require __DIR__.'/auth.php';
