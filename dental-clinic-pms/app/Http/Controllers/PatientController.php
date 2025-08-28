@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PatientController extends Controller
 {
@@ -110,6 +111,13 @@ class PatientController extends Controller
 
         try {
             $patient = Patient::create($validated);
+            
+            Log::channel('log_viewer')->info("Patient created by " . auth()->user()->name, [
+                'patient_id' => $patient->id,
+                'patient_name' => $patient->first_name . ' ' . $patient->last_name,
+                'created_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+            ]);
+            
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating patient: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to register patient. Please try again.');
@@ -188,6 +196,12 @@ class PatientController extends Controller
 
         $patient->update($validated);
 
+        Log::channel('log_viewer')->info("Patient information updated by " . auth()->user()->name, [
+            'patient_id' => $patient->id,
+            'patient_name' => $patient->first_name . ' ' . $patient->last_name,
+            'updated_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
         return redirect()->route('patients.show', $patient)
             ->with('success', 'Patient information updated successfully.');
     }
@@ -205,6 +219,12 @@ class PatientController extends Controller
         // Soft delete
         $patient->delete();
 
+        Log::channel('log_viewer')->info("Patient deactivated by " . auth()->user()->name, [
+            'patient_id' => $patient->id,
+            'patient_name' => $patient->first_name . ' ' . $patient->last_name,
+            'deactivated_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
         return redirect()->route('patients.index')
             ->with('success', 'Patient has been deactivated successfully.');
     }
@@ -220,6 +240,12 @@ class PatientController extends Controller
 
         $patient = Patient::withTrashed()->findOrFail($id);
         $patient->restore();
+
+        Log::channel('log_viewer')->info("Patient reactivated by " . auth()->user()->name, [
+            'patient_id' => $patient->id,
+            'patient_name' => $patient->first_name . ' ' . $patient->last_name,
+            'reactivated_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
 
         return redirect()->route('patients.show', $patient)
             ->with('success', 'Patient has been reactivated successfully.');
@@ -333,6 +359,16 @@ class PatientController extends Controller
 
                 $treatmentRecord->procedures()->attach($validated['procedure_ids']);
             });
+
+            Log::channel('log_viewer')->info("Walk-in appointment and treatment created by " . auth()->user()->name, [
+                'patient_id' => $patient->id,
+                'patient_name' => $patient->first_name . ' ' . $patient->last_name,
+                'dentist_id' => $validated['dentist_id'],
+                'appointment_type' => $validated['appointment_type'],
+                'procedures_count' => count($validated['procedure_ids']),
+                'created_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+            ]);
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating walk-in appointment and treatment: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to create walk-in session. Please try again.');

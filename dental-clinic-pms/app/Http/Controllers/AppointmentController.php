@@ -104,6 +104,15 @@ class AppointmentController extends Controller
             'status' => Appointment::STATUS_SCHEDULED,
         ]);
 
+        Log::channel('log_viewer')->info("Appointment scheduled by " . auth()->user()->name, [
+            'patient_id' => $validated['patient_id'],
+            'dentist_id' => $validated['dentist_id'],
+            'appointment_datetime' => $datetime->toDateTimeString(),
+            'duration_minutes' => $validated['duration_minutes'],
+            'appointment_type' => $validated['appointment_type'],
+            'scheduled_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
         return redirect()->route('appointments.index')->with('success', 'Appointment scheduled successfully.');
     }
 
@@ -182,6 +191,15 @@ class AppointmentController extends Controller
             'cancellation_reason' => $validated['cancellation_reason'] ?? null,
         ]);
 
+        Log::channel('log_viewer')->info("Appointment updated by " . auth()->user()->name, [
+            'appointment_id' => $appointment->id,
+            'patient_id' => $validated['patient_id'],
+            'dentist_id' => $validated['dentist_id'],
+            'appointment_datetime' => $datetime->toDateTimeString(),
+            'status' => $validated['status'],
+            'updated_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
         $appointment->addModificationHistory('Updated by receptionist/admin');
 
         return redirect()->route('appointments.show', $appointment)->with('success', 'Appointment updated successfully.');
@@ -198,15 +216,28 @@ class AppointmentController extends Controller
 
         // Instead of deleting, we should probably cancel it.
         if ($appointment->status !== Appointment::STATUS_CANCELLED) {
-             $appointment->update([
+            $appointment->update([
                 'status' => Appointment::STATUS_CANCELLED,
                 'cancellation_reason' => 'Deleted by administrator.'
              ]);
              $message = 'Appointment cancelled successfully.';
+             
+             Log::channel('log_viewer')->info("Appointment cancelled by administrator " . auth()->user()->name, [
+                 'appointment_id' => $appointment->id,
+                 'patient_id' => $appointment->patient_id,
+                 'dentist_id' => $appointment->dentist_id,
+                 'cancellation_reason' => 'Deleted by administrator.'
+             ]);
         } else {
             // Or if it's already cancelled, then permanently delete.
             $appointment->delete();
             $message = 'Appointment permanently deleted.';
+            
+            Log::channel('log_viewer')->info("Appointment permanently deleted by administrator " . auth()->user()->name, [
+                'appointment_id' => $appointment->id,
+                'patient_id' => $appointment->patient_id,
+                'dentist_id' => $appointment->dentist_id
+            ]);
         }
 
         return redirect()->route('appointments.index')->with('success', $message);
@@ -376,5 +407,85 @@ class AppointmentController extends Controller
             ->paginate(15);
 
         return view('appointments.tentative', compact('appointments'));
+    }
+
+    /**
+     * Confirm a tentative appointment.
+     */
+    public function confirm(Appointment $appointment)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist', 'dentist'])) {
+            abort(403, 'You are not authorized to confirm appointments.');
+        }
+
+        $oldStatus = $appointment->status;
+        $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
+
+        Log::channel('log_viewer')->info("Appointment confirmed by " . auth()->user()->name, [
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'dentist_id' => $appointment->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => Appointment::STATUS_CONFIRMED,
+            'confirmed_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Appointment confirmed successfully.');
+    }
+
+    /**
+     * Cancel an appointment.
+     */
+    public function cancel(Request $request, Appointment $appointment)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'receptionist', 'dentist'])) {
+            abort(403, 'You are not authorized to cancel appointments.');
+        }
+
+        $request->validate([
+            'cancellation_reason' => 'nullable|string|max:500',
+        ]);
+
+        $oldStatus = $appointment->status;
+        $appointment->update([
+            'status' => Appointment::STATUS_CANCELLED,
+            'cancellation_reason' => $request->cancellation_reason ?? 'Cancelled by user.'
+        ]);
+
+        Log::channel('log_viewer')->info("Appointment cancelled by " . auth()->user()->name, [
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'dentist_id' => $appointment->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => Appointment::STATUS_CANCELLED,
+            'cancellation_reason' => $request->cancellation_reason ?? 'Cancelled by user.',
+            'cancelled_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Appointment cancelled successfully.');
+    }
+
+    /**
+     * Complete an appointment.
+     */
+    public function complete(Appointment $appointment)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'dentist'])) {
+            abort(403, 'You are not authorized to complete appointments.');
+        }
+
+        $oldStatus = $appointment->status;
+        $appointment->update(['status' => Appointment::STATUS_COMPLETED]);
+
+        Log::channel('log_viewer')->info("Appointment completed by " . auth()->user()->name, [
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'dentist_id' => $appointment->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => Appointment::STATUS_COMPLETED,
+            'completed_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Appointment completed successfully.');
     }
 }

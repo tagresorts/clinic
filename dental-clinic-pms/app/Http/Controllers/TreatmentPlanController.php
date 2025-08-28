@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use Illuminate\Support\Facades\Log;
 
 class TreatmentPlanController extends Controller
 {
@@ -83,6 +84,16 @@ class TreatmentPlanController extends Controller
             $record->procedures()->sync($validated['procedure_ids']);
         }
 
+        Log::channel('log_viewer')->info("Treatment plan '{$plan->plan_title}' created by " . auth()->user()->name, [
+            'plan_id' => $plan->id,
+            'patient_id' => $plan->patient_id,
+            'dentist_id' => $plan->dentist_id,
+            'status' => $plan->status,
+            'priority' => $plan->priority,
+            'estimated_cost' => $plan->estimated_cost,
+            'procedures_count' => count($validated['procedure_ids'])
+        ]);
+
         return redirect()->route('treatment-plans.index')
             ->with('success', 'Treatment plan created successfully.');
     }
@@ -148,6 +159,11 @@ class TreatmentPlanController extends Controller
             'appointment_dates.*' => 'nullable|date',
         ]);
 
+        $oldStatus = $plan->status;
+        $oldPriority = $plan->priority;
+        $oldCost = $plan->estimated_cost;
+        $oldProcedures = $plan->procedures->pluck('id')->toArray();
+
         $plan->update($validated);
         $plan->procedures()->sync($validated['procedure_ids']);
 
@@ -199,6 +215,19 @@ class TreatmentPlanController extends Controller
             }
         }
 
+        Log::channel('log_viewer')->info("Treatment plan '{$plan->plan_title}' updated by " . auth()->user()->name, [
+            'plan_id' => $plan->id,
+            'patient_id' => $plan->patient_id,
+            'dentist_id' => $plan->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => $validated['status'],
+            'old_priority' => $oldPriority,
+            'new_priority' => $validated['priority'],
+            'old_cost' => $oldCost,
+            'new_cost' => $validated['estimated_cost'],
+            'old_procedures' => $oldProcedures,
+            'new_procedures' => $validated['procedure_ids']
+        ]);
 
         return redirect()->route('treatment-plans.index')
             ->with('success', 'Treatment plan updated successfully.');
@@ -210,9 +239,99 @@ class TreatmentPlanController extends Controller
     public function destroy(string $id)
     {
         $plan = \App\Models\TreatmentPlan::findOrFail($id);
+        $planTitle = $plan->plan_title;
+        $planId = $plan->id;
+        
         $plan->delete();
+
+        Log::channel('log_viewer')->info("Treatment plan '{$planTitle}' deleted by " . auth()->user()->name, [
+            'plan_id' => $planId
+        ]);
 
         return redirect()->route('treatment-plans.index')
             ->with('success', 'Treatment plan deleted successfully.');
+    }
+
+    /**
+     * Approve a treatment plan.
+     */
+    public function approve(\App\Models\TreatmentPlan $treatmentPlan)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'dentist'])) {
+            abort(403, 'You are not authorized to approve treatment plans.');
+        }
+
+        $oldStatus = $treatmentPlan->status;
+        $treatmentPlan->update(['status' => 'patient_approved']);
+
+        Log::channel('log_viewer')->info("Treatment plan approved by " . auth()->user()->name, [
+            'plan_id' => $treatmentPlan->id,
+            'patient_id' => $treatmentPlan->patient_id,
+            'dentist_id' => $treatmentPlan->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => 'patient_approved',
+            'approved_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Treatment plan approved successfully.');
+    }
+
+    /**
+     * Start a treatment plan.
+     */
+    public function start(\App\Models\TreatmentPlan $treatmentPlan)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'dentist'])) {
+            abort(403, 'You are not authorized to start treatment plans.');
+        }
+
+        $oldStatus = $treatmentPlan->status;
+        $treatmentPlan->update(['status' => 'in_progress']);
+
+        Log::channel('log_viewer')->info("Treatment plan started by " . auth()->user()->name, [
+            'plan_id' => $treatmentPlan->id,
+            'patient_id' => $treatmentPlan->patient_id,
+            'dentist_id' => $treatmentPlan->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => 'in_progress',
+            'started_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Treatment plan started successfully.');
+    }
+
+    /**
+     * Complete a treatment plan.
+     */
+    public function complete(\App\Models\TreatmentPlan $treatmentPlan)
+    {
+        if (!auth()->user()->hasRole(['administrator', 'dentist'])) {
+            abort(403, 'You are not authorized to complete treatment plans.');
+        }
+
+        $oldStatus = $treatmentPlan->status;
+        $treatmentPlan->update(['status' => 'completed']);
+
+        // Create a treatment record when completed
+        $record = \App\Models\TreatmentRecord::create([
+            'patient_id' => $treatmentPlan->patient_id,
+            'dentist_id' => $treatmentPlan->dentist_id,
+            'treatment_plan_id' => $treatmentPlan->id,
+            'treatment_date' => now(),
+            'treatment_notes' => 'Treatment plan completed via completion action.',
+        ]);
+        $record->procedures()->sync($treatmentPlan->procedures->pluck('id')->toArray());
+
+        Log::channel('log_viewer')->info("Treatment plan completed by " . auth()->user()->name, [
+            'plan_id' => $treatmentPlan->id,
+            'patient_id' => $treatmentPlan->patient_id,
+            'dentist_id' => $treatmentPlan->dentist_id,
+            'old_status' => $oldStatus,
+            'new_status' => 'completed',
+            'treatment_record_id' => $record->id,
+            'completed_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+        ]);
+
+        return redirect()->back()->with('success', 'Treatment plan completed successfully.');
     }
 }

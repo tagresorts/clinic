@@ -38,7 +38,12 @@ class EmailTemplateController extends Controller
             'recipient_roles' => 'nullable|string',
         ]);
 
-        EmailTemplate::create($validated);
+        $emailTemplate = EmailTemplate::create($validated);
+
+        Log::channel('log_viewer')->info("Email template '{$emailTemplate->name}' created by " . auth()->user()->name, [
+            'template_id' => $emailTemplate->id,
+            'type' => $emailTemplate->type
+        ]);
 
         return redirect()->route('email_templates.index')->with('success', 'Email template created successfully.');
     }
@@ -60,14 +65,32 @@ class EmailTemplateController extends Controller
             'recipient_roles' => 'nullable|string',
         ]);
 
+        $oldName = $emailTemplate->name;
+        $oldType = $emailTemplate->type;
+        
         $emailTemplate->update($validated);
+
+        Log::channel('log_viewer')->info("Email template '{$oldName}' updated by " . auth()->user()->name, [
+            'template_id' => $emailTemplate->id,
+            'old_name' => $oldName,
+            'new_name' => $validated['name'],
+            'old_type' => $oldType,
+            'new_type' => $validated['type']
+        ]);
 
         return redirect()->route('email_templates.index')->with('success', 'Email template updated successfully.');
     }
 
     public function destroy(EmailTemplate $emailTemplate)
     {
+        $templateName = $emailTemplate->name;
+        $templateId = $emailTemplate->id;
+        
         $emailTemplate->delete();
+
+        Log::channel('log_viewer')->info("Email template '{$templateName}' deleted by " . auth()->user()->name, [
+            'template_id' => $templateId
+        ]);
 
         return redirect()->route('email_templates.index')->with('success', 'Email template deleted successfully.');
     }

@@ -6,6 +6,7 @@ use App\Services\DashboardService;
 use Illuminate\Http\Request;
 use App\Models\UserDashboardPreference;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -50,12 +51,26 @@ class DashboardController extends Controller
             );
         }
 
+        Log::channel('log_viewer')->info("Dashboard layout saved by " . $user->name, [
+            'user_id' => $user->id,
+            'widgets_count' => count($request->layout),
+            'action' => 'save_layout'
+        ]);
+
         return response()->json(['success' => true]);
     }
 
     public function resetLayout()
     {
-        UserDashboardPreference::where('user_id', Auth::id())->delete();
+        $user = Auth::user();
+        $deletedCount = UserDashboardPreference::where('user_id', $user->id)->delete();
+        
+        Log::channel('log_viewer')->info("Dashboard layout reset by " . $user->name, [
+            'user_id' => $user->id,
+            'deleted_preferences_count' => $deletedCount,
+            'action' => 'reset_layout'
+        ]);
+        
         return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
     }
 }
