@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Appointment;
+use App\Services\AuditLogService;
 
 class AppointmentObserver
 {
@@ -11,7 +12,7 @@ class AppointmentObserver
      */
     public function created(Appointment $appointment): void
     {
-        //
+        AuditLogService::logModelChange($appointment, 'created');
     }
 
     /**
@@ -19,12 +20,21 @@ class AppointmentObserver
      */
     public function updated(Appointment $appointment): void
     {
+        // Get the original values before the update
+        $oldValues = $appointment->getOriginal();
+        $newValues = $appointment->getAttributes();
+        
+        // Log the change
+        AuditLogService::logModelChange($appointment, 'updated', $oldValues, $newValues);
+        
+        // Business logic for appointment conflicts
         if ($appointment->isDirty('appointment_datetime')) {
             if (Appointment::hasConflict($appointment->dentist_id, $appointment->appointment_datetime, $appointment->duration_minutes, $appointment->id)) {
                 throw new \Exception('The selected dentist has a conflicting appointment at that time.');
             }
         }
 
+        // Update treatment plan if associated
         if ($appointment->treatment_plan_id) {
             $treatmentPlan = $appointment->treatmentPlan;
             $appointments = $treatmentPlan->appointments;
@@ -48,7 +58,7 @@ class AppointmentObserver
      */
     public function deleted(Appointment $appointment): void
     {
-        //
+        AuditLogService::logModelChange($appointment, 'deleted');
     }
 
     /**
@@ -56,7 +66,7 @@ class AppointmentObserver
      */
     public function restored(Appointment $appointment): void
     {
-        //
+        AuditLogService::logModelChange($appointment, 'restored');
     }
 
     /**
@@ -64,6 +74,6 @@ class AppointmentObserver
      */
     public function forceDeleted(Appointment $appointment): void
     {
-        //
+        AuditLogService::logModelChange($appointment, 'force_deleted');
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogService;
 
 class PatientController extends Controller
 {
@@ -112,6 +113,13 @@ class PatientController extends Controller
         try {
             $patient = Patient::create($validated);
             
+            // Log the patient creation action
+            AuditLogService::logFrontendAction(
+                'patient_registered',
+                $patient,
+                ['registered_by' => auth()->id(), 'registration_method' => 'manual']
+            );
+
             Log::channel('log_viewer')->info("Patient created by " . auth()->user()->name, [
                 'patient_id' => $patient->id,
                 'patient_name' => $patient->first_name . ' ' . $patient->last_name,

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
+use App\Services\AuditLogService;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -39,6 +40,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Log successful login
+        AuditLogService::logAuthEvent('login', [
+            'login_method' => 'form',
+            'remember_me' => $request->boolean('remember'),
+        ]);
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -47,6 +54,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Log logout before destroying session
+        AuditLogService::logAuthEvent('logout', [
+            'logout_method' => 'form',
+            'session_duration' => now()->diffInMinutes(session('login_time', now())),
+        ]);
+
         $user = Auth::user();
         if ($user) {
             Log::channel('log_viewer')->info("User logged out", [
