@@ -111,11 +111,12 @@
 </x-app-layout>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack-all.js"></script>
 <script>
 (function() {
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('dashboard-appointments-list');
-    const kpiPanel = document.getElementById('kpi-summary-panel');
+    // Will re-query KPI panel on each refresh to avoid stale references
     const calendarEl = document.getElementById('dashboard-calendar');
     const timeframeSelect = document.getElementById('timeframe-select');
     const alertsList = document.getElementById('alerts-list');
@@ -231,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Lightweight polling to keep KPIs fresh (every 30s)
     function refreshKpis() {
+        const kpiPanel = document.getElementById('kpi-summary-panel');
         if (!kpiPanel) return;
         const tf = timeframeSelect.value || 'today';
         const url = new URL('{{ route('dashboard.kpis.html', [], false) }}', window.location.origin);
@@ -244,13 +246,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 return r.text();
             })
             .then(html => {
-                // Replace only the KPI grid contents
+                // Replace inner HTML to keep reference stable and avoid layout thrash
                 const temp = document.createElement('div');
                 temp.innerHTML = html;
                 const newPanel = temp.querySelector('#kpi-summary-panel');
-                if (newPanel) {
-                    kpiPanel.replaceWith(newPanel);
-                }
+                if (newPanel) kpiPanel.innerHTML = newPanel.innerHTML;
             })
             .catch(e => console.warn(e.message));
     }
@@ -313,23 +313,29 @@ document.addEventListener('DOMContentLoaded', function () {
     function initGrid() {
         if (!window.GridStack) return;
         if (grid) return; // avoid duplicate init
-        grid = GridStack.init({ float: true, cellHeight: '8rem', minRow: 1 }, '#dashboard-grid');
+        grid = GridStack.init({ float: false, cellHeight: '8rem', minRow: 1, column: 12, margin: 5 }, '#dashboard-grid');
         // Load saved layout
         fetch('{{ route('dashboard.layout', [], false) }}', { credentials: 'same-origin' })
             .then(r => r.json())
             .then(layout => {
                 try {
-                    // Apply visibility by removing hidden widgets from grid
+                    const items = Array.isArray(layout) ? layout : [];
                     const visMap = {};
-                    (layout || []).forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
+                    items.forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
+                    // Batch updates to avoid reflow
+                    grid.batchUpdate();
                     document.querySelectorAll('#dashboard-grid .grid-stack-item').forEach(item => {
                         const id = item.getAttribute('gs-id');
-                        if (visMap.hasOwnProperty(id) && !visMap[id]) {
-                            item.style.display = 'none';
+                        const cfg = items.find(w => w.id === id);
+                        // visibility
+                        const visible = visMap.hasOwnProperty(id) ? visMap[id] : true;
+                        item.style.display = visible ? '' : 'none';
+                        // position/size
+                        if (cfg) {
+                            grid.update(item, {x: cfg.x, y: cfg.y, w: cfg.w, h: cfg.h});
                         }
                     });
-                    // Load positions/sizes
-                    grid.load((layout || []).map(w => ({ id: w.id, x: w.x, y: w.y, w: w.w, h: w.h })));
+                    grid.commit();
                 } catch (e) {
                     console.warn('Grid load skipped:', e.message);
                 }
