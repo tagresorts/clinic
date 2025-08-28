@@ -81,8 +81,31 @@
                 </div>
             </div>
 
-            <!-- Widget Library (simple) -->
-            <div id="widget-library" class="hidden"></div>
+            <!-- Widget Library Modal -->
+            <div id="widget-library" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-40">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-800">Widget Library</h3>
+                        <button id="widget-lib-close" class="text-gray-500 hover:text-gray-700">✕</button>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="kpi" checked> <span>KPI Summary</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="appointments" checked> <span>Appointments</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="patient" checked> <span>Patient Section</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="admin-notices" checked> <span>Admin Notices</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="alerts" checked> <span>Alerts</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="mini-report" checked> <span>Mini Report</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="quick-actions" checked> <span>Quick Actions</span></label>
+                    </div>
+                    <div class="mt-4 flex items-center justify-end space-x-2">
+                        <button id="widget-lib-save" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fixed bottom-6 right-6 z-30">
+                <button id="open-widget-lib" class="px-3 py-2 bg-gray-800 text-white rounded shadow hover:bg-gray-700 text-sm">Widgets</button>
+            </div>
         </div>
     </div>
 </x-app-layout>
@@ -97,6 +120,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const timeframeSelect = document.getElementById('timeframe-select');
     const alertsList = document.getElementById('alerts-list');
     const saveLayoutBtn = document.getElementById('save-layout-btn');
+    const widgetLib = document.getElementById('widget-library');
+    const widgetLibOpen = document.getElementById('open-widget-lib');
+    const widgetLibClose = document.getElementById('widget-lib-close');
+    const widgetLibSave = document.getElementById('widget-lib-save');
     let grid;
 
     function formatDate(date) {
@@ -292,7 +319,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(r => r.json())
             .then(layout => {
                 try {
-                    grid.load(layout);
+                    // Apply visibility by removing hidden widgets from grid
+                    const visMap = {};
+                    (layout || []).forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
+                    document.querySelectorAll('#dashboard-grid .grid-stack-item').forEach(item => {
+                        const id = item.getAttribute('gs-id');
+                        if (visMap.hasOwnProperty(id) && !visMap[id]) {
+                            item.style.display = 'none';
+                        }
+                    });
+                    // Load positions/sizes
+                    grid.load((layout || []).map(w => ({ id: w.id, x: w.x, y: w.y, w: w.w, h: w.h })));
                 } catch (e) {
                     console.warn('Grid load skipped:', e.message);
                 }
@@ -318,6 +355,37 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    // Widget Library Handlers
+    function setWidgetModal(open) {
+        if (!widgetLib) return;
+        widgetLib.classList.toggle('hidden', !open);
+        widgetLib.classList.toggle('flex', open);
+    }
+
+    widgetLibOpen.addEventListener('click', () => setWidgetModal(true));
+    widgetLibClose.addEventListener('click', () => setWidgetModal(false));
+    widgetLib.addEventListener('click', (e) => { if (e.target === widgetLib) setWidgetModal(false); });
+
+    widgetLibSave.addEventListener('click', () => {
+        const toggles = Array.from(document.querySelectorAll('.widget-toggle'));
+        const widgets = toggles.map(t => ({ id: t.dataset.widget, is_visible: t.checked }));
+        // Reflect immediately in UI
+        widgets.forEach(w => {
+            const el = document.querySelector(`#dashboard-grid .grid-stack-item[gs-id="${w.id}"]`);
+            if (el) el.style.display = w.is_visible ? '' : 'none';
+        });
+        // Persist
+        fetch('{{ route('dashboard.widgets.visibility') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ widgets })
+        }).then(() => setWidgetModal(false));
+    });
 
     // Events
     timeframeSelect.addEventListener('change', function() {

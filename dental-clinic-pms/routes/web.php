@@ -37,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/layout', [DashboardController::class, 'getLayout'])->name('dashboard.layout');
     Route::get('/dashboard/alerts', [DashboardController::class, 'alertsJson'])->name('dashboard.alerts');
     Route::get('/dashboard/mini-report/appointments', [DashboardController::class, 'miniReportAppointments'])->name('dashboard.mini-report.appointments');
+    Route::post('/dashboard/widgets/visibility', [DashboardController::class, 'saveWidgetVisibility'])->name('dashboard.widgets.visibility');
 });
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])
