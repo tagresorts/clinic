@@ -239,6 +239,13 @@ class TreatmentPlanController extends Controller
     public function destroy(string $id)
     {
         $plan = \App\Models\TreatmentPlan::findOrFail($id);
+
+        // Check if there are any associated treatment records
+        if ($plan->treatmentRecords()->exists()) {
+            return redirect()->route('treatment-plans.index')
+                ->with('error', 'Cannot delete a treatment plan that has associated treatment records.');
+        }
+
         $planTitle = $plan->plan_title;
         $planId = $plan->id;
         
