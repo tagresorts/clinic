@@ -3,15 +3,9 @@
     @endpush
     <div class="bg-gray-100 min-h-screen">
         <div class="p-4 sm:p-6 lg:p-8">
-            <!-- Header -->
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold text-gray-800">Dental Clinic</h1>
+                <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
                 <div class="flex items-center space-x-2">
-                    <select id="timeframe-select" class="border rounded px-2 py-1 text-sm">
-                        <option value="today" selected>Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
                     <button id="save-layout-btn" class="text-sm px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Layout</button>
                     <form action="{{ route('dashboard.resetLayout') }}" method="POST" class="inline-block">
                         @csrf
@@ -20,90 +14,31 @@
                 </div>
             </div>
 
-            <!-- GridStack Dashboard -->
             <div class="grid-stack" id="dashboard-grid">
-                <!-- KPI Widget -->
-                <div class="grid-stack-item" gs-id="kpi" gs-x="0" gs-y="0" gs-w="12" gs-h="2">
-                    <div class="grid-stack-item-content">
-                        @include('dashboard._kpi_panel')
+                <div class="grid-stack-item" gs-id="card-kpi" gs-x="0" gs-y="0" gs-w="6" gs-h="2">
+                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
+                        <h3 class="font-semibold mb-2">KPIs</h3>
+                        <p class="text-gray-600 text-sm">Place KPI summary here.</p>
                     </div>
                 </div>
-
-                <!-- Appointments Widget -->
-                <div class="grid-stack-item" gs-id="appointments" gs-x="0" gs-y="2" gs-w="8" gs-h="6">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Appointments</h3>
-                            <a href="{{ route('appointments.calendar', [], false) }}" class="text-sm text-indigo-600 hover:text-indigo-800">View calendar</a>
-                        </div>
-                        <div id="dashboard-calendar" class="mb-4"></div>
-                        <div id="dashboard-appointments-list" class="space-y-3"></div>
+                <div class="grid-stack-item" gs-id="card-appointments" gs-x="6" gs-y="0" gs-w="6" gs-h="4">
+                    <div class="grid-stack-item-content bg-white p-4 rounded shadow h-full">
+                        <h3 class="font-semibold mb-2">Appointments</h3>
+                        <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
                     </div>
                 </div>
-
-                <!-- Patient Widget -->
-                <div class="grid-stack-item" gs-id="patient" gs-x="8" gs-y="2" gs-w="4" gs-h="4">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <x-widgets.patient-section :patientData="$patientData" />
+                <div class="grid-stack-item" gs-id="card-alerts" gs-x="0" gs-y="2" gs-w="6" gs-h="2">
+                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
+                        <h3 class="font-semibold mb-2">Alerts</h3>
+                        <p class="text-gray-600 text-sm">Important notifications.</p>
                     </div>
                 </div>
-
-                <!-- Admin Notices Widget -->
-                <div class="grid-stack-item" gs-id="admin-notices" gs-x="8" gs-y="6" gs-w="4" gs-h="3">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Admin Notices</h3>
-                        <x-widgets.admin-notices />
+                <div class="grid-stack-item" gs-id="card-report" gs-x="6" gs-y="4" gs-w="6" gs-h="2">
+                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
+                        <h3 class="font-semibold mb-2">Mini Report</h3>
+                        <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
                     </div>
                 </div>
-
-                <!-- Alerts Widget -->
-                <div class="grid-stack-item" gs-id="alerts" gs-x="0" gs-y="8" gs-w="4" gs-h="3">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Alerts</h3>
-                        <ul id="alerts-list" class="space-y-2 text-sm text-gray-700"></ul>
-                    </div>
-                </div>
-
-                <!-- Mini Report Widget -->
-                <div class="grid-stack-item" gs-id="mini-report" gs-x="4" gs-y="8" gs-w="8" gs-h="3">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Appointments (Last 7 days)</h3>
-                        <canvas id="mini-report-canvas" height="120"></canvas>
-                    </div>
-                </div>
-
-                <!-- Quick Actions Widget -->
-                <div class="grid-stack-item" gs-id="quick-actions" gs-x="0" gs-y="11" gs-w="4" gs-h="2">
-                    <div class="grid-stack-item-content bg-white p-6 rounded-lg shadow h-full">
-                        <x-widgets.quick-actions />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Widget Library Modal -->
-            <div id="widget-library" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-40">
-                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-lg font-semibold text-gray-800">Widget Library</h3>
-                        <button id="widget-lib-close" class="text-gray-500 hover:text-gray-700">✕</button>
-                    </div>
-                    <div class="space-y-3 text-sm">
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="kpi" checked> <span>KPI Summary</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="appointments" checked> <span>Appointments</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="patient" checked> <span>Patient Section</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="admin-notices" checked> <span>Admin Notices</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="alerts" checked> <span>Alerts</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="mini-report" checked> <span>Mini Report</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" class="widget-toggle" data-widget="quick-actions" checked> <span>Quick Actions</span></label>
-                    </div>
-                    <div class="mt-4 flex items-center justify-end space-x-2">
-                        <button id="widget-lib-save" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">Save</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="fixed bottom-6 right-6 z-30">
-                <button id="open-widget-lib" class="px-3 py-2 bg-gray-800 text-white rounded shadow hover:bg-gray-700 text-sm">Widgets</button>
             </div>
         </div>
     </div>
@@ -114,11 +49,7 @@
 <script>
 (function() {
 document.addEventListener('DOMContentLoaded', function () {
-    const container = document.getElementById('dashboard-appointments-list');
-    // Will re-query KPI panel on each refresh to avoid stale references
-    const calendarEl = document.getElementById('dashboard-calendar');
-    const timeframeSelect = document.getElementById('timeframe-select');
-    const alertsList = document.getElementById('alerts-list');
+    // Minimal 4-card layout, keep only grid and save controls
     const saveLayoutBtn = document.getElementById('save-layout-btn');
     const widgetLib = document.getElementById('widget-library');
     const widgetLibOpen = document.getElementById('open-widget-lib');
@@ -231,27 +162,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Lightweight polling to keep KPIs fresh (every 30s)
     function refreshKpis() {
-        const kpiPanel = document.getElementById('kpi-summary-panel');
-        if (!kpiPanel) return;
-        const tf = timeframeSelect.value || 'today';
-        const url = new URL('{{ route('dashboard.kpis.html', [], false) }}', window.location.origin);
-        url.searchParams.set('timeframe', tf);
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            credentials: 'same-origin'
-        })
-            .then(r => {
-                if (!r.ok) throw new Error('Failed to refresh KPIs');
-                return r.text();
-            })
-            .then(html => {
-                // Replace inner HTML to keep reference stable and avoid layout thrash
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                const newPanel = temp.querySelector('#kpi-summary-panel');
-                if (newPanel) kpiPanel.innerHTML = newPanel.innerHTML;
-            })
-            .catch(e => console.warn(e.message));
+        // No-op in minimal mode
+        return;
     }
 
     // Alerts
@@ -322,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const knownIds = Array.from(document.querySelectorAll('#dashboard-grid .grid-stack-item')).map(el => el.getAttribute('gs-id'));
                     const byId = {};
                     const clamped = [];
-                    let valid = true;
+                    let matched = false;
                     items.forEach(w => {
                         if (!w || !w.id || !knownIds.includes(w.id) || byId[w.id]) { valid = false; return; }
                         const x = Math.max(0, Math.min(11, Number(w.x ?? 0)));
@@ -331,12 +243,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         const hRow = Math.max(1, Math.min(12, Number(w.h ?? 2)));
                         byId[w.id] = true;
                         clamped.push({ id: w.id, x, y, w: wCol, h: hRow, is_visible: (w.is_visible ?? true) });
+                        matched = true;
                     });
 
-                    if (!clamped.length || !valid) {
-                        console.warn('Skipping legacy/invalid saved layout; using defaults.');
-                        return;
-                    }
+                    if (!clamped.length || !matched) return; // use defaults
 
                     const visMap = {};
                     clamped.forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
@@ -409,22 +319,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Events
-    timeframeSelect.addEventListener('change', function() {
-        refreshKpis();
-        loadAppointments();
-    });
-
-    // Initial loads
-    loadAppointments();
-    refreshKpis();
-    refreshAlerts();
-    loadMiniReport();
+    // Initial minimal init
     initGrid();
-
-    // Polling - gentle cadence
-    setInterval(refreshKpis, 30000);
-    setInterval(refreshAlerts, 45000);
-    setInterval(loadMiniReport, 60000);
 });
 })();
 </script>
