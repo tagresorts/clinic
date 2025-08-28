@@ -1,6 +1,5 @@
 <x-app-layout>
     @push('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack.min.css">
     @endpush
     <div class="bg-gray-100 min-h-screen">
         <div class="p-4 sm:p-6 lg:p-8">
@@ -320,17 +319,33 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(layout => {
                 try {
                     const items = Array.isArray(layout) ? layout : [];
+                    const knownIds = Array.from(document.querySelectorAll('#dashboard-grid .grid-stack-item')).map(el => el.getAttribute('gs-id'));
+                    const byId = {};
+                    const clamped = [];
+                    let valid = true;
+                    items.forEach(w => {
+                        if (!w || !w.id || !knownIds.includes(w.id) || byId[w.id]) { valid = false; return; }
+                        const x = Math.max(0, Math.min(11, Number(w.x ?? 0)));
+                        const y = Math.max(0, Number(w.y ?? 0));
+                        const wCol = Math.max(1, Math.min(12, Number(w.w ?? 4)));
+                        const hRow = Math.max(1, Math.min(12, Number(w.h ?? 2)));
+                        byId[w.id] = true;
+                        clamped.push({ id: w.id, x, y, w: wCol, h: hRow, is_visible: (w.is_visible ?? true) });
+                    });
+
+                    if (!clamped.length || !valid) {
+                        console.warn('Skipping legacy/invalid saved layout; using defaults.');
+                        return;
+                    }
+
                     const visMap = {};
-                    items.forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
-                    // Batch updates to avoid reflow
+                    clamped.forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
                     grid.batchUpdate();
                     document.querySelectorAll('#dashboard-grid .grid-stack-item').forEach(item => {
                         const id = item.getAttribute('gs-id');
-                        const cfg = items.find(w => w.id === id);
-                        // visibility
+                        const cfg = clamped.find(w => w.id === id);
                         const visible = visMap.hasOwnProperty(id) ? visMap[id] : true;
                         item.style.display = visible ? '' : 'none';
-                        // position/size
                         if (cfg) {
                             grid.update(item, {x: cfg.x, y: cfg.y, w: cfg.w, h: cfg.h});
                         }
