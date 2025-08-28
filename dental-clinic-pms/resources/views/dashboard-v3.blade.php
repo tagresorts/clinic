@@ -15,25 +15,25 @@
             </div>
 
             <div class="grid-stack" id="dashboard-grid">
-                <div class="grid-stack-item" gs-id="card-kpi" data-gs-x="0" data-gs-y="0" data-gs-w="6" data-gs-h="2">
+                <div class="grid-stack-item" gs-id="card-kpi" gs-x="0" gs-y="0" gs-w="6" gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">KPIs</h3>
                         <p class="text-gray-600 text-sm">Place KPI summary here.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-appointments" data-gs-x="6" data-gs-y="0" data-gs-w="6" data-gs-h="4">
+                <div class="grid-stack-item" gs-id="card-appointments" gs-x="6" gs-y="0" gs-w="6" gs-h="4">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow h-full">
                         <h3 class="font-semibold mb-2">Appointments</h3>
                         <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-alerts" data-gs-x="0" data-gs-y="2" data-gs-w="6" data-gs-h="2">
+                <div class="grid-stack-item" gs-id="card-alerts" gs-x="0" gs-y="2" gs-w="6" gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">Alerts</h3>
                         <p class="text-gray-600 text-sm">Important notifications.</p>
                     </div>
                 </div>
-                <div class="grid-stack-item" gs-id="card-report" data-gs-x="6" data-gs-y="4" data-gs-w="6" data-gs-h="2">
+                <div class="grid-stack-item" gs-id="card-report" gs-x="6" gs-y="4" gs-w="6" gs-h="2">
                     <div class="grid-stack-item-content bg-white p-4 rounded shadow">
                         <h3 class="font-semibold mb-2">Mini Report</h3>
                         <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
@@ -51,10 +51,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     // Minimal 4-card layout, keep only grid and save controls
     const saveLayoutBtn = document.getElementById('save-layout-btn');
-    const widgetLib = document.getElementById('widget-library');
-    const widgetLibOpen = document.getElementById('open-widget-lib');
-    const widgetLibClose = document.getElementById('widget-lib-close');
-    const widgetLibSave = document.getElementById('widget-lib-save');
     let grid;
 
     function formatDate(date) {
@@ -222,50 +218,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // GridStack init and layout load/save
     function initGrid() {
+        if (window.__dashboardGridInit) return;
         if (!window.GridStack) return;
         if (grid) return; // avoid duplicate init
         grid = GridStack.init({ float: true, cellHeight: 110, minRow: 1, column: 12, margin: 5 }, '#dashboard-grid');
-        // Load saved layout
-        fetch('{{ route('dashboard.layout', [], false) }}', { credentials: 'same-origin' })
-            .then(r => r.json())
-            .then(layout => {
-                try {
-                    const items = Array.isArray(layout) ? layout : [];
-                    const knownIds = Array.from(document.querySelectorAll('#dashboard-grid .grid-stack-item')).map(el => el.getAttribute('gs-id'));
-                    const byId = {};
-                    const clamped = [];
-                    let matched = false;
-                    items.forEach(w => {
-                        if (!w || !w.id || !knownIds.includes(w.id) || byId[w.id]) { valid = false; return; }
-                        const x = Math.max(0, Math.min(11, Number(w.x ?? 0)));
-                        const y = Math.max(0, Number(w.y ?? 0));
-                        const wCol = Math.max(1, Math.min(12, Number(w.w ?? 4)));
-                        const hRow = Math.max(1, Math.min(12, Number(w.h ?? 2)));
-                        byId[w.id] = true;
-                        clamped.push({ id: w.id, x, y, w: wCol, h: hRow, is_visible: (w.is_visible ?? true) });
-                        matched = true;
-                    });
-
-                    if (!clamped.length || !matched) return; // use defaults
-
-                    const visMap = {};
-                    clamped.forEach(w => { visMap[w.id] = (w.is_visible ?? true); });
-                    grid.batchUpdate();
-                    document.querySelectorAll('#dashboard-grid .grid-stack-item').forEach(item => {
-                        const id = item.getAttribute('gs-id');
-                        const cfg = clamped.find(w => w.id === id);
-                        const visible = visMap.hasOwnProperty(id) ? visMap[id] : true;
-                        item.style.display = visible ? '' : 'none';
-                        if (cfg) {
-                            grid.update(item, {x: cfg.x, y: cfg.y, w: cfg.w, h: cfg.h});
-                        }
-                    });
-                    grid.commit();
-                    grid.compact();
-                } catch (e) {
-                    console.warn('Grid load skipped:', e.message);
-                }
-            });
+        window.__dashboardGridInit = true;
+        // Saved layout loading intentionally disabled to isolate JS conflicts
         // Save
         if (saveLayoutBtn) {
             saveLayoutBtn.addEventListener('click', function() {
@@ -288,36 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Widget Library Handlers
-    function setWidgetModal(open) {
-        if (!widgetLib) return;
-        widgetLib.classList.toggle('hidden', !open);
-        widgetLib.classList.toggle('flex', open);
-    }
-
-    widgetLibOpen.addEventListener('click', () => setWidgetModal(true));
-    widgetLibClose.addEventListener('click', () => setWidgetModal(false));
-    widgetLib.addEventListener('click', (e) => { if (e.target === widgetLib) setWidgetModal(false); });
-
-    widgetLibSave.addEventListener('click', () => {
-        const toggles = Array.from(document.querySelectorAll('.widget-toggle'));
-        const widgets = toggles.map(t => ({ id: t.dataset.widget, is_visible: t.checked }));
-        // Reflect immediately in UI
-        widgets.forEach(w => {
-            const el = document.querySelector(`#dashboard-grid .grid-stack-item[gs-id="${w.id}"]`);
-            if (el) el.style.display = w.is_visible ? '' : 'none';
-        });
-        // Persist
-        fetch('{{ route('dashboard.widgets.visibility') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({ widgets })
-        }).then(() => setWidgetModal(false));
-    });
+    // (Widget library removed in minimal reset to avoid JS conflicts)
 
     // Events
     // Initial minimal init
