@@ -60,7 +60,7 @@ class AppointmentController extends Controller
             abort(403, 'You are not authorized to create appointments.');
         }
 
-        $patients = Patient::where('is_active', true)->orderBy('last_name')->get();
+        $patients = Patient::orderBy('last_name')->get();
         $dentists = User::role('dentist')->orderBy('name')->get();
 
         return view('appointments.create', compact('patients', 'dentists'));
@@ -144,7 +144,7 @@ class AppointmentController extends Controller
             abort(403, 'You are not authorized to edit appointments.');
         }
 
-        $patients = Patient::where('is_active', true)->orderBy('last_name')->get();
+        $patients = Patient::orderBy('last_name')->get();
         $dentists = User::role('dentist')->orderBy('name')->get();
 
         return view('appointments.edit', compact('appointment', 'patients', 'dentists'));

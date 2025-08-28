@@ -197,10 +197,11 @@ class Patient extends Model
 
     /**
      * Scope to get only active patients
+     * Note: is_active column was removed, so this scope now returns all non-deleted patients
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query; // Return all patients since is_active column was removed
     }
 
     /**
