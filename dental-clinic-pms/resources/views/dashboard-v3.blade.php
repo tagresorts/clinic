@@ -1,5 +1,12 @@
 <x-app-layout>
     @push('styles')
+    <style>
+    .cards-grid{display:grid;grid-template-columns:repeat(12, minmax(0,1fr));grid-auto-rows:10px;gap:12px}
+    .card{grid-column:span 6;background:#fff;border-radius:.5rem;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:1rem;resize:both;overflow:auto;min-width:200px;min-height:120px}
+    .card.small{grid-column:span 6}
+    .card.large{grid-column:span 6}
+    .card-header{font-weight:600;margin-bottom:.5rem;cursor:move}
+    </style>
     @endpush
     <div class="bg-gray-100 min-h-screen">
         <div class="p-4 sm:p-6 lg:p-8">
@@ -14,30 +21,22 @@
                 </div>
             </div>
 
-            <div class="grid-stack" id="dashboard-grid">
-                <div class="grid-stack-item" gs-id="card-kpi" gs-x="0" gs-y="0" gs-w="6" gs-h="2">
-                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
-                        <h3 class="font-semibold mb-2">KPIs</h3>
-                        <p class="text-gray-600 text-sm">Place KPI summary here.</p>
-                    </div>
+            <div class="cards-grid" id="dashboard-cards">
+                <div class="card" data-id="card-kpi">
+                    <div class="card-header">KPIs</div>
+                    <p class="text-gray-600 text-sm">Place KPI summary here.</p>
                 </div>
-                <div class="grid-stack-item" gs-id="card-appointments" gs-x="6" gs-y="0" gs-w="6" gs-h="4">
-                    <div class="grid-stack-item-content bg-white p-4 rounded shadow h-full">
-                        <h3 class="font-semibold mb-2">Appointments</h3>
-                        <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
-                    </div>
+                <div class="card" data-id="card-appointments">
+                    <div class="card-header">Appointments</div>
+                    <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
                 </div>
-                <div class="grid-stack-item" gs-id="card-alerts" gs-x="0" gs-y="2" gs-w="6" gs-h="2">
-                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
-                        <h3 class="font-semibold mb-2">Alerts</h3>
-                        <p class="text-gray-600 text-sm">Important notifications.</p>
-                    </div>
+                <div class="card" data-id="card-alerts">
+                    <div class="card-header">Alerts</div>
+                    <p class="text-gray-600 text-sm">Important notifications.</p>
                 </div>
-                <div class="grid-stack-item" gs-id="card-report" gs-x="6" gs-y="4" gs-w="6" gs-h="2">
-                    <div class="grid-stack-item-content bg-white p-4 rounded shadow">
-                        <h3 class="font-semibold mb-2">Mini Report</h3>
-                        <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
-                    </div>
+                <div class="card" data-id="card-report">
+                    <div class="card-header">Mini Report</div>
+                    <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
                 </div>
             </div>
         </div>
@@ -45,13 +44,13 @@
 </x-app-layout>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack-all.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 (function() {
 document.addEventListener('DOMContentLoaded', function () {
-    // Minimal 4-card layout, keep only grid and save controls
     const saveLayoutBtn = document.getElementById('save-layout-btn');
-    let grid;
+    const container = document.getElementById('dashboard-cards');
+    let sortable;
 
     function formatDate(date) {
         const d = new Date(date);
@@ -218,29 +217,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // GridStack init and layout load/save
     function initGrid() {
-        if (window.__dashboardGridInit) return;
-        if (!window.GridStack) return;
-        if (grid) return; // avoid duplicate init
-        grid = GridStack.init({ float: true, cellHeight: 110, minRow: 1, column: 12, margin: 5 }, '#dashboard-grid');
-        window.__dashboardGridInit = true;
-        // Saved layout loading intentionally disabled to isolate JS conflicts
-        // Save
+        if (window.__dashboardSortableInit) return;
+        if (!container) return;
+        sortable = new Sortable(container, {
+            animation: 150,
+            handle: '.card-header',
+            ghostClass: 'opacity-50',
+        });
+        window.__dashboardSortableInit = true;
+        // Load saved order
+        fetch('{{ route('dashboard.layout', [], false) }}', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(items => {
+                const order = Array.isArray(items) ? items.map(i => i.id) : [];
+                if (!order.length) return;
+                const map = {};
+                order.forEach(id => { map[id] = true; });
+                Array.from(container.children).forEach(child => {
+                    const id = child.getAttribute('data-id');
+                    if (!map[id]) return; // unknown in saved order
+                });
+                order.forEach(id => {
+                    const el = container.querySelector(`[data-id="${id}"]`);
+                    if (el) container.appendChild(el);
+                });
+            }).catch(() => {});
+        // Save order
         if (saveLayoutBtn) {
             saveLayoutBtn.addEventListener('click', function() {
-                const serialized = grid.save();
+                const layout = Array.from(container.children).map((el, idx) => ({ id: el.getAttribute('data-id'), x: idx, y: 0, w: 6, h: 2 }));
                 fetch('{{ route('dashboard.saveLayout') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ layout: serialized })
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ layout })
                 }).then(res => {
-                    if (res.ok) {
-                        alert('Layout Saved!');
-                    } else {
-                        alert('Error saving layout');
-                    }
+                    if (res.ok) alert('Layout Saved!');
+                    else alert('Error saving layout');
                 });
             });
         }
