@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogService;
 
 class UserController extends Controller
 {
@@ -31,15 +31,19 @@ class UserController extends Controller
             'role' => 'required',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::withoutEvents(function () use ($request) {
+            return User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+        });
 
         $user->assignRole($request->role);
 
-        Log::channel('log_viewer')->info("User '{$user->name}' created by " . auth()->user()->name);
+        AuditLogService::logModelChange($user, 'created', null, ['name' => $user->name, 'email' => $user->email, 'role' => $request->role]);
+
+        
 
         return redirect()->route('users.index');
     }
@@ -58,22 +62,32 @@ class UserController extends Controller
             'role' => 'required',
         ]);
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->getRoleNames()->first(),
+        ];
 
-        $user->syncRoles($request->role);
+        User::withoutEvents(function () use ($user, $request) {
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
 
-        Log::channel('log_viewer')->info("User '{$user->name}' updated by " . auth()->user()->name);
+            $user->syncRoles($request->role);
+        });
+
+        AuditLogService::logModelChange($user, 'updated', $oldValues, ['name' => $request->name, 'email' => $request->email, 'role' => $request->role]);
 
         return redirect()->route('users.index');
     }
 
     public function destroy(User $user)
     {
-        $user->delete();
-        Log::channel('log_viewer')->info("User '{$user->name}' deleted by " . auth()->user()->name);
+        AuditLogService::logModelChange($user, 'deleted', ['name' => $user->name, 'email' => $user->email, 'role' => $user->getRoleNames()->first()]);
+        User::withoutEvents(function () use ($user) {
+            $user->delete();
+        });
         return redirect()->route('users.index');
     }
 }

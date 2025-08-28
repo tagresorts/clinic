@@ -57,7 +57,7 @@ class AppointmentController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
+        if (!auth()->user()->can('appointment-create')) {
             abort(403, 'You are not authorized to create appointments.');
         }
 
@@ -72,7 +72,7 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
+        if (!auth()->user()->can('appointment-create')) {
             abort(403);
         }
 
@@ -208,7 +208,7 @@ class AppointmentController extends Controller
             'updated_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
         ]);
 
-        $appointment->addModificationHistory('Updated by receptionist/admin');
+        
 
         return redirect()->route('appointments.show', $appointment)->with('success', 'Appointment updated successfully.');
     }
@@ -267,26 +267,7 @@ class AppointmentController extends Controller
         return redirect()->route('appointments.index')->with('success', $message);
     }
 
-    /**
-     * Confirm an appointment.
-     */
-    public function confirm(Appointment $appointment)
-    {
-        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
-            abort(403, 'You are not authorized to confirm appointments.');
-        }
-
-        $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
-
-        // Log the specific action
-        AuditLogService::logFrontendAction(
-            'appointment_confirmed',
-            $appointment,
-            ['status' => Appointment::STATUS_CONFIRMED, 'confirmed_by' => auth()->id()]
-        );
-
-        return redirect()->route('appointments.index')->with('success', 'Appointment confirmed successfully.');
-    }
+    
 
     /**
      * Display the appointment calendar.
@@ -466,14 +447,16 @@ class AppointmentController extends Controller
         $oldStatus = $appointment->status;
         $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
-        Log::channel('log_viewer')->info("Appointment confirmed by " . auth()->user()->name, [
-            'appointment_id' => $appointment->id,
-            'patient_id' => $appointment->patient_id,
-            'dentist_id' => $appointment->dentist_id,
-            'old_status' => $oldStatus,
-            'new_status' => Appointment::STATUS_CONFIRMED,
-            'confirmed_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
-        ]);
+        AuditLogService::logFrontendAction(
+            'appointment_confirmed',
+            $appointment,
+            [
+                'old_status' => $oldStatus,
+                'new_status' => Appointment::STATUS_CONFIRMED,
+                'confirmed_by' => auth()->id(),
+                'confirmed_by_role' => auth()->user()->roles->first()->name ?? 'unknown'
+            ]
+        );
 
         return redirect()->back()->with('success', 'Appointment confirmed successfully.');
     }

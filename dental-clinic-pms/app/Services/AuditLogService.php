@@ -72,7 +72,16 @@ class AuditLogService
     {
         try {
             $user = Auth::user();
-            
+
+            $oldValues = $metadata['old_settings'] ?? null;
+            $newValues = $metadata['new_settings'] ?? null;
+            unset($metadata['old_settings'], $metadata['new_settings']);
+
+            $changedFields = null;
+            if ($oldValues && $newValues) {
+                $changedFields = array_keys(array_diff_assoc($newValues, $oldValues));
+            }
+
             AuditLog::create([
                 'user_id' => $user?->id,
                 'user_name' => $user?->name ?? 'System',
@@ -80,15 +89,15 @@ class AuditLogService
                 'action' => $action,
                 'entity_type' => $entity ? get_class($entity) : null,
                 'entity_id' => $entity?->id,
-                'entity_description' => $entity ? self::getEntityDescription($entity) : null,
+                'entity_description' => $entity ? self::getEntityDescription($entity) : 'Operational Settings',
                 'ip_address' => RequestFacade::ip(),
                 'user_agent' => RequestFacade::userAgent(),
                 'request_method' => RequestFacade::method(),
                 'request_url' => RequestFacade::fullUrl(),
-                'old_values' => null,
-                'new_values' => null,
-                'changed_fields' => null,
-                'description' => $description ?? self::generateActionDescription($action, $entity),
+                'old_values' => $oldValues,
+                'new_values' => $newValues,
+                'changed_fields' => $changedFields,
+                'description' => $description ?? self::generateActionDescription($action, $entity, $changedFields),
                 'metadata' => array_merge([
                     'route' => RequestFacade::route()?->getName(),
                     'session_id' => session()->getId(),
@@ -251,14 +260,20 @@ class AuditLogService
     /**
      * Generate description for frontend actions
      */
-    protected static function generateActionDescription(string $action, ?Model $entity): string
+    protected static function generateActionDescription(string $action, ?Model $entity, ?array $changedFields = []): string
     {
+        $description = ucfirst(str_replace('_', ' ', $action));
+
         if ($entity) {
-            $entityDesc = self::getEntityDescription($entity);
-            return ucfirst($action) . " {$entityDesc}";
+            $description .= ' ' . self::getEntityDescription($entity);
+        }
+
+        if (!empty($changedFields)) {
+            $fields = implode(', ', array_map('ucwords', str_replace('_', ' ', $changedFields)));
+            $description .= ' - Changed: ' . $fields;
         }
         
-        return ucfirst($action);
+        return $description;
     }
 
     /**

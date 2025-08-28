@@ -58,7 +58,7 @@ class PatientController extends Controller
     public function create()
     {
         // Only receptionists and administrators can create patients
-        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
+        if (!auth()->user()->can('patient-create')) {
             abort(403, 'Only receptionists and administrators can register new patients.');
         }
 
@@ -73,7 +73,7 @@ class PatientController extends Controller
     {
         // Intentionally avoid logging request bodies or PHI
         // Only receptionists and administrators can create patients
-        if (!auth()->user()->hasRole(['administrator', 'receptionist'])) {
+        if (!auth()->user()->can('patient-create')) {
             \Illuminate\Support\Facades\Log::warning('Unauthorized attempt to create patient by user: ' . auth()->id());
             abort(403, 'Only receptionists and administrators can register new patients.');
         }

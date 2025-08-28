@@ -16,7 +16,7 @@ class StockDemoSeeder extends Seeder
                 'email' => 'sales@dentalsupplies.example',
                 'phone' => '555-0100',
                 'address' => '123 Clinic St',
-                'is_active' => true,
+                
             ]);
         } else {
             $supplier = Supplier::inRandomOrder()->first();

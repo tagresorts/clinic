@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'phone' => '(555) 123-4567',
             'address' => '123 Admin Street, City, State 12345',
-            'is_active' => true,
+
             'email_verified_at' => now(),
         ]);
         $admin->assignRole('administrator');
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'phone' => '(555) 234-5678',
             'address' => '456 Dentist Avenue, City, State 12345',
-            'is_active' => true,
+
             'email_verified_at' => now(),
         ]);
         $dentist1->assignRole('dentist');
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'phone' => '(555) 345-6789',
             'address' => '789 Oral Health Blvd, City, State 12345',
-            'is_active' => true,
+
             'email_verified_at' => now(),
         ]);
         $dentist2->assignRole('dentist');
@@ -56,7 +56,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'phone' => '(555) 456-7890',
             'address' => '321 Reception Lane, City, State 12345',
-            'is_active' => true,
+
             'email_verified_at' => now(),
         ]);
         $receptionist1->assignRole('receptionist');
@@ -68,7 +68,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'phone' => '(555) 567-8901',
             'address' => '654 Front Desk Road, City, State 12345',
-            'is_active' => true,
+
             'email_verified_at' => now(),
         ]);
         $receptionist2->assignRole('receptionist');

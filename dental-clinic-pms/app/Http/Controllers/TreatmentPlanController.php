@@ -156,7 +156,7 @@ class TreatmentPlanController extends Controller
             'priority' => 'required|in:low,medium,high,urgent',
             'status' => 'required|in:proposed,patient_approved,in_progress,completed,cancelled',
             'appointment_dates' => 'nullable|array',
-            'appointment_dates.*' => 'nullable|date',
+            'appointment_dates.*' => 'required|date',
         ]);
 
         $oldStatus = $plan->status;

@@ -29,14 +29,12 @@ class Appointment extends Model
         'cancellation_reason',
         'reminder_sent',
         'reminder_sent_at',
-        'modification_history',
     ];
 
     protected $casts = [
         'appointment_datetime' => 'datetime',
         'reminder_sent' => 'boolean',
         'reminder_sent_at' => 'datetime',
-        'modification_history' => 'array',
     ];
 
     // Status constants
@@ -178,20 +176,20 @@ class Appointment extends Model
         ]);
     }
 
-    /**
+    /*
      * Add modification to history
      */
-    public function addModificationHistory(string $action, array $data = []): void
-    {
-        $history = $this->modification_history ?? [];
-        $history[] = [
-            'action' => $action,
-            'data' => $data,
-            'timestamp' => now()->toISOString(),
-            'user_id' => auth()->id(),
-        ];
-        $this->update(['modification_history' => $history]);
-    }
+    // public function addModificationHistory(string $action, array $data = []): void
+    // {
+    //     $history = $this->modification_history ?? [];
+    //     $history[] = [
+    //         'action' => $action,
+    //         'data' => $data,
+    //         'timestamp' => now()->toISOString(),
+    //         'user_id' => auth()->id(),
+    //     ];
+    //     $this->update(['modification_history' => $history]);
+    // }
 
     /**
      * Scope for today's appointments
