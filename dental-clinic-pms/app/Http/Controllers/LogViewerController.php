@@ -20,23 +20,44 @@ class LogViewerController extends Controller
 
     public function index(Request $request)
     {
-        $selectedFile = $request->get('file', 'laravel.log');
-        $level = $request->get('level', 'all');
-        $search = $request->get('search', '');
-        $lines = $request->get('lines', 1000);
-        
-        $logs = $this->parseLogFile($selectedFile, $level, $search, $lines);
-        $logStats = $this->getLogStats($selectedFile);
-        
-        return view('logs.index', compact(
-            'logs', 
-            'logStats',
-            'availableLogFiles', 
-            'selectedFile', 
-            'level', 
-            'search',
-            'lines'
-        ));
+        try {
+            $selectedFile = $request->get('file', 'laravel.log');
+            $level = $request->get('level', 'all');
+            $search = $request->get('search', '');
+            $lines = $request->get('lines', 1000);
+            
+            // Ensure we have available log files
+            if (empty($this->availableLogFiles)) {
+                $this->availableLogFiles = $this->getAvailableLogFiles();
+            }
+            
+            $logs = $this->parseLogFile($selectedFile, $level, $search, $lines);
+            $logStats = $this->getLogStats($selectedFile);
+            
+            return view('logs.index', [
+                'logs' => $logs,
+                'logStats' => $logStats,
+                'availableLogFiles' => $this->availableLogFiles,
+                'selectedFile' => $selectedFile,
+                'level' => $level,
+                'search' => $search,
+                'lines' => $lines
+            ]);
+        } catch (\Exception $e) {
+            // Log the error and return a fallback view
+            \Log::error('Log viewer error: ' . $e->getMessage());
+            
+            return view('logs.index', [
+                'logs' => [],
+                'logStats' => ['size' => '0 B', 'lines' => 0, 'modified' => null, 'levels' => []],
+                'availableLogFiles' => $this->availableLogFiles ?? [],
+                'selectedFile' => 'laravel.log',
+                'level' => 'all',
+                'search' => '',
+                'lines' => 1000,
+                'error' => 'An error occurred while loading logs. Please check the application logs for details.'
+            ]);
+        }
     }
 
     public function download($filename)
@@ -94,6 +115,30 @@ class LogViewerController extends Controller
                         'modified' => File::lastModified($file),
                         'path' => $file
                     ];
+                }
+            }
+        }
+
+        // If no log files found, create a default laravel.log if it doesn't exist
+        if (empty($files)) {
+            $defaultLogPath = storage_path('logs/laravel.log');
+            if (!File::exists($defaultLogPath)) {
+                File::put($defaultLogPath, '[' . now()->format('Y-m-d H:i:s') . '] local.INFO: Log viewer initialized. No existing logs found.');
+            }
+            
+            // Re-check for files after creating default
+            if (File::exists($this->logPath)) {
+                $logFiles = File::files($this->logPath);
+                foreach ($logFiles as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) === 'log') {
+                        $filename = pathinfo($file, PATHINFO_BASENAME);
+                        $files[] = [
+                            'name' => $filename,
+                            'size' => $this->formatBytes(File::size($file)),
+                            'modified' => File::lastModified($file),
+                            'path' => $file
+                        ];
+                    }
                 }
             }
         }
