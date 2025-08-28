@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -38,6 +39,8 @@ class UserController extends Controller
 
         $user->assignRole($request->role);
 
+        Log::channel('log_viewer')->info("User '{$user->name}' created by " . auth()->user()->name);
+
         return redirect()->route('users.index');
     }
 
@@ -62,12 +65,15 @@ class UserController extends Controller
 
         $user->syncRoles($request->role);
 
+        Log::channel('log_viewer')->info("User '{$user->name}' updated by " . auth()->user()->name);
+
         return redirect()->route('users.index');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
+        Log::channel('log_viewer')->info("User '{$user->name}' deleted by " . auth()->user()->name);
         return redirect()->route('users.index');
     }
 }

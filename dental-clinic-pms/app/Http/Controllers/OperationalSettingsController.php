@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 
 class OperationalSettingsController extends Controller
 {
@@ -29,6 +30,8 @@ class OperationalSettingsController extends Controller
                 ['value' => $value]
             );
         }
+
+        Log::channel('log_viewer')->info("Operational settings updated by " . auth()->user()->name);
 
         return Redirect::route('ops-settings.index')->with('success', 'Settings updated successfully.');
     }
