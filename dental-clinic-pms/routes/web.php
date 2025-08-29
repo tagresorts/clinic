@@ -22,6 +22,11 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Test dashboard drag functionality (no auth required)
+Route::get('/test-dashboard', function () {
+    return view('dashboard-v3');
+})->name('test-dashboard');
+
 // Dashboard - role-based access
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])

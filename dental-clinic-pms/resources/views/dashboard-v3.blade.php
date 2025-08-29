@@ -3,22 +3,31 @@
         <div class="p-4">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
             
+            <!-- Test button to verify JavaScript is working -->
+            <button id="test-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4">
+                Test JavaScript
+            </button>
+            
             <div id="dashboard-container" class="min-h-screen bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 relative">
-                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-blue-200" style="position: absolute; left: 20px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                <div class="dashboard-card bg-white p-4 rounded shadow cursor-move border-2 border-blue-200 hover:border-blue-400 transition-colors" style="position: absolute; left: 20px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;" data-card-id="1">
                     <h3 class="font-semibold mb-2">Card 1</h3>
                     <p>Content here</p>
+                    <p class="text-xs text-gray-500 mt-2">Click and drag to move</p>
                 </div>
-                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-green-200" style="position: absolute; left: 290px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                <div class="dashboard-card bg-white p-4 rounded shadow cursor-move border-2 border-green-200 hover:border-green-400 transition-colors" style="position: absolute; left: 290px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;" data-card-id="2">
                     <h3 class="font-semibold mb-2">Card 2</h3>
                     <p>Content here</p>
+                    <p class="text-xs text-gray-500 mt-2">Click and drag to move</p>
                 </div>
-                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-yellow-200" style="position: absolute; left: 560px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                <div class="dashboard-card bg-white p-4 rounded shadow cursor-move border-2 border-yellow-200 hover:border-yellow-400 transition-colors" style="position: absolute; left: 560px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;" data-card-id="3">
                     <h3 class="font-semibold mb-2">Card 3</h3>
                     <p>Content here</p>
+                    <p class="text-xs text-gray-500 mt-2">Click and drag to move</p>
                 </div>
-                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-red-200" style="position: absolute; left: 830px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                <div class="dashboard-card bg-white p-4 rounded shadow cursor-move border-2 border-red-200 hover:border-red-400 transition-colors" style="position: absolute; left: 830px; top: 20px; width: 250px; height: 150px; resize: both; overflow: auto; z-index: 10;" data-card-id="4">
                     <h3 class="font-semibold mb-2">Card 4</h3>
                     <p>Content here</p>
+                    <p class="text-xs text-gray-500 mt-2">Click and drag to move</p>
                 </div>
             </div>
         </div>
@@ -27,63 +36,183 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('dashboard-container');
-    const cards = document.querySelectorAll('.card');
+// Dashboard Drag and Drop functionality
+(function() {
+    'use strict';
     
-    cards.forEach(card => {
-        let isDragging = false;
-        let startX, startY, startLeft, startTop;
-        
-        // Mouse down event
-        card.addEventListener('mousedown', function(e) {
-            console.log('Mouse down on card');
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startLeft = parseInt(card.style.left) || 0;
-            startTop = parseInt(card.style.top) || 0;
-            
-            card.style.zIndex = '1000';
-            e.preventDefault();
-            e.stopPropagation();
+    console.log('Dashboard script loaded');
+    
+    // Test button functionality
+    const testButton = document.getElementById('test-button');
+    if (testButton) {
+        testButton.addEventListener('click', function() {
+            alert('JavaScript is working!');
+            console.log('Test button clicked');
         });
+    }
+    
+    const container = document.getElementById('dashboard-container');
+    const cards = document.querySelectorAll('.dashboard-card');
+    
+    if (!container) {
+        console.error('Dashboard container not found');
+        return;
+    }
+    
+    console.log('Found', cards.length, 'dashboard cards');
+    
+    // Global state for dragging
+    let activeCard = null;
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+    
+    // Mouse down event
+    function handleMouseDown(e) {
+        const card = e.target.closest('.dashboard-card');
+        if (!card) return;
         
-        // Mouse move event
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            
-            let newLeft = startLeft + deltaX;
-            let newTop = startTop + deltaY;
-            
-            // Get container bounds
-            const containerRect = container.getBoundingClientRect();
-            const cardWidth = card.offsetWidth;
-            const cardHeight = card.offsetHeight;
-            
-            // Constrain to container
-            const maxLeft = containerRect.width - cardWidth - 20;
-            const maxTop = containerRect.height - cardHeight - 20;
-            
-            newLeft = Math.max(20, Math.min(newLeft, maxLeft));
-            newTop = Math.max(20, Math.min(newTop, maxTop));
-            
-            card.style.left = newLeft + 'px';
-            card.style.top = newTop + 'px';
-        });
+        console.log('Mouse down on card', card.dataset.cardId);
         
-        // Mouse up event
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                console.log('Mouse up - stopping drag');
-                isDragging = false;
-                card.style.zIndex = '10';
-            }
-        });
-    });
-});
+        // Only start dragging if clicking on the card itself, not on input elements
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            return;
+        }
+        
+        isDragging = true;
+        activeCard = card;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseInt(card.style.left) || 0;
+        startTop = parseInt(card.style.top) || 0;
+        
+        card.style.zIndex = '1000';
+        card.style.cursor = 'grabbing';
+        card.style.transform = 'scale(1.02)';
+        card.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+        
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Mouse move event
+    function handleMouseMove(e) {
+        if (!isDragging || !activeCard) return;
+        
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        let newLeft = startLeft + deltaX;
+        let newTop = startTop + deltaY;
+        
+        // Get container bounds
+        const containerRect = container.getBoundingClientRect();
+        const cardWidth = activeCard.offsetWidth;
+        const cardHeight = activeCard.offsetHeight;
+        
+        // Constrain to container
+        const maxLeft = containerRect.width - cardWidth - 20;
+        const maxTop = containerRect.height - cardHeight - 20;
+        
+        newLeft = Math.max(20, Math.min(newLeft, maxLeft));
+        newTop = Math.max(20, Math.min(newTop, maxTop));
+        
+        activeCard.style.left = newLeft + 'px';
+        activeCard.style.top = newTop + 'px';
+        
+        e.preventDefault();
+    }
+    
+    // Mouse up event
+    function handleMouseUp(e) {
+        if (isDragging && activeCard) {
+            console.log('Mouse up - stopping drag for card', activeCard.dataset.cardId);
+            isDragging = false;
+            activeCard.style.zIndex = '10';
+            activeCard.style.cursor = 'move';
+            activeCard.style.transform = 'scale(1)';
+            activeCard.style.boxShadow = '';
+            activeCard = null;
+        }
+    }
+    
+    // Touch events for mobile support
+    function handleTouchStart(e) {
+        const card = e.target.closest('.dashboard-card');
+        if (!card) return;
+        
+        console.log('Touch start on card', card.dataset.cardId);
+        
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            return;
+        }
+        
+        isDragging = true;
+        activeCard = card;
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startLeft = parseInt(card.style.left) || 0;
+        startTop = parseInt(card.style.top) || 0;
+        
+        card.style.zIndex = '1000';
+        card.style.cursor = 'grabbing';
+        card.style.transform = 'scale(1.02)';
+        card.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+        
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging || !activeCard) return;
+        
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        
+        let newLeft = startLeft + deltaX;
+        let newTop = startTop + deltaY;
+        
+        // Get container bounds
+        const containerRect = container.getBoundingClientRect();
+        const cardWidth = activeCard.offsetWidth;
+        const cardHeight = activeCard.offsetHeight;
+        
+        // Constrain to container
+        const maxLeft = containerRect.width - cardWidth - 20;
+        const maxTop = containerRect.height - cardHeight - 20;
+        
+        newLeft = Math.max(20, Math.min(newLeft, maxLeft));
+        newTop = Math.max(20, Math.min(newTop, maxTop));
+        
+        activeCard.style.left = newLeft + 'px';
+        activeCard.style.top = newTop + 'px';
+        
+        e.preventDefault();
+    }
+    
+    function handleTouchEnd(e) {
+        if (isDragging && activeCard) {
+            console.log('Touch end - stopping drag for card', activeCard.dataset.cardId);
+            isDragging = false;
+            activeCard.style.zIndex = '10';
+            activeCard.style.cursor = 'move';
+            activeCard.style.transform = 'scale(1)';
+            activeCard.style.boxShadow = '';
+            activeCard = null;
+        }
+    }
+    
+    // Add event listeners
+    container.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    
+    console.log('Dashboard drag functionality initialized');
+})();
 </script>
 @endpush
