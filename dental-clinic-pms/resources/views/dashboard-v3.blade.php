@@ -27,63 +27,65 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('dashboard-container');
-    const cards = document.querySelectorAll('.card');
-    
-    cards.forEach(card => {
-        let isDragging = false;
-        let startX, startY, startLeft, startTop;
-        
-        // Mouse down event
-        card.addEventListener('mousedown', function(e) {
-            console.log('Mouse down on card');
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startLeft = parseInt(card.style.left) || 0;
-            startTop = parseInt(card.style.top) || 0;
-            
-            card.style.zIndex = '1000';
-            e.preventDefault();
-            e.stopPropagation();
+(function initDragAndResize() {
+    function init() {
+        const container = document.getElementById('dashboard-container');
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+
+            card.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(card.style.left) || 0;
+                startTop = parseInt(card.style.top) || 0;
+
+                card.style.zIndex = '1000';
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+
+                let newLeft = startLeft + deltaX;
+                let newTop = startTop + deltaY;
+
+                const containerRect = container.getBoundingClientRect();
+                const cardWidth = card.offsetWidth;
+                const cardHeight = card.offsetHeight;
+
+                const padding = 20;
+                const maxLeft = containerRect.width - cardWidth - padding;
+                const maxTop = containerRect.height - cardHeight - padding;
+
+                newLeft = Math.max(padding, Math.min(newLeft, maxLeft));
+                newTop = Math.max(padding, Math.min(newTop, maxTop));
+
+                card.style.left = newLeft + 'px';
+                card.style.top = newTop + 'px';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    card.style.zIndex = '10';
+                }
+            });
         });
-        
-        // Mouse move event
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            
-            let newLeft = startLeft + deltaX;
-            let newTop = startTop + deltaY;
-            
-            // Get container bounds
-            const containerRect = container.getBoundingClientRect();
-            const cardWidth = card.offsetWidth;
-            const cardHeight = card.offsetHeight;
-            
-            // Constrain to container
-            const maxLeft = containerRect.width - cardWidth - 20;
-            const maxTop = containerRect.height - cardHeight - 20;
-            
-            newLeft = Math.max(20, Math.min(newLeft, maxLeft));
-            newTop = Math.max(20, Math.min(newTop, maxTop));
-            
-            card.style.left = newLeft + 'px';
-            card.style.top = newTop + 'px';
-        });
-        
-        // Mouse up event
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                console.log('Mouse up - stopping drag');
-                isDragging = false;
-                card.style.zIndex = '10';
-            }
-        });
-    });
-});
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 </script>
 @endpush

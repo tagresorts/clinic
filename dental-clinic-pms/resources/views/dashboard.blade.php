@@ -16,7 +16,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="gridstack">
+            <div class="grid-stack">
                 @foreach ($widgets as $widget)
                     <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
                         <div class="grid-stack-item-content">
@@ -37,7 +37,7 @@
                 float: true,
                 cellHeight: '8rem',
                 minRow: 1,
-            });
+            }, '.grid-stack');
 
             const saveLayout = () => {
                 const serializedData = grid.save();
