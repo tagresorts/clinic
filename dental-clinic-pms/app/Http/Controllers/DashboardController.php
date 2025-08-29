@@ -159,37 +159,7 @@ class DashboardController extends Controller
         return response()->json($prefs);
     }
 
-    /**
-     * Save widget visibility per user.
-     */
-    public function saveWidgetVisibility(Request $request)
-    {
-        $validated = $request->validate([
-            'widgets' => 'required|array',
-            'widgets.*.id' => 'required|string',
-            'widgets.*.is_visible' => 'required|boolean',
-        ]);
-
-        $user = Auth::user();
-        foreach ($validated['widgets'] as $widget) {
-            UserDashboardPreference::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'widget_key' => $widget['id'],
-                ],
-                [
-                    // Preserve layout if exists, else set sensible defaults
-                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('x_pos') ?? 0,
-                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('y_pos') ?? 0,
-                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('width') ?? 4,
-                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('height') ?? 2,
-                    'is_visible' => $widget['is_visible'],
-                ]
-            );
-        }
-
-        return response()->json(['success' => true]);
-    }
+    
 
     /**
      * Alerts for dashboard widgets.
