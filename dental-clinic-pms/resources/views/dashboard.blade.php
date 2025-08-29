@@ -72,13 +72,8 @@
 
             widgetsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const formData = new FormData(widgetsForm);
-                const widgets = [];
-                for (const [key, value] of formData.entries()) {
-                    if (key.startsWith('widget_')) {
-                        widgets.push({ id: key.replace('widget_', ''), is_visible: value === 'on' });
-                    }
-                }
+                const checkboxes = widgetsForm.querySelectorAll('input[type="checkbox"][name^="widget_"]');
+                const widgets = Array.from(checkboxes).map(cb => ({ id: cb.name.replace('widget_', ''), is_visible: cb.checked }));
                 await fetch('{{ route('dashboard.widgets.visibility') }}', {
                     method: 'POST',
                     headers: {
@@ -90,6 +85,10 @@
                 // Simple reload to apply changes
                 window.location.reload();
             });
+
+            // Secondary close button
+            const modalClose2 = document.getElementById('widgets-modal-close-2');
+            if (modalClose2) modalClose2.addEventListener('click', () => { modal.classList.add('hidden'); });
         });
     </script>
     @endpush
