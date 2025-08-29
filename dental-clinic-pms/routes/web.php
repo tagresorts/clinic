@@ -24,12 +24,8 @@ Route::get('/', function () {
 
 // Dashboard - role-based access
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
+    ->middleware(['auth', 'verified'])
     ->name('dashboard');
-
-Route::get('/dashboard-v3', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
-    ->name('dashboard-v3');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/kpis/html', [DashboardController::class, 'kpisHtml'])->name('dashboard.kpis.html');
@@ -38,6 +34,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/alerts', [DashboardController::class, 'alertsJson'])->name('dashboard.alerts');
     Route::get('/dashboard/mini-report/appointments', [DashboardController::class, 'miniReportAppointments'])->name('dashboard.mini-report.appointments');
     Route::post('/dashboard/widgets/visibility', [DashboardController::class, 'saveWidgetVisibility'])->name('dashboard.widgets.visibility');
+    Route::get('/admin/dashboard-widgets', [DashboardController::class, 'editWidgets'])->name('admin.dashboard-widgets.edit');
+    Route::post('/admin/dashboard-widgets', [DashboardController::class, 'updateWidgets'])->name('admin.dashboard-widgets.update');
+    Route::get('/admin/quick-actions', [DashboardController::class, 'editQuickActions'])->name('admin.quick-actions.edit');
+    Route::post('/admin/quick-actions', [DashboardController::class, 'updateQuickActions'])->name('admin.quick-actions.update');
 });
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])

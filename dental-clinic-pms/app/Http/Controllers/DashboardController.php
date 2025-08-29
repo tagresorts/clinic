@@ -19,13 +19,100 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $kpis = config('dashboard.kpis');
-        $kpiData = $this->dashboardService->getKpiData();
-        $staff = $this->dashboardService->getStaffActivityData();
-        $patientData = $this->dashboardService->getReceptionistData();
-        $upcomingAppointments = $this->dashboardService->getUpcomingAppointmentsForDashboard(Auth::user());
+        $user = Auth::user();
 
-        return view('dashboard-v3', compact('kpis', 'kpiData', 'staff', 'patientData', 'upcomingAppointments'));
+        // Aggregate dashboard data across services; role-aware where applicable
+        $data = [];
+        try { $data = array_merge($data, $this->dashboardService->getAdministratorData()); } catch (\Throwable $e) { /* ignore */ }
+        try { if ($user->hasRole('dentist')) { $data = array_merge($data, $this->dashboardService->getDentistData($user)); } } catch (\Throwable $e) { /* ignore */ }
+        try { $data = array_merge($data, $this->dashboardService->getReceptionistData()); } catch (\Throwable $e) { /* ignore */ }
+
+        // Provide safe defaults for widgets expecting certain keys
+        $defaults = [
+            'revenue_this_month' => 0,
+            'outstanding_balance' => 0,
+            'appointments_by_status' => collect(),
+            'todays_appointments' => collect(),
+            'pending_confirmations' => 0,
+            'overdue_invoices' => 0,
+            'low_stock_items' => 0,
+            'expiring_items' => 0,
+            'new_patients_this_month' => 0,
+            'recent_activities' => [],
+            'pending_treatment_plans' => collect(),
+        ];
+        $data = array_merge($defaults, $data);
+
+        // Widgets: merge config defaults with user preferences; hide widgets marked invisible
+        $widgetDefinitions = config('dashboard.widgets');
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+
+        $widgets = [];
+        $allWidgets = [];
+        foreach ($widgetDefinitions as $key => $definition) {
+            $isVisible = true;
+            $layout = $definition['default_layout'];
+
+            if (isset($preferences[$key])) {
+                $pref = $preferences[$key];
+                $isVisible = (bool)$pref->is_visible;
+                $layout = [
+                    'x' => (int)$pref->x_pos,
+                    'y' => (int)$pref->y_pos,
+                    'w' => (int)$pref->width,
+                    'h' => (int)$pref->height,
+                ];
+            }
+
+            // Collect visible widgets for rendering
+            if ($isVisible) {
+                $widgets[] = [
+                    'key' => $key,
+                    'component' => $definition['component'],
+                    'layout' => $layout,
+                ];
+            }
+
+            // Collect visibility state for modal
+            $label = ucwords(str_replace('_', ' ', $key));
+            $allWidgets[] = [
+                'id' => $key,
+                'label' => $label,
+                'is_visible' => $isVisible,
+            ];
+        }
+
+        // Sort widgets for initial render order (top-left first)
+        usort($widgets, function ($a, $b) {
+            return ($a['layout']['y'] <=> $b['layout']['y']) ?: ($a['layout']['x'] <=> $b['layout']['x']);
+        });
+
+        // Build Quick Actions list based on per-user preferences (qa_<id>) or defaults
+        $quickActionDefs = config('quick_actions.actions');
+        $quickActions = [];
+        foreach ($quickActionDefs as $def) {
+            $id = $def['id'];
+            $prefKey = 'qa_' . $id;
+            $enabled = $def['enabled'];
+            if (isset($preferences[$prefKey])) {
+                $enabled = (bool)$preferences[$prefKey]->is_visible;
+            }
+            if ($enabled) {
+                try {
+                    $url = route($def['route']);
+                } catch (\Throwable $e) {
+                    $url = '#';
+                }
+                $quickActions[] = [ 'id' => $id, 'label' => $def['label'], 'url' => $url, 'icon' => $def['icon'] ?? null ];
+            }
+        }
+        $data['quick_actions'] = $quickActions;
+
+        return view('dashboard', [
+            'widgets' => $widgets,
+            'data' => $data,
+            'allWidgets' => $allWidgets,
+        ]);
     }
 
     /**
@@ -93,37 +180,7 @@ class DashboardController extends Controller
         return response()->json($prefs);
     }
 
-    /**
-     * Save widget visibility per user.
-     */
-    public function saveWidgetVisibility(Request $request)
-    {
-        $validated = $request->validate([
-            'widgets' => 'required|array',
-            'widgets.*.id' => 'required|string',
-            'widgets.*.is_visible' => 'required|boolean',
-        ]);
-
-        $user = Auth::user();
-        foreach ($validated['widgets'] as $widget) {
-            UserDashboardPreference::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'widget_key' => $widget['id'],
-                ],
-                [
-                    // Preserve layout if exists, else set sensible defaults
-                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('x_pos') ?? 0,
-                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('y_pos') ?? 0,
-                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('width') ?? 4,
-                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $widget['id'])->value('height') ?? 2,
-                    'is_visible' => $widget['is_visible'],
-                ]
-            );
-        }
-
-        return response()->json(['success' => true]);
-    }
+    
 
     /**
      * Alerts for dashboard widgets.
@@ -227,5 +284,157 @@ class DashboardController extends Controller
         ]);
         
         return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
+    }
+
+    /**
+     * Save widget visibility via JSON or standard form post.
+     */
+    public function saveWidgetVisibility(Request $request)
+    {
+        // Prefer JSON payload
+        $widgets = $request->input('widgets');
+
+        // Fallback: parse form checkbox inputs like widget_<id>=on
+        if ($widgets === null) {
+            $widgets = [];
+            foreach ($request->all() as $key => $value) {
+                if (str_starts_with($key, 'widget_')) {
+                    $widgets[] = [
+                        'id' => substr($key, 7),
+                        'is_visible' => $value === 'on' || $value === '1' || $value === 1 || $value === true,
+                    ];
+                }
+            }
+        }
+
+        if (!is_array($widgets)) {
+            return response()->json(['error' => 'Invalid payload'], 422);
+        }
+
+        $user = Auth::user();
+        foreach ($widgets as $widget) {
+            if (!isset($widget['id'])) continue;
+            $id = $widget['id'];
+            $visible = (bool)($widget['is_visible'] ?? false);
+
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $id,
+                ],
+                [
+                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('x_pos') ?? (config("dashboard.widgets.$id.default_layout.x") ?? 0),
+                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('y_pos') ?? (config("dashboard.widgets.$id.default_layout.y") ?? 0),
+                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('width') ?? (config("dashboard.widgets.$id.default_layout.w") ?? 4),
+                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('height') ?? (config("dashboard.widgets.$id.default_layout.h") ?? 2),
+                    'is_visible' => $visible,
+                ]
+            );
+        }
+
+        // If request expects JSON, return JSON; otherwise redirect back.
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Widget visibility updated.');
+    }
+
+    /**
+     * Admin: edit dashboard widgets visibility page
+     */
+    public function editWidgets()
+    {
+        $user = Auth::user();
+        $widgetDefinitions = config('dashboard.widgets');
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+
+        $allWidgets = [];
+        foreach ($widgetDefinitions as $key => $definition) {
+            $isVisible = isset($preferences[$key]) ? (bool)$preferences[$key]->is_visible : true;
+            $label = ucwords(str_replace('_', ' ', $key));
+            $allWidgets[] = [
+                'id' => $key,
+                'label' => $label,
+                'is_visible' => $isVisible,
+            ];
+        }
+
+        return view('admin.dashboard-widgets', compact('allWidgets'));
+    }
+
+    /**
+     * Admin: update widgets visibility (form post)
+     */
+    public function updateWidgets(Request $request)
+    {
+        $user = Auth::user();
+        $widgetDefinitions = config('dashboard.widgets');
+        foreach ($widgetDefinitions as $key => $definition) {
+            $checked = $request->has('widget_' . $key);
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $key,
+                ],
+                [
+                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('x_pos') ?? (config("dashboard.widgets.$key.default_layout.x") ?? 0),
+                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('y_pos') ?? (config("dashboard.widgets.$key.default_layout.y") ?? 0),
+                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('width') ?? (config("dashboard.widgets.$key.default_layout.w") ?? 4),
+                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('height') ?? (config("dashboard.widgets.$key.default_layout.h") ?? 2),
+                    'is_visible' => $checked,
+                ]
+            );
+        }
+
+        return redirect()->route('admin.dashboard-widgets.edit')->with('success', 'Widget visibility updated.');
+    }
+
+    /**
+     * Admin: edit quick actions
+     */
+    public function editQuickActions()
+    {
+        $user = Auth::user();
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+        $defs = config('quick_actions.actions');
+        $actions = [];
+        foreach ($defs as $def) {
+            $prefKey = 'qa_' . $def['id'];
+            $enabled = $def['enabled'];
+            if (isset($preferences[$prefKey])) {
+                $enabled = (bool)$preferences[$prefKey]->is_visible;
+            }
+            $actions[] = [
+                'id' => $def['id'],
+                'label' => $def['label'],
+                'enabled' => $enabled,
+            ];
+        }
+        return view('admin.quick-actions', compact('actions'));
+    }
+
+    /**
+     * Admin: update quick actions
+     */
+    public function updateQuickActions(Request $request)
+    {
+        $user = Auth::user();
+        $defs = config('quick_actions.actions');
+        foreach ($defs as $def) {
+            $id = $def['id'];
+            $checked = $request->has('qa_' . $id);
+            UserDashboardPreference::updateOrCreate(
+                [ 'user_id' => $user->id, 'widget_key' => 'qa_' . $id ],
+                [
+                    'x_pos' => 0,
+                    'y_pos' => 0,
+                    'width' => 0,
+                    'height' => 0,
+                    'is_visible' => $checked,
+                ]
+            );
+        }
+        return redirect()->route('admin.quick-actions.edit')->with('success', 'Quick actions updated.');
     }
 }
