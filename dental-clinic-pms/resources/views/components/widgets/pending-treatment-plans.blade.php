@@ -1,9 +1,9 @@
 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
     <div class="p-6">
         <h3 class="text-lg font-semibold mb-4">Pending Treatment Plans</h3>
-        @if($data['pending_treatment_plans']->count() > 0)
+        @if(($data['pending_treatment_plans'] ?? collect())->count() > 0)
             <div class="space-y-3">
-                @foreach($data['pending_treatment_plans'] as $plan)
+                @foreach(($data['pending_treatment_plans'] ?? collect()) as $plan)
                     <div class="border border-gray-200 rounded p-3">
                         <p class="font-semibold">{{ $plan->patient->full_name }}</p>
                         <p class="text-sm">{{ $plan->plan_title }}</p>

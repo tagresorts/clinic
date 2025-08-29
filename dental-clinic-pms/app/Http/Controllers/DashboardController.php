@@ -27,6 +27,22 @@ class DashboardController extends Controller
         try { if ($user->hasRole('dentist')) { $data = array_merge($data, $this->dashboardService->getDentistData($user)); } } catch (\Throwable $e) { /* ignore */ }
         try { $data = array_merge($data, $this->dashboardService->getReceptionistData()); } catch (\Throwable $e) { /* ignore */ }
 
+        // Provide safe defaults for widgets expecting certain keys
+        $defaults = [
+            'revenue_this_month' => 0,
+            'outstanding_balance' => 0,
+            'appointments_by_status' => collect(),
+            'todays_appointments' => collect(),
+            'pending_confirmations' => 0,
+            'overdue_invoices' => 0,
+            'low_stock_items' => 0,
+            'expiring_items' => 0,
+            'new_patients_this_month' => 0,
+            'recent_activities' => [],
+            'pending_treatment_plans' => collect(),
+        ];
+        $data = array_merge($defaults, $data);
+
         // Widgets: merge config defaults with user preferences; hide widgets marked invisible
         $widgetDefinitions = config('dashboard.widgets');
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');

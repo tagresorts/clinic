@@ -13,10 +13,10 @@
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: @json(array_keys($data['appointments_by_status']->toArray())),
+                labels: @json(array_keys(($data['appointments_by_status'] ?? collect())->toArray())),
                 datasets: [{
                     label: 'Appointments',
-                    data: @json(array_values($data['appointments_by_status']->toArray())),
+                    data: @json(array_values(($data['appointments_by_status'] ?? collect())->toArray())),
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.8)',
                         'rgba(255, 206, 86, 0.8)',
