@@ -324,6 +324,44 @@ class DashboardController extends Controller
     }
 
     /**
+     * Appointments statistics by status as JSON (supports timeframe: today, week, month, all)
+     */
+    public function appointmentsStatsJson(Request $request)
+    {
+        $timeframe = $request->get('timeframe', 'month');
+
+        $start = null;
+        switch ($timeframe) {
+            case 'today':
+                $start = \Carbon\Carbon::today();
+                break;
+            case 'week':
+                $start = \Carbon\Carbon::now()->startOfWeek();
+                break;
+            case 'month':
+                $start = \Carbon\Carbon::now()->startOfMonth();
+                break;
+            case 'all':
+            default:
+                $start = null;
+        }
+
+        $query = \App\Models\Appointment::selectRaw('status, COUNT(*) as count');
+        if ($start !== null) {
+            $query->where('appointment_datetime', '>=', $start);
+        }
+
+        $byStatus = $query->groupBy('status')->pluck('count', 'status');
+        $labels = array_keys($byStatus->toArray());
+        $values = array_values($byStatus->toArray());
+
+        return response()->json([
+            'labels' => $labels,
+            'values' => $values,
+        ]);
+    }
+
+    /**
      * Save widget visibility via JSON or standard form post.
      */
     public function saveWidgetVisibility(Request $request)
