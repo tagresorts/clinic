@@ -103,7 +103,7 @@ class DashboardController extends Controller
                 } catch (\Throwable $e) {
                     $url = '#';
                 }
-                $quickActions[] = [ 'id' => $id, 'label' => $def['label'], 'url' => $url ];
+                $quickActions[] = [ 'id' => $id, 'label' => $def['label'], 'url' => $url, 'icon' => $def['icon'] ?? null ];
             }
         }
         $data['quick_actions'] = $quickActions;
