@@ -48,6 +48,7 @@ class DashboardController extends Controller
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
 
         $widgets = [];
+        $allWidgets = [];
         foreach ($widgetDefinitions as $key => $definition) {
             $isVisible = true;
             $layout = $definition['default_layout'];
@@ -63,6 +64,7 @@ class DashboardController extends Controller
                 ];
             }
 
+            // Collect visible widgets for rendering
             if ($isVisible) {
                 $widgets[] = [
                     'key' => $key,
@@ -70,6 +72,14 @@ class DashboardController extends Controller
                     'layout' => $layout,
                 ];
             }
+
+            // Collect visibility state for modal
+            $label = ucwords(str_replace('_', ' ', $key));
+            $allWidgets[] = [
+                'id' => $key,
+                'label' => $label,
+                'is_visible' => $isVisible,
+            ];
         }
 
         // Sort widgets for initial render order (top-left first)
@@ -80,6 +90,7 @@ class DashboardController extends Controller
         return view('dashboard', [
             'widgets' => $widgets,
             'data' => $data,
+            'allWidgets' => $allWidgets,
         ]);
     }
 
