@@ -21,6 +21,20 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
+        // Write a lightweight log entry to verify logging is working
+        try {
+            Log::info('Dashboard viewed', [
+                'user_id' => $user?->id,
+                'route' => 'dashboard.index',
+            ]);
+            Log::channel('log_viewer')->info('Dashboard viewed (log_viewer channel)', [
+                'user_id' => $user?->id,
+                'route' => 'dashboard.index',
+            ]);
+        } catch (\Throwable $e) {
+            // Silently ignore logging failures to avoid breaking dashboard
+        }
+
         // Aggregate dashboard data across services; role-aware where applicable
         $data = [];
         try { $data = array_merge($data, $this->dashboardService->getAdministratorData()); } catch (\Throwable $e) { /* ignore */ }
