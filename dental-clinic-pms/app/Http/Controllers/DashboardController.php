@@ -57,6 +57,29 @@ class DashboardController extends Controller
         ];
         $data = array_merge($defaults, $data);
 
+        // Ensure appointment statistics are populated even if admin aggregation failed
+        try {
+            if (empty($data['appointments_by_status']) || (is_countable($data['appointments_by_status']) && count($data['appointments_by_status']) === 0)) {
+                $data['appointments_by_status'] = \App\Models\Appointment::selectRaw('status, COUNT(*) as count')
+                    ->groupBy('status')
+                    ->pluck('count', 'status');
+            }
+            // Debug log to verify actual counts available
+            try {
+                $totalAppointments = \App\Models\Appointment::count();
+                Log::info('Dashboard stats debug', [
+                    'appointments_total' => $totalAppointments,
+                    'by_status' => is_object($data['appointments_by_status']) && method_exists($data['appointments_by_status'], 'toArray')
+                        ? $data['appointments_by_status']->toArray()
+                        : (array) $data['appointments_by_status'],
+                ]);
+            } catch (\Throwable $e) {
+                // ignore debug log failure
+            }
+        } catch (\Throwable $e) {
+            // keep default empty collection
+        }
+
         // Widgets: merge config defaults with user preferences; hide widgets marked invisible
         $widgetDefinitions = config('dashboard.widgets');
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
