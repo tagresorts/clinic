@@ -1,11 +1,28 @@
 <x-app-layout>
     @push('styles')
     <style>
-    .cards-grid{display:grid;grid-template-columns:repeat(12, minmax(0,1fr));grid-auto-rows:10px;gap:12px}
-    .card{grid-column:span 6;background:#fff;border-radius:.5rem;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:1rem;resize:both;overflow:auto;min-width:200px;min-height:120px}
-    .card.small{grid-column:span 6}
-    .card.large{grid-column:span 6}
-    .card-header{font-weight:600;margin-bottom:.5rem;cursor:move}
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+        padding: 16px 0;
+    }
+    .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 16px;
+        min-height: 120px;
+        border: 1px solid #e5e7eb;
+    }
+    .card.small { grid-column: span 6; }
+    .card.large { grid-column: span 6; }
+    .card-header {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #374151;
+        cursor: move;
+    }
     </style>
     @endpush
     <div class="bg-gray-100 min-h-screen">
@@ -27,7 +44,7 @@
             </div>
 
             <div class="cards-grid" id="dashboard-cards">
-                <div class="card" data-id="card-kpi">
+                <div class="card small" data-id="card-kpi">
                     <div class="card-header">KPIs</div>
                     <div id="kpi-content" class="space-y-2">
                         <div class="flex justify-between">
@@ -48,15 +65,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="card" data-id="card-appointments">
+                <div class="card large" data-id="card-appointments">
                     <div class="card-header">Appointments</div>
                     <p class="text-gray-600 text-sm">Upcoming appointments list.</p>
                 </div>
-                <div class="card" data-id="card-alerts">
+                <div class="card small" data-id="card-alerts">
                     <div class="card-header">Alerts</div>
                     <p class="text-gray-600 text-sm">Important notifications.</p>
                 </div>
-                <div class="card" data-id="card-report">
+                <div class="card large" data-id="card-report">
                     <div class="card-header">Mini Report</div>
                     <p class="text-gray-600 text-sm">Chart or metrics go here.</p>
                 </div>
@@ -72,6 +89,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const saveLayoutBtn = document.getElementById('save-layout-btn');
     const container = document.getElementById('dashboard-cards');
+    const timeframeSelect = document.getElementById('timeframe-select');
     let sortable;
 
     function formatDate(date) {
@@ -175,6 +193,21 @@ document.addEventListener('DOMContentLoaded', function () {
           container.innerHTML = `<p class="text-red-500">${err.message}</p>`;
           console.error(err);
       });
+    }
+
+    function loadKpiData() {
+        const timeframe = timeframeSelect ? timeframeSelect.value : 'today';
+        fetch(`{{ route('dashboard.kpis.json', [], false) }}?timeframe=${timeframe}`, {
+            credentials: 'same-origin'
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('kpi-appointments').textContent = data.todays_appointments || 0;
+            document.getElementById('kpi-patients').textContent = data.active_patients || 0;
+            document.getElementById('kpi-stock').textContent = data.low_stock_items || 0;
+            document.getElementById('kpi-expiring').textContent = data.expiring_items || 0;
+        })
+        .catch(e => console.warn('Failed to load KPI data:', e));
     }
 
     // Lightweight polling to keep KPIs fresh (every 30s)
@@ -289,6 +322,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Events
     // Initial minimal init
     initGrid();
+    loadKpiData(); // Load KPI data on page load
+    timeframeSelect.addEventListener('change', loadKpiData); // Reload KPI data on timeframe change
 });
 })();
 </script>
