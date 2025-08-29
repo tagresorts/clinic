@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Dashboard') }}
+            </h2>
             <div class="flex items-center space-x-2">
                 <x-primary-button id="save-layout-btn">Save Layout</x-primary-button>
                 <form action="{{ route('dashboard.resetLayout') }}" method="POST" class="inline-block">
@@ -9,9 +12,6 @@
                 </form>
                 <a href="{{ route('admin.dashboard-widgets.edit') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">Dashboard Widgets</a>
             </div>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Dashboard') }}
-            </h2>
         </div>
     </x-slot>
 
