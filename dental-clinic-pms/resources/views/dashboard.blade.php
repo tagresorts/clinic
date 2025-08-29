@@ -66,24 +66,44 @@
             const modalClose = document.getElementById('widgets-modal-close');
             const widgetsForm = document.getElementById('widgets-form');
 
-            customizeBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
-            modalClose.addEventListener('click', () => { modal.classList.add('hidden'); });
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+            if (customizeBtn && modal) {
+                customizeBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
+            }
+            if (modalClose && modal) {
+                modalClose.addEventListener('click', () => { modal.classList.add('hidden'); });
+            }
+            if (modal) {
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+            }
 
-            widgetsForm.addEventListener('submit', async (e) => {
+            widgetsForm?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const checkboxes = widgetsForm.querySelectorAll('input[type="checkbox"][name^="widget_"]');
                 const widgets = Array.from(checkboxes).map(cb => ({ id: cb.name.replace('widget_', ''), is_visible: cb.checked }));
-                await fetch('{{ route('dashboard.widgets.visibility') }}', {
+                const saveBtn = widgetsForm.querySelector('button[type="submit"]');
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+                try {
+                    const res = await fetch('{{ route('dashboard.widgets.visibility') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
                     body: JSON.stringify({ widgets })
-                });
-                // Simple reload to apply changes
-                window.location.reload();
+                    });
+                    if (!res.ok) {
+                        const text = await res.text();
+                        console.error('Save visibility failed', text);
+                        alert('Failed to save widget visibility.');
+                        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+                        return;
+                    }
+                    window.location.reload();
+                } catch (err) {
+                    console.error(err);
+                    alert('An error occurred while saving.');
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+                }
             });
 
             // Secondary close button
@@ -94,8 +114,8 @@
     @endpush
 
     <!-- Widgets Modal -->
-    <div id="widgets-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-auto mt-24">
+    <div id="widgets-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-start justify-center">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 mt-24">
             <div class="flex justify-between items-center px-6 py-4 border-b">
                 <h3 class="text-lg font-semibold">Customize Widgets</h3>
                 <button id="widgets-modal-close" class="text-gray-500 hover:text-gray-700">✕</button>

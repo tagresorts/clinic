@@ -294,4 +294,58 @@ class DashboardController extends Controller
         
         return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
     }
+
+    /**
+     * Save widget visibility via JSON or standard form post.
+     */
+    public function saveWidgetVisibility(Request $request)
+    {
+        // Prefer JSON payload
+        $widgets = $request->input('widgets');
+
+        // Fallback: parse form checkbox inputs like widget_<id>=on
+        if ($widgets === null) {
+            $widgets = [];
+            foreach ($request->all() as $key => $value) {
+                if (str_starts_with($key, 'widget_')) {
+                    $widgets[] = [
+                        'id' => substr($key, 7),
+                        'is_visible' => $value === 'on' || $value === '1' || $value === 1 || $value === true,
+                    ];
+                }
+            }
+        }
+
+        if (!is_array($widgets)) {
+            return response()->json(['error' => 'Invalid payload'], 422);
+        }
+
+        $user = Auth::user();
+        foreach ($widgets as $widget) {
+            if (!isset($widget['id'])) continue;
+            $id = $widget['id'];
+            $visible = (bool)($widget['is_visible'] ?? false);
+
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $id,
+                ],
+                [
+                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('x_pos') ?? (config("dashboard.widgets.$id.default_layout.x") ?? 0),
+                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('y_pos') ?? (config("dashboard.widgets.$id.default_layout.y") ?? 0),
+                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('width') ?? (config("dashboard.widgets.$id.default_layout.w") ?? 4),
+                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $id)->value('height') ?? (config("dashboard.widgets.$id.default_layout.h") ?? 2),
+                    'is_visible' => $visible,
+                ]
+            );
+        }
+
+        // If request expects JSON, return JSON; otherwise redirect back.
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Widget visibility updated.');
+    }
 }
