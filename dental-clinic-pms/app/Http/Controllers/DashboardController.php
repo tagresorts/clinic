@@ -87,6 +87,27 @@ class DashboardController extends Controller
             return ($a['layout']['y'] <=> $b['layout']['y']) ?: ($a['layout']['x'] <=> $b['layout']['x']);
         });
 
+        // Build Quick Actions list based on per-user preferences (qa_<id>) or defaults
+        $quickActionDefs = config('quick_actions.actions');
+        $quickActions = [];
+        foreach ($quickActionDefs as $def) {
+            $id = $def['id'];
+            $prefKey = 'qa_' . $id;
+            $enabled = $def['enabled'];
+            if (isset($preferences[$prefKey])) {
+                $enabled = (bool)$preferences[$prefKey]->is_visible;
+            }
+            if ($enabled) {
+                try {
+                    $url = route($def['route']);
+                } catch (\Throwable $e) {
+                    $url = '#';
+                }
+                $quickActions[] = [ 'id' => $id, 'label' => $def['label'], 'url' => $url ];
+            }
+        }
+        $data['quick_actions'] = $quickActions;
+
         return view('dashboard', [
             'widgets' => $widgets,
             'data' => $data,
@@ -367,5 +388,53 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('admin.dashboard-widgets.edit')->with('success', 'Widget visibility updated.');
+    }
+
+    /**
+     * Admin: edit quick actions
+     */
+    public function editQuickActions()
+    {
+        $user = Auth::user();
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+        $defs = config('quick_actions.actions');
+        $actions = [];
+        foreach ($defs as $def) {
+            $prefKey = 'qa_' . $def['id'];
+            $enabled = $def['enabled'];
+            if (isset($preferences[$prefKey])) {
+                $enabled = (bool)$preferences[$prefKey]->is_visible;
+            }
+            $actions[] = [
+                'id' => $def['id'],
+                'label' => $def['label'],
+                'enabled' => $enabled,
+            ];
+        }
+        return view('admin.quick-actions', compact('actions'));
+    }
+
+    /**
+     * Admin: update quick actions
+     */
+    public function updateQuickActions(Request $request)
+    {
+        $user = Auth::user();
+        $defs = config('quick_actions.actions');
+        foreach ($defs as $def) {
+            $id = $def['id'];
+            $checked = $request->has('qa_' . $id);
+            UserDashboardPreference::updateOrCreate(
+                [ 'user_id' => $user->id, 'widget_key' => 'qa_' . $id ],
+                [
+                    'x_pos' => 0,
+                    'y_pos' => 0,
+                    'width' => 0,
+                    'height' => 0,
+                    'is_visible' => $checked,
+                ]
+            );
+        }
+        return redirect()->route('admin.quick-actions.edit')->with('success', 'Quick actions updated.');
     }
 }

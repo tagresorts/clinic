@@ -36,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/widgets/visibility', [DashboardController::class, 'saveWidgetVisibility'])->name('dashboard.widgets.visibility');
     Route::get('/admin/dashboard-widgets', [DashboardController::class, 'editWidgets'])->name('admin.dashboard-widgets.edit');
     Route::post('/admin/dashboard-widgets', [DashboardController::class, 'updateWidgets'])->name('admin.dashboard-widgets.update');
+    Route::get('/admin/quick-actions', [DashboardController::class, 'editQuickActions'])->name('admin.quick-actions.edit');
+    Route::post('/admin/quick-actions', [DashboardController::class, 'updateQuickActions'])->name('admin.quick-actions.update');
 });
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])
