@@ -14,12 +14,14 @@ class TreatmentPlanAppointmentReminderSeeder extends Seeder
      */
     public function run(): void
     {
-        EmailTemplate::create([
-            'name' => 'Treatment Plan Appointment Reminder',
-            'subject' => 'Upcoming Appointment for your Treatment Plan',
-            'type' => 'treatment_plan_appointment_reminder',
-            'body' => '<p>Dear {patient_name},</p><p>This is a reminder that you have an upcoming appointment for your treatment plan on {appointment_date} at {appointment_time}.</p><p>Thank you,</p><p>The Clinic</p>',
-            'wildcards' => json_encode(['{patient_name}', '{appointment_date}', '{appointment_time}']),
-        ]);
+        EmailTemplate::updateOrCreate(
+            ['type' => 'treatment_plan_appointment_reminder'],
+            [
+                'name' => 'Treatment Plan Appointment Reminder',
+                'subject' => 'Upcoming Appointment for your Treatment Plan',
+                'body' => '<p>Dear {patient_name},</p><p>This is a reminder that you have an upcoming appointment for your treatment plan on {appointment_date} at {appointment_time}.</p><p>Thank you,</p><p>The Clinic</p>',
+                'wildcards' => json_encode(['{patient_name}', '{appointment_date}', '{appointment_time}']),
+            ]
+        );
     }
 }

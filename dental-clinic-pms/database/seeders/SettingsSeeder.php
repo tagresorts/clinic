@@ -14,9 +14,9 @@ class SettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        Setting::create([
-            'key' => 'treatment_plan_reminder_days',
-            'value' => '7',
-        ]);
+        Setting::updateOrCreate(
+            ['key' => 'treatment_plan_reminder_days'],
+            ['value' => '7']
+        );
     }
 }
