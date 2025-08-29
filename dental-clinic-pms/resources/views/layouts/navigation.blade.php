@@ -141,6 +141,7 @@
                                 <x-dropdown-link :href="route('smtp.index')">{{ __('SMTP Settings') }}</x-dropdown-link>
                                 <x-dropdown-link :href="route('email-templates.index')">{{ __('Email Templates') }}</x-dropdown-link>
                                 <x-dropdown-link :href="route('ops-settings.index')">{{ __('Operational Settings') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('admin.dashboard-widgets.edit')">{{ __('Dashboard Widgets') }}</x-dropdown-link>
                             </x-slot>
                         </x-custom-dropdown>
                     </div>

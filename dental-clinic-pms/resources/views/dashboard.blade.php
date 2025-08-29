@@ -7,7 +7,6 @@
                     @csrf
                     <x-secondary-button type="submit">Reset to Default</x-secondary-button>
                 </form>
-                <x-secondary-button id="customize-widgets-btn" type="button">Customize Widgets</x-secondary-button>
             </div>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Dashboard') }}
@@ -60,78 +59,7 @@
 
             document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
 
-            // Modal logic
-            const customizeBtn = document.getElementById('customize-widgets-btn');
-            const modal = document.getElementById('widgets-modal');
-            const modalClose = document.getElementById('widgets-modal-close');
-            const widgetsForm = document.getElementById('widgets-form');
-
-            if (customizeBtn && modal) {
-                customizeBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
-            }
-            if (modalClose && modal) {
-                modalClose.addEventListener('click', () => { modal.classList.add('hidden'); });
-            }
-            if (modal) {
-                modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-            }
-
-            widgetsForm?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const checkboxes = widgetsForm.querySelectorAll('input[type="checkbox"][name^="widget_"]');
-                const widgets = Array.from(checkboxes).map(cb => ({ id: cb.name.replace('widget_', ''), is_visible: cb.checked }));
-                const saveBtn = widgetsForm.querySelector('button[type="submit"]');
-                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
-                try {
-                    const res = await fetch('{{ route('dashboard.widgets.visibility') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ widgets })
-                    });
-                    if (!res.ok) {
-                        const text = await res.text();
-                        console.error('Save visibility failed', text);
-                        alert('Failed to save widget visibility.');
-                        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
-                        return;
-                    }
-                    window.location.reload();
-                } catch (err) {
-                    console.error(err);
-                    alert('An error occurred while saving.');
-                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
-                }
-            });
-
-            // Secondary close button
-            const modalClose2 = document.getElementById('widgets-modal-close-2');
-            if (modalClose2) modalClose2.addEventListener('click', () => { modal.classList.add('hidden'); });
         });
     </script>
     @endpush
-
-    <!-- Widgets Modal -->
-    <div id="widgets-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-start justify-center">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 mt-24">
-            <div class="flex justify-between items-center px-6 py-4 border-b">
-                <h3 class="text-lg font-semibold">Customize Widgets</h3>
-                <button id="widgets-modal-close" class="text-gray-500 hover:text-gray-700">✕</button>
-            </div>
-            <form id="widgets-form" class="p-6 space-y-3">
-                @foreach ($allWidgets as $w)
-                    <label class="flex items-center space-x-3">
-                        <input type="checkbox" name="widget_{{ $w['id'] }}" @checked($w['is_visible']) class="rounded border-gray-300">
-                        <span class="text-sm text-gray-800">{{ $w['label'] }}</span>
-                    </label>
-                @endforeach
-                <div class="pt-4 flex justify-end space-x-2">
-                    <button type="button" id="widgets-modal-close-2" class="px-4 py-2 bg-gray-100 rounded">Close</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </x-app-layout>

@@ -318,4 +318,54 @@ class DashboardController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'Widget visibility updated.');
     }
+
+    /**
+     * Admin: edit dashboard widgets visibility page
+     */
+    public function editWidgets()
+    {
+        $user = Auth::user();
+        $widgetDefinitions = config('dashboard.widgets');
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+
+        $allWidgets = [];
+        foreach ($widgetDefinitions as $key => $definition) {
+            $isVisible = isset($preferences[$key]) ? (bool)$preferences[$key]->is_visible : true;
+            $label = ucwords(str_replace('_', ' ', $key));
+            $allWidgets[] = [
+                'id' => $key,
+                'label' => $label,
+                'is_visible' => $isVisible,
+            ];
+        }
+
+        return view('admin.dashboard-widgets', compact('allWidgets'));
+    }
+
+    /**
+     * Admin: update widgets visibility (form post)
+     */
+    public function updateWidgets(Request $request)
+    {
+        $user = Auth::user();
+        $widgetDefinitions = config('dashboard.widgets');
+        foreach ($widgetDefinitions as $key => $definition) {
+            $checked = $request->has('widget_' . $key);
+            UserDashboardPreference::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'widget_key' => $key,
+                ],
+                [
+                    'x_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('x_pos') ?? (config("dashboard.widgets.$key.default_layout.x") ?? 0),
+                    'y_pos' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('y_pos') ?? (config("dashboard.widgets.$key.default_layout.y") ?? 0),
+                    'width' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('width') ?? (config("dashboard.widgets.$key.default_layout.w") ?? 4),
+                    'height' => UserDashboardPreference::where('user_id', $user->id)->where('widget_key', $key)->value('height') ?? (config("dashboard.widgets.$key.default_layout.h") ?? 2),
+                    'is_visible' => $checked,
+                ]
+            );
+        }
+
+        return redirect()->route('admin.dashboard-widgets.edit')->with('success', 'Widget visibility updated.');
+    }
 }
