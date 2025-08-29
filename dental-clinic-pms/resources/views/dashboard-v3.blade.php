@@ -3,7 +3,7 @@
         <div class="p-4">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
             
-            <div class="grid grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <div class="bg-white p-4 rounded shadow">
                     <h3 class="font-semibold mb-2">Card 1</h3>
                     <p>Content here</p>
