@@ -3,24 +3,22 @@
         <div class="p-4">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
             
-            <div id="dashboard-container" class="min-h-screen bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <div id="cards-container" class="relative">
-                    <div class="card bg-white p-4 rounded shadow cursor-move" style="position: absolute; left: 0; top: 0; width: 300px; height: 150px; resize: both; overflow: auto;">
-                        <h3 class="font-semibold mb-2">Card 1</h3>
-                        <p>Content here</p>
-                    </div>
-                    <div class="card bg-white p-4 rounded shadow cursor-move" style="position: absolute; left: 320px; top: 0; width: 300px; height: 150px; resize: both; overflow: auto;">
-                        <h3 class="font-semibold mb-2">Card 2</h3>
-                        <p>Content here</p>
-                    </div>
-                    <div class="card bg-white p-4 rounded shadow cursor-move" style="position: absolute; left: 0; top: 170px; width: 300px; height: 150px; resize: both; overflow: auto;">
-                        <h3 class="font-semibold mb-2">Card 3</h3>
-                        <p>Content here</p>
-                    </div>
-                    <div class="card bg-white p-4 rounded shadow cursor-move" style="position: absolute; left: 320px; top: 170px; width: 300px; height: 150px; resize: both; overflow: auto;">
-                        <h3 class="font-semibold mb-2">Card 4</h3>
-                        <p>Content here</p>
-                    </div>
+            <div id="dashboard-container" class="min-h-screen bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 relative">
+                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-blue-200" style="position: absolute; left: 20px; top: 20px; width: 300px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                    <h3 class="font-semibold mb-2">Card 1</h3>
+                    <p>Content here</p>
+                </div>
+                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-green-200" style="position: absolute; left: 340px; top: 20px; width: 300px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                    <h3 class="font-semibold mb-2">Card 2</h3>
+                    <p>Content here</p>
+                </div>
+                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-yellow-200" style="position: absolute; left: 20px; top: 190px; width: 300px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                    <h3 class="font-semibold mb-2">Card 3</h3>
+                    <p>Content here</p>
+                </div>
+                <div class="card bg-white p-4 rounded shadow cursor-move border-2 border-red-200" style="position: absolute; left: 340px; top: 190px; width: 300px; height: 150px; resize: both; overflow: auto; z-index: 10;">
+                    <h3 class="font-semibold mb-2">Card 4</h3>
+                    <p>Content here</p>
                 </div>
             </div>
         </div>
@@ -28,38 +26,57 @@
 </x-app-layout>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('dashboard-container');
     const cards = document.querySelectorAll('.card');
     
-    // Make cards draggable within the container
     cards.forEach(card => {
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+        
         card.addEventListener('mousedown', function(e) {
+            // Don't start drag if clicking on resize handle
             if (e.target === card || card.contains(e.target)) {
-                const startX = e.clientX - card.offsetLeft;
-                const startY = e.clientY - card.offsetTop;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(card.style.left) || 0;
+                startTop = parseInt(card.style.top) || 0;
                 
-                function onMouseMove(e) {
-                    const newX = e.clientX - startX;
-                    const newY = e.clientY - startY;
-                    
-                    // Keep card within container bounds
-                    const maxX = container.offsetWidth - card.offsetWidth;
-                    const maxY = container.offsetHeight - card.offsetHeight;
-                    
-                    card.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
-                    card.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
-                }
-                
-                function onMouseUp() {
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                }
-                
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
+                card.style.zIndex = '1000';
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newLeft = startLeft + deltaX;
+            let newTop = startTop + deltaY;
+            
+            // Get container bounds
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            
+            // Constrain to container
+            const maxLeft = containerRect.width - cardRect.width - 20; // 20px padding
+            const maxTop = containerRect.height - cardRect.height - 20;
+            
+            newLeft = Math.max(20, Math.min(newLeft, maxLeft));
+            newTop = Math.max(20, Math.min(newTop, maxTop));
+            
+            card.style.left = newLeft + 'px';
+            card.style.top = newTop + 'px';
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                card.style.zIndex = '10';
             }
         });
     });
