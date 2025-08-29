@@ -21,6 +21,20 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
+        // Write a lightweight log entry to verify logging is working
+        try {
+            Log::info('Dashboard viewed', [
+                'user_id' => $user?->id,
+                'route' => 'dashboard.index',
+            ]);
+            Log::channel('log_viewer')->info('Dashboard viewed (log_viewer channel)', [
+                'user_id' => $user?->id,
+                'route' => 'dashboard.index',
+            ]);
+        } catch (\Throwable $e) {
+            // Silently ignore logging failures to avoid breaking dashboard
+        }
+
         // Aggregate dashboard data across services; role-aware where applicable
         $data = [];
         try { $data = array_merge($data, $this->dashboardService->getAdministratorData()); } catch (\Throwable $e) { /* ignore */ }
@@ -42,6 +56,29 @@ class DashboardController extends Controller
             'pending_treatment_plans' => collect(),
         ];
         $data = array_merge($defaults, $data);
+
+        // Ensure appointment statistics are populated even if admin aggregation failed
+        try {
+            if (empty($data['appointments_by_status']) || (is_countable($data['appointments_by_status']) && count($data['appointments_by_status']) === 0)) {
+                $data['appointments_by_status'] = \App\Models\Appointment::selectRaw('status, COUNT(*) as count')
+                    ->groupBy('status')
+                    ->pluck('count', 'status');
+            }
+            // Debug log to verify actual counts available
+            try {
+                $totalAppointments = \App\Models\Appointment::count();
+                Log::info('Dashboard stats debug', [
+                    'appointments_total' => $totalAppointments,
+                    'by_status' => is_object($data['appointments_by_status']) && method_exists($data['appointments_by_status'], 'toArray')
+                        ? $data['appointments_by_status']->toArray()
+                        : (array) $data['appointments_by_status'],
+                ]);
+            } catch (\Throwable $e) {
+                // ignore debug log failure
+            }
+        } catch (\Throwable $e) {
+            // keep default empty collection
+        }
 
         // Widgets: merge config defaults with user preferences; hide widgets marked invisible
         $widgetDefinitions = config('dashboard.widgets');
@@ -284,6 +321,44 @@ class DashboardController extends Controller
         ]);
         
         return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
+    }
+
+    /**
+     * Appointments statistics by status as JSON (supports timeframe: today, week, month, all)
+     */
+    public function appointmentsStatsJson(Request $request)
+    {
+        $timeframe = $request->get('timeframe', 'month');
+
+        $start = null;
+        switch ($timeframe) {
+            case 'today':
+                $start = \Carbon\Carbon::today();
+                break;
+            case 'week':
+                $start = \Carbon\Carbon::now()->startOfWeek();
+                break;
+            case 'month':
+                $start = \Carbon\Carbon::now()->startOfMonth();
+                break;
+            case 'all':
+            default:
+                $start = null;
+        }
+
+        $query = \App\Models\Appointment::selectRaw('status, COUNT(*) as count');
+        if ($start !== null) {
+            $query->where('appointment_datetime', '>=', $start);
+        }
+
+        $byStatus = $query->groupBy('status')->pluck('count', 'status');
+        $labels = array_keys($byStatus->toArray());
+        $values = array_values($byStatus->toArray());
+
+        return response()->json([
+            'labels' => $labels,
+            'values' => $values,
+        ]);
     }
 
     /**

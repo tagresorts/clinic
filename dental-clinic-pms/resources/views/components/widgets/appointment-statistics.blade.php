@@ -1,7 +1,19 @@
 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
     <div class="p-6">
         <h3 class="text-lg font-semibold mb-4">Appointment Statistics</h3>
-        <canvas id="appointment-chart"></canvas>
+        <div class="flex items-center justify-between mb-3">
+            <div class="text-sm text-gray-600">By status</div>
+            <select id="appointment-stats-timeframe" class="text-sm border-gray-300 rounded-md">
+                <option value="month" selected>Last Month</option>
+                <option value="week">This Week</option>
+                <option value="today">Today</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+        <div id="appointment-stats-empty" class="text-sm text-gray-500 hidden">No appointment data available.</div>
+        <div id="appointment-stats-chart-wrap" style="height: 260px;">
+            <canvas id="appointment-chart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -9,28 +21,61 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('appointment-chart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: @json(array_keys(($data['appointments_by_status'] ?? collect())->toArray())),
-                datasets: [{
-                    label: 'Appointments',
-                    data: @json(array_values(($data['appointments_by_status'] ?? collect())->toArray())),
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)'
-                    ],
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
+        const canvas = document.getElementById('appointment-chart');
+        if (!canvas) { return; }
+        const ctx = canvas.getContext('2d');
+        const wrap = document.getElementById('appointment-stats-chart-wrap');
+        const emptyMsg = document.getElementById('appointment-stats-empty');
+        const select = document.getElementById('appointment-stats-timeframe');
+        let chart;
+
+        function render(labels, values) {
+            const hasData = Array.isArray(values) && values.some(v => Number(v) > 0);
+            if (!hasData) {
+                wrap.classList.add('hidden');
+                emptyMsg.classList.remove('hidden');
+                if (chart) { chart.destroy(); }
+                return;
             }
-        });
+            emptyMsg.classList.add('hidden');
+            wrap.classList.remove('hidden');
+            if (chart) { chart.destroy(); }
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Appointments',
+                        data: values,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)',
+                            'rgba(255, 159, 64, 0.8)'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+
+        async function load(timeframe) {
+            try {
+                const res = await fetch(`{{ route('dashboard.appointments.stats') }}?timeframe=${encodeURIComponent(timeframe)}`);
+                if (!res.ok) throw new Error('Failed to load');
+                const json = await res.json();
+                render(json.labels || [], json.values || []);
+            } catch (e) {
+                render([], []);
+            }
+        }
+
+        select.addEventListener('change', function() { load(this.value); });
+        load(select.value);
     });
 </script>
 @endpush

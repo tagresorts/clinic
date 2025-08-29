@@ -37,7 +37,6 @@ class DashboardService
             'active_dentists' => User::role('dentist')->active()->count(),
             'active_staff' => User::active()->count(),
             'appointments_by_status' => Appointment::selectRaw('status, COUNT(*) as count')
-                ->whereDate('appointment_datetime', '>=', $today)
                 ->groupBy('status')
                 ->pluck('count', 'status'),
             'revenue_trend' => Invoice::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
