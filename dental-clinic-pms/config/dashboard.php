@@ -46,6 +46,10 @@ return [
             'component' => 'widgets.pending-treatment-plans',
             'default_layout' => ['x' => 4, 'y' => 11, 'w' => 4, 'h' => 2],
         ],
+        'quick_actions' => [
+            'component' => 'widgets.quick-actions',
+            'default_layout' => ['x' => 8, 'y' => 12, 'w' => 4, 'h' => 2],
+        ],
     ],
 
     'kpis' => [
