@@ -24,7 +24,7 @@ Route::get('/', function () {
 
 // Dashboard - role-based access
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', \Spatie\Permission\Middleware\PermissionMiddleware::class . ':view_dashboard'])
+    ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
