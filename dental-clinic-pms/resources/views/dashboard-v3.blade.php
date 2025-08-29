@@ -13,6 +13,11 @@
             <div class="flex justify-between items-center mb-4">
                 <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
                 <div class="flex items-center space-x-2">
+                    <select id="timeframe-select" class="border rounded px-2 py-1 text-sm">
+                        <option value="today" selected>Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
                     <button id="save-layout-btn" class="text-sm px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Layout</button>
                     <form action="{{ route('dashboard.resetLayout') }}" method="POST" class="inline-block">
                         @csrf
@@ -24,7 +29,24 @@
             <div class="cards-grid" id="dashboard-cards">
                 <div class="card" data-id="card-kpi">
                     <div class="card-header">KPIs</div>
-                    <p class="text-gray-600 text-sm">Place KPI summary here.</p>
+                    <div id="kpi-content" class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Today's Appointments:</span>
+                            <span id="kpi-appointments" class="font-semibold">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Active Patients:</span>
+                            <span id="kpi-patients" class="font-semibold">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Low Stock Items:</span>
+                            <span id="kpi-stock" class="font-semibold text-red-600">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Expiring Soon:</span>
+                            <span id="kpi-expiring" class="font-semibold text-orange-600">-</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="card" data-id="card-appointments">
                     <div class="card-header">Appointments</div>
