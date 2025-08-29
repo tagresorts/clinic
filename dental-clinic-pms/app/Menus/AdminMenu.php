@@ -67,6 +67,7 @@ class AdminMenu
                     ['title' => 'SMTP Settings', 'url' => route('smtp.index'), 'active' => request()->routeIs('smtp.index')],
                     ['title' => 'Email Templates', 'url' => route('email-templates.index'), 'active' => request()->routeIs('email-templates.index')],
                     ['title' => 'Operational Settings', 'url' => route('ops-settings.index'), 'active' => request()->routeIs('ops-settings.index')],
+                    ['title' => 'Dashboard Widgets', 'url' => route('admin.dashboard-widgets.edit'), 'active' => request()->routeIs('admin.dashboard-widgets.edit')],
                     ['title' => 'System Logs', 'url' => route('logs.index'), 'active' => request()->routeIs('logs.index')],
                     ['title' => 'Audit Logs', 'url' => route('audit-logs.index'), 'active' => request()->routeIs('audit-logs.index')],
                 ],
