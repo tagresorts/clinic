@@ -19,13 +19,52 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $kpis = config('dashboard.kpis');
-        $kpiData = $this->dashboardService->getKpiData();
-        $staff = $this->dashboardService->getStaffActivityData();
-        $patientData = $this->dashboardService->getReceptionistData();
-        $upcomingAppointments = $this->dashboardService->getUpcomingAppointmentsForDashboard(Auth::user());
+        $user = Auth::user();
 
-        return view('dashboard-v3', compact('kpis', 'kpiData', 'staff', 'patientData', 'upcomingAppointments'));
+        // Aggregate dashboard data across services; role-aware where applicable
+        $data = [];
+        try { $data = array_merge($data, $this->dashboardService->getAdministratorData()); } catch (\Throwable $e) { /* ignore */ }
+        try { if ($user->hasRole('dentist')) { $data = array_merge($data, $this->dashboardService->getDentistData($user)); } } catch (\Throwable $e) { /* ignore */ }
+        try { $data = array_merge($data, $this->dashboardService->getReceptionistData()); } catch (\Throwable $e) { /* ignore */ }
+
+        // Widgets: merge config defaults with user preferences; hide widgets marked invisible
+        $widgetDefinitions = config('dashboard.widgets');
+        $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+
+        $widgets = [];
+        foreach ($widgetDefinitions as $key => $definition) {
+            $isVisible = true;
+            $layout = $definition['default_layout'];
+
+            if (isset($preferences[$key])) {
+                $pref = $preferences[$key];
+                $isVisible = (bool)$pref->is_visible;
+                $layout = [
+                    'x' => (int)$pref->x_pos,
+                    'y' => (int)$pref->y_pos,
+                    'w' => (int)$pref->width,
+                    'h' => (int)$pref->height,
+                ];
+            }
+
+            if ($isVisible) {
+                $widgets[] = [
+                    'key' => $key,
+                    'component' => $definition['component'],
+                    'layout' => $layout,
+                ];
+            }
+        }
+
+        // Sort widgets for initial render order (top-left first)
+        usort($widgets, function ($a, $b) {
+            return ($a['layout']['y'] <=> $b['layout']['y']) ?: ($a['layout']['x'] <=> $b['layout']['x']);
+        });
+
+        return view('dashboard', [
+            'widgets' => $widgets,
+            'data' => $data,
+        ]);
     }
 
     /**
