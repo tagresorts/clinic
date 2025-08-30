@@ -65,10 +65,12 @@ $adminMenu = AdminMenu::build();
                                                     @foreach ($child['children'] as $subChild)
                                                         @if (isset($subChild['can']) && auth()->user()->hasRole($subChild['can']))
                                                             <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <span class="mr-2">*</span>
                                                                 {{ $subChild['title'] }}
                                                             </a>
                                                         @elseif (!isset($subChild['can']))
                                                             <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <span class="mr-2">*</span>
                                                                 {{ $subChild['title'] }}
                                                             </a>
                                                         @endif
@@ -124,6 +126,7 @@ $adminMenu = AdminMenu::build();
                                                 <div x-show="subOpen" class="mt-2 space-y-1">
                                                     @foreach ($child['children'] as $subChild)
                                                         <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                            <span class="mr-2">*</span>
                                                             {{ $subChild['title'] }}
                                                         </a>
                                                     @endforeach
