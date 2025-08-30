@@ -43,16 +43,45 @@ $adminMenu = AdminMenu::build();
                                 </button>
                                 <div x-show="open && sidebarOpen" class="pl-12 mt-2 space-y-2">
                                     @foreach ($item['children'] as $child)
-                                        @if (isset($child['can']) && auth()->user()->hasRole($child['can']))
-                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                                {{ $child['title'] }}
-                                            </a>
-                                        @elseif (!isset($child['can']))
-                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                                {{ $child['title'] }}
-                                            </a>
+                                        @if (isset($child['children']))
+                                            <!-- Handle sub-groups (three-level menu) -->
+                                            <div x-data="{ subOpen: {{ $child['active'] ?? 'false' }} }">
+                                                <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
+                                                    <div class="flex items-center">
+                                                        <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                        {{ $child['title'] }}
+                                                    </div>
+                                                    <svg :class="{'rotate-180': subOpen}" class="h-4 w-4 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                                </button>
+                                                <div x-show="subOpen" class="pl-8 mt-2 space-y-1">
+                                                    @foreach ($child['children'] as $subChild)
+                                                        @if (isset($subChild['can']) && auth()->user()->hasRole($subChild['can']))
+                                                            <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                                {{ $subChild['title'] }}
+                                                            </a>
+                                                        @elseif (!isset($subChild['can']))
+                                                            <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                                {{ $subChild['title'] }}
+                                                            </a>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <!-- Handle regular children (two-level menu) -->
+                                            @if (isset($child['can']) && auth()->user()->hasRole($child['can']))
+                                                <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                    <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                    {{ $child['title'] }}
+                                                </a>
+                                            @elseif (!isset($child['can']))
+                                                <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                    <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                    {{ $child['title'] }}
+                                                </a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
@@ -68,10 +97,32 @@ $adminMenu = AdminMenu::build();
                                 </button>
                                 <div x-show="open && sidebarOpen" class="pl-12 mt-2 space-y-2">
                                     @foreach ($item['children'] as $child)
-                                        <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                            <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                            {{ $child['title'] }}
-                                        </a>
+                                        @if (isset($child['children']))
+                                            <!-- Handle sub-groups (three-level menu) -->
+                                            <div x-data="{ subOpen: {{ $child['active'] ?? 'false' }} }">
+                                                <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
+                                                    <div class="flex items-center">
+                                                        <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                        {{ $child['title'] }}
+                                                    </div>
+                                                    <svg :class="{'rotate-180': subOpen}" class="h-4 w-4 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                                </button>
+                                                <div x-show="subOpen" class="pl-8 mt-2 space-y-1">
+                                                    @foreach ($child['children'] as $subChild)
+                                                        <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                            <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                            {{ $subChild['title'] }}
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <!-- Handle regular children (two-level menu) -->
+                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                {{ $child['title'] }}
+                                            </a>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
