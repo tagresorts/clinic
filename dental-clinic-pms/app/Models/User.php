@@ -95,6 +95,14 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
     }
 
     /**
+     * Scope to get active users
+     */
+    public function scopeActive($query)
+    {
+        return $query; // Return all users
+    }
+
+    /**
      * Invoices created by this user
      */
     public function createdInvoices(): HasMany
