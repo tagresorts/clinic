@@ -74,15 +74,26 @@
             var statusFilter = document.getElementById('status_filter');
             
             // Initialize flatpickr for date range
+            console.log('Flatpickr available:', typeof flatpickr);
+            console.log('Date range input element:', dateRangeInput);
+            
+            if (typeof flatpickr === 'undefined') {
+                console.error('Flatpickr is not available!');
+                return;
+            }
+            
             var dateRangePicker = flatpickr("#summary_date_range", {
                 mode: "range",
                 dateFormat: "Y-m-d",
                 onChange: function(selectedDates, dateStr, instance) {
+                    console.log('Date range changed:', selectedDates, dateStr);
                     if (selectedDates.length === 2) {
                         updateSummary(selectedDates[0], selectedDates[1]);
                     }
                 }
             });
+            
+            console.log('Date range picker initialized:', dateRangePicker);
 
             // --- Calendar Initialization ---
             var calendar = new FullCalendar.Calendar(calendarEl, {
