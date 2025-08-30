@@ -7,7 +7,7 @@
                     <div class="border border-gray-200 rounded p-3">
                         <p class="font-semibold">{{ $plan->patient->full_name }}</p>
                         <p class="text-sm">{{ $plan->plan_title }}</p>
-                        <p class="text-xs text-gray-500">${{ number_format($plan->estimated_cost, 2) }}</p>
+                        <p class="text-xs text-gray-500">₱{{ number_format($plan->estimated_cost, 2) }}</p>
                     </div>
                 @endforeach
             </div>

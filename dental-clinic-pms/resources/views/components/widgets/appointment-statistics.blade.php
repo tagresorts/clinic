@@ -9,6 +9,11 @@
                 <option value="today">Today</option>
                 <option value="all">All Time</option>
             </select>
+            <select id="appointment-chart-type" class="text-sm border-gray-300 rounded-md ml-2">
+                <option value="bar" selected>Bar Chart</option>
+                <option value="line">Filled Line Chart</option>
+                <option value="doughnut">Doughnut Chart</option>
+            </select>
         </div>
         <div id="appointment-stats-empty" class="text-sm text-gray-500 hidden">No appointment data available.</div>
         <div id="appointment-stats-chart-wrap" style="height: 260px;">
@@ -27,6 +32,7 @@
         const wrap = document.getElementById('appointment-stats-chart-wrap');
         const emptyMsg = document.getElementById('appointment-stats-empty');
         const select = document.getElementById('appointment-stats-timeframe');
+        const chartTypeSelect = document.getElementById('appointment-chart-type'); // New line
         let chart;
 
         function render(labels, values) {
@@ -40,26 +46,46 @@
             emptyMsg.classList.add('hidden');
             wrap.classList.remove('hidden');
             if (chart) { chart.destroy(); }
+
+            const chartType = chartTypeSelect.value; // Get selected chart type
+
+            const datasets = [{
+                label: 'Appointments',
+                data: values,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ],
+                // Add borderColor for line charts
+                borderColor: 'rgba(54, 162, 235, 1)',
+                // Add fill for line charts
+                fill: chartType === 'line' ? true : false,
+            }];
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+            };
+
+            // Add scales for bar and line charts
+            if (chartType === 'bar' || chartType === 'line') {
+                options.scales = {
+                    y: {
+                        beginAtZero: true
+                    }
+                };
+            }
+
             chart = new Chart(ctx, {
-                type: 'doughnut',
+                type: chartType, // Use dynamic chart type
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Appointments',
-                        data: values,
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.8)',
-                            'rgba(255, 206, 86, 0.8)',
-                            'rgba(75, 192, 192, 0.8)',
-                            'rgba(153, 102, 255, 0.8)',
-                            'rgba(255, 159, 64, 0.8)'
-                        ],
-                    }]
+                    datasets: datasets,
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                }
+                options: options,
             });
         }
 
@@ -75,6 +101,7 @@
         }
 
         select.addEventListener('change', function() { load(this.value); });
+        chartTypeSelect.addEventListener('change', function() { load(select.value); }); // New event listener
         load(select.value);
     });
 </script>
