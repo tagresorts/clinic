@@ -47,11 +47,7 @@
 
                             <!-- Date Range Selector -->
                             <div>
-                                <div class="flex items-center space-x-2">
-                                    <x-text-input type="date" id="summary_start_date" name="summary_start_date" class="block w-full" />
-                                    <span class="text-gray-500">to</span>
-                                    <x-text-input type="date" id="summary_end_date" name="summary_end_date" class="block w-full" />
-                                </div>
+                                <input type="text" id="summary_date_range" name="summary_date_range" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Select date range" readonly>
                                 <x-primary-button id="update_summary_btn" class="mt-2 w-full justify-center">Update Summary</x-primary-button>
                             </div>
 
@@ -72,11 +68,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var summaryContentEl = document.getElementById('schedule-summary-content');
-            var startDateInput = document.getElementById('summary_start_date');
-            var endDateInput = document.getElementById('summary_end_date');
+            var dateRangeInput = document.getElementById('summary_date_range');
             var updateSummaryBtn = document.getElementById('update_summary_btn');
             var dentistFilter = document.getElementById('dentist_filter');
             var statusFilter = document.getElementById('status_filter');
+            
+            // Initialize flatpickr for date range
+            var dateRangePicker = flatpickr("#summary_date_range", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        updateSummary(selectedDates[0], selectedDates[1]);
+                    }
+                }
+            });
 
             // --- Calendar Initialization ---
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -117,8 +123,8 @@
                 },
                 dateClick: function(info) {
                     // When a date is clicked, update the summary for that single day
-                    startDateInput.value = info.dateStr;
-                    endDateInput.value = info.dateStr;
+                    var clickedDate = new Date(info.dateStr);
+                    dateRangePicker.setDate([clickedDate, clickedDate], true);
                     updateSummary(info.dateStr, info.dateStr);
                 }
             });
@@ -135,9 +141,10 @@
             });
 
             function updateSummaryForCurrentSelection() {
-                const startDate = startDateInput.value;
-                const endDate = endDateInput.value;
-                if (startDate && endDate) {
+                const selectedDates = dateRangePicker.selectedDates;
+                if (selectedDates.length === 2) {
+                    const startDate = selectedDates[0];
+                    const endDate = selectedDates[1];
                     updateSummary(startDate, endDate);
                 }
             }
@@ -146,9 +153,17 @@
             function updateSummary(startDate, endDate) {
                 summaryContentEl.innerHTML = '<p class="text-gray-500">Loading summary...</p>';
 
+                // Convert Date objects to Y-m-d format if needed
+                const formatDate = (date) => {
+                    if (date instanceof Date) {
+                        return date.toISOString().split('T')[0];
+                    }
+                    return date;
+                };
+
                 let url = new URL('{{ route("appointments.summary") }}');
-                url.searchParams.append('start_date', startDate);
-                url.searchParams.append('end_date', endDate);
+                url.searchParams.append('start_date', formatDate(startDate));
+                url.searchParams.append('end_date', formatDate(endDate));
 
                 const dentistId = dentistFilter.value;
                 if (dentistId) {
@@ -184,9 +199,13 @@
             function renderSummary(appointments, startDate, endDate) {
                 summaryContentEl.innerHTML = ''; // Clear current summary
 
-                let titleText = `Appointments for ${new Date(startDate).toLocaleDateString()}`;
-                if (startDate !== endDate) {
-                    titleText = `Appointments from ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
+                // Convert to Date objects if they're strings
+                const startDateObj = startDate instanceof Date ? startDate : new Date(startDate);
+                const endDateObj = endDate instanceof Date ? endDate : new Date(endDate);
+
+                let titleText = `Appointments for ${startDateObj.toLocaleDateString()}`;
+                if (startDateObj.getTime() !== endDateObj.getTime()) {
+                    titleText = `Appointments from ${startDateObj.toLocaleDateString()} to ${endDateObj.toLocaleDateString()}`;
                 }
 
                 let title = document.createElement('h4');
@@ -218,30 +237,18 @@
 
             // --- Event Listeners ---
             updateSummaryBtn.addEventListener('click', function() {
-                if (startDateInput.value && endDateInput.value) {
-                    updateSummary(startDateInput.value, endDateInput.value);
+                const selectedDates = dateRangePicker.selectedDates;
+                if (selectedDates.length === 2) {
+                    updateSummary(selectedDates[0], selectedDates[1]);
                 } else {
-                    alert('Please select a start and end date.');
+                    alert('Please select a date range.');
                 }
             });
 
             // --- Initial Load ---
-            function formatDate(date) {
-                const d = new Date(date);
-                let month = '' + (d.getMonth() + 1);
-                let day = '' + d.getDate();
-                const year = d.getFullYear();
-
-                if (month.length < 2) month = '0' + month;
-                if (day.length < 2) day = '0' + day;
-
-                return [year, month, day].join('-');
-            }
-
-            const todayStr = formatDate(new Date());
-            startDateInput.value = todayStr;
-            endDateInput.value = todayStr;
-            updateSummary(todayStr, todayStr);
+            const today = new Date();
+            dateRangePicker.setDate([today, today], true);
+            updateSummary(today, today);
         });
     </script>
     @endpush
