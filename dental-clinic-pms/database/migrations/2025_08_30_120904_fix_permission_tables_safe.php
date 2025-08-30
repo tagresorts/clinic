@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,6 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         // Drop existing tables if they exist
         Schema::dropIfExists('role_has_permissions');
         Schema::dropIfExists('model_has_roles');
@@ -23,6 +27,9 @@ return new class extends Migration
         if (Schema::hasTable('permissions')) {
             Schema::dropIfExists('permissions');
         }
+
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Create permissions table with proper structure
         Schema::create('permissions', function (Blueprint $table) {
@@ -96,10 +103,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
         Schema::dropIfExists('role_has_permissions');
         Schema::dropIfExists('model_has_roles');
         Schema::dropIfExists('model_has_permissions');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('permissions');
+        
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 };
