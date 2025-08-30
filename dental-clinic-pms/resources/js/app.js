@@ -5,6 +5,7 @@ import flatpickr from "flatpickr";
 import 'flatpickr/dist/flatpickr.css';
 
 window.Alpine = Alpine;
+window.flatpickr = flatpickr;
 
 Alpine.start();
 
