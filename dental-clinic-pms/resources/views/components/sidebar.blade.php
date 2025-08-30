@@ -45,7 +45,7 @@ $adminMenu = AdminMenu::build();
                                     @foreach ($item['children'] as $child)
                                         @if (isset($child['children']))
                                             <!-- Handle sub-groups (three-level menu) -->
-                                            <div x-data="{ subOpen: {{ $child['active'] ?? 'false' }} }">
+                                            <div x-data="{ subOpen: {{ isset($child['active']) && $child['active'] ? 'true' : 'false' }} }">
                                                 <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
                                                     <div class="flex items-center">
                                                         <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
@@ -99,7 +99,7 @@ $adminMenu = AdminMenu::build();
                                     @foreach ($item['children'] as $child)
                                         @if (isset($child['children']))
                                             <!-- Handle sub-groups (three-level menu) -->
-                                            <div x-data="{ subOpen: {{ $child['active'] ?? 'false' }} }">
+                                            <div x-data="{ subOpen: {{ isset($child['active']) && $child['active'] ? 'true' : 'false' }} }">
                                                 <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
                                                     <div class="flex items-center">
                                                         <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
