@@ -16,7 +16,7 @@ class AdminMenu
             ],
             [
                 'title' => 'Patients',
-                'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952A4.125 4.125 0 0014.25 15M15 19.128v.106A12.318 12.318 0 018.625 21c-2.331 0-4.512-.645-6.375-1.766A6.375 6.375 0 0114.25 15m.75-11.25a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>',
+                'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>',
                 'active' => request()->routeIs('patients.*'),
                 'children' => [
                     ['title' => 'View All', 'url' => route('patients.index'), 'active' => request()->routeIs('patients.index')],
