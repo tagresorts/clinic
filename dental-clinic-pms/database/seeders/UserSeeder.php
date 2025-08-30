@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -24,7 +25,11 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $admin->assignRole('administrator');
+        
+        // Safely assign role
+        if (Role::where('name', 'administrator')->exists()) {
+            $admin->assignRole('administrator');
+        }
 
         // Create Dentist
         $dentist1 = User::updateOrCreate(
@@ -37,7 +42,10 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $dentist1->assignRole('dentist');
+        
+        if (Role::where('name', 'dentist')->exists()) {
+            $dentist1->assignRole('dentist');
+        }
 
         // Create another Dentist
         $dentist2 = User::updateOrCreate(
@@ -50,7 +58,10 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $dentist2->assignRole('dentist');
+        
+        if (Role::where('name', 'dentist')->exists()) {
+            $dentist2->assignRole('dentist');
+        }
 
         // Create Receptionist
         $receptionist1 = User::updateOrCreate(
@@ -63,7 +74,10 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $receptionist1->assignRole('receptionist');
+        
+        if (Role::where('name', 'receptionist')->exists()) {
+            $receptionist1->assignRole('receptionist');
+        }
 
         // Create another Receptionist
         $receptionist2 = User::updateOrCreate(
@@ -76,6 +90,9 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $receptionist2->assignRole('receptionist');
+        
+        if (Role::where('name', 'receptionist')->exists()) {
+            $receptionist2->assignRole('receptionist');
+        }
     }
 }
