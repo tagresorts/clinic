@@ -79,21 +79,31 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create Roles and assign permissions
         $receptionist_role = Role::firstOrCreate(['name' => 'receptionist'], ['slug' => 'receptionist', 'guard_name' => 'web']);
-        $receptionist_role->syncPermissions($receptionist_permissions);
+        if (Permission::count() > 0) {
+            $receptionist_role->syncPermissions($receptionist_permissions);
+        }
 
         $dentist_role = Role::firstOrCreate(['name' => 'dentist'], ['slug' => 'dentist', 'guard_name' => 'web']);
-        $dentist_role->syncPermissions($dentist_permissions);
+        if (Permission::count() > 0) {
+            $dentist_role->syncPermissions($dentist_permissions);
+        }
 
         $inventory_manager_role = Role::firstOrCreate(['name' => 'inventory_manager'], ['slug' => 'inventory-manager', 'guard_name' => 'web']);
-        $inventory_manager_role->syncPermissions($inventory_manager_permissions);
+        if (Permission::count() > 0) {
+            $inventory_manager_role->syncPermissions($inventory_manager_permissions);
+        }
 
         // Administrator gets all permissions
         $admin_role = Role::firstOrCreate(['name' => 'administrator'], ['slug' => 'administrator', 'guard_name' => 'web']);
-        $admin_role->syncPermissions(Permission::all());
+        if (Permission::count() > 0) {
+            $admin_role->syncPermissions(Permission::all());
+        }
 
         // Viewer role
         $viewer_role = Role::firstOrCreate(['name' => 'viewer'], ['slug' => 'viewer', 'guard_name' => 'web']);
-        $viewer_role->syncPermissions(['patient-list', 'appointment-list']);
+        if (Permission::count() > 0) {
+            $viewer_role->syncPermissions(['patient-list', 'appointment-list']);
+        }
 
         // Create Demo Users if they don't exist
         if (User::where('email', 'superadmin@example.com')->doesntExist()) {
