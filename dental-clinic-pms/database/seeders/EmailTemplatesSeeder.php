@@ -48,5 +48,14 @@ class EmailTemplatesSeeder extends Seeder
             'subject' => 'Upcoming Appointment Reminder',
             'body' => '<p>Dear Dr. {{doctor_name}},</p><p>This is a reminder for your upcoming appointment with {{patient_name}} on {{appointment_date}} at {{appointment_time}}.</p><p>Thank you.</p>',
         ]);
+
+        EmailTemplate::updateOrCreate([
+            'type' => 'treatment_plan_appointment_reminder',
+        ], [
+            'name' => 'Treatment Plan Appointment Reminder',
+            'subject' => 'Upcoming Appointment for your Treatment Plan',
+            'body' => '<p>Dear {patient_name},</p><p>This is a reminder that you have an upcoming appointment for your treatment plan on {appointment_date} at {appointment_time}.</p><p>Thank you,</p><p>The Clinic</p>',
+            'wildcards' => json_encode(['{patient_name}', '{appointment_date}', '{appointment_time}']),
+        ]);
     }
 }
