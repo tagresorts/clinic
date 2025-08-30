@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop existing roles table if it exists and recreate with proper structure
+        // Drop existing tables if they exist
         Schema::dropIfExists('role_has_permissions');
         Schema::dropIfExists('model_has_roles');
         Schema::dropIfExists('model_has_permissions');
