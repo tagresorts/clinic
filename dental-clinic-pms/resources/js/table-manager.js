@@ -2,6 +2,11 @@
 (function() {
     function initTable(tableId, initialColumns) {
         console.log(`Table Manager: Initializing table ${tableId}`);
+        
+        // Debug: List all table elements on the page
+        const allTables = document.querySelectorAll('table');
+        console.log(`Table Manager: Found ${allTables.length} tables on page:`, Array.from(allTables).map(t => t.id));
+        
         const table = document.getElementById(tableId);
         if (!table) {
             console.log(`Table Manager: Table ${tableId} not found`);
@@ -175,6 +180,7 @@
     // Initialize tables when DOM is ready
     function init() {
         console.log('Table Manager: Initializing...');
+        console.log('Table Manager: Current URL:', window.location.pathname);
         
         let tablesInitialized = 0;
         
