@@ -5,13 +5,13 @@
         const table = document.getElementById(tableId);
         if (!table) {
             console.log(`Table Manager: Table ${tableId} not found`);
-            return;
+            return false;
         }
 
         const headerRow = document.getElementById(`${tableId}-header`);
         if (!headerRow) {
             console.log(`Table Manager: Header row for ${tableId} not found`);
-            return;
+            return false;
         }
 
         const tableKey = `${tableId}.preferences`;
@@ -77,6 +77,12 @@
         const menuBtn = document.getElementById(`${tableId}-columns-toggle`);
         const menu = document.getElementById(`${tableId}-columns-menu`);
         const checkboxesWrap = document.getElementById(`${tableId}-columns-checkboxes`);
+        
+        console.log(`Table Manager: Looking for ${tableId} column controls:`, {
+            menuBtn: !!menuBtn,
+            menu: !!menu,
+            checkboxesWrap: !!checkboxesWrap
+        });
         
         if (menuBtn && menu && checkboxesWrap) {
             const prefs = loadPreferences();
@@ -161,40 +167,53 @@
 
         // Apply initial preferences
         applyPreferences(loadPreferences());
+        
+        console.log(`Table Manager: Successfully initialized table ${tableId}`);
+        return true;
     }
 
     // Initialize tables when DOM is ready
     function init() {
         console.log('Table Manager: Initializing...');
         
+        let tablesInitialized = 0;
+        
         // Initialize patients table
-        initTable('patients-table', [
+        if (initTable('patients-table', [
             'name', 'dob', 'gender', 'address', 'phone', 'email', 'actions'
-        ]);
+        ])) tablesInitialized++;
 
         // Initialize payments table
-        initTable('payments-table', [
+        if (initTable('payments-table', [
             'payment_ref', 'patient', 'invoice', 'date', 'amount', 
             'method', 'reference', 'received_by', 'actions'
-        ]);
+        ])) tablesInitialized++;
 
         // Initialize invoices table
-        initTable('invoices-table', [
+        if (initTable('invoices-table', [
             'invoice_number', 'patient', 'date', 'due_date', 'total_amount', 
             'outstanding', 'status', 'payment_status', 'actions'
-        ]);
+        ])) tablesInitialized++;
         
-        console.log('Table Manager: Initialization complete');
+        console.log(`Table Manager: Initialization complete. ${tablesInitialized} tables initialized.`);
         
         // Test alert to confirm script is loaded
         if (window.location.pathname.includes('/payments') || window.location.pathname.includes('/invoices')) {
             console.log('Table Manager: Script loaded successfully for payments/invoices pages');
         }
+        
+        // If no tables were initialized, retry after a delay
+        if (tablesInitialized === 0) {
+            console.log('Table Manager: No tables found, retrying in 500ms...');
+            setTimeout(init, 500);
+        }
     }
 
+    // Wait for DOM to be fully loaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init, { once: true });
     } else {
-        init();
+        // If DOM is already loaded, wait a bit to ensure all elements are rendered
+        setTimeout(init, 100);
     }
 })();
