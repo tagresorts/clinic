@@ -65,29 +65,36 @@
                 </div>
             </div>
 
-            <!-- Dynamic Dashboard Wrappers -->
-            <div id="dashboard-wrappers" class="space-y-6">
-                <!-- Default Wrapper -->
-                <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="1">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                            </svg>
-                            <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="Main Dashboard" placeholder="Wrapper Title">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200" style="display: none;">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            <!-- Unified Dashboard Grid with Wrapper Organization -->
+            <div id="dashboard-container" class="relative">
+                <!-- Wrapper Headers -->
+                <div id="wrapper-headers" class="space-y-4 mb-6">
+                    <!-- Default Wrapper Header -->
+                    <div class="wrapper-header bg-white rounded-xl shadow-sm border border-gray-200 p-4" data-wrapper-id="1">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                                 </svg>
-                                Remove
-                            </button>
+                                <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="Main Dashboard" placeholder="Wrapper Title">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200" style="display: none;">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Remove
+                                </button>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Unified Grid Container -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="grid-stack">
                         @foreach ($widgets as $widget)
-                            <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
+                            <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}" data-wrapper="1">
                                 <div class="grid-stack-item-content">
                                     <x-dynamic-component :component="$widget['component']" :data="$data" />
                                 </div>
@@ -104,37 +111,30 @@
     <script src="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack-all.js"></script>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            let grids = [];
+            let grid;
             let wrapperCounter = 1;
 
-            // Initialize the first grid
-            initializeGrid(document.querySelector('.grid-stack'));
-
-            function initializeGrid(gridElement) {
-                const grid = GridStack.init({
-                    float: true,
-                    cellHeight: '8rem',
-                    minRow: 1,
-                    margin: '12px',
-                    disableOneColumnMode: false,
-                    resizable: {
-                        handles: 'all'
-                    },
-                    draggable: {
-                        handle: '.grid-stack-item-content'
-                    }
-                }, gridElement);
-                
-                grids.push(grid);
-                return grid;
-            }
+            // Initialize the unified grid
+            grid = GridStack.init({
+                float: true,
+                cellHeight: '8rem',
+                minRow: 1,
+                margin: '12px',
+                disableOneColumnMode: false,
+                resizable: {
+                    handles: 'all'
+                },
+                draggable: {
+                    handle: '.grid-stack-item-content'
+                }
+            }, '.grid-stack');
 
             // Add new wrapper
             document.getElementById('add-wrapper-btn').addEventListener('click', function() {
                 wrapperCounter++;
-                const wrapperHtml = `
-                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="${wrapperCounter}">
-                        <div class="flex items-center justify-between mb-4">
+                const headerHtml = `
+                    <div class="wrapper-header bg-white rounded-xl shadow-sm border border-gray-200 p-4" data-wrapper-id="${wrapperCounter}">
+                        <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
                                 <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -150,73 +150,65 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="grid-stack"></div>
                     </div>
                 `;
                 
-                const wrapperElement = document.createElement('div');
-                wrapperElement.innerHTML = wrapperHtml;
-                const wrapper = wrapperElement.firstElementChild;
+                const headerElement = document.createElement('div');
+                headerElement.innerHTML = headerHtml;
+                const header = headerElement.firstElementChild;
                 
-                document.getElementById('dashboard-wrappers').appendChild(wrapper);
-                
-                // Initialize grid for new wrapper
-                const newGrid = initializeGrid(wrapper.querySelector('.grid-stack'));
+                document.getElementById('wrapper-headers').appendChild(header);
                 
                 // Add remove functionality
-                wrapper.querySelector('.remove-wrapper-btn').addEventListener('click', function() {
-                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
-                        wrapper.remove();
-                        // Remove grid from grids array
-                        const gridIndex = grids.indexOf(newGrid);
-                        if (gridIndex > -1) {
-                            grids.splice(gridIndex, 1);
-                        }
+                header.querySelector('.remove-wrapper-btn').addEventListener('click', function() {
+                    if (document.querySelectorAll('.wrapper-header').length > 1) {
+                        header.remove();
+                        // Move widgets from this wrapper to the first wrapper
+                        const wrapperId = header.getAttribute('data-wrapper-id');
+                        document.querySelectorAll(`[data-wrapper="${wrapperId}"]`).forEach(widget => {
+                            widget.setAttribute('data-wrapper', '1');
+                        });
                     }
                 });
             });
 
-            // Add remove functionality to existing wrapper (except first one)
+            // Add remove functionality to existing wrapper headers
             document.querySelectorAll('.remove-wrapper-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
-                        const wrapper = btn.closest('.dashboard-wrapper');
-                        wrapper.remove();
+                    if (document.querySelectorAll('.wrapper-header').length > 1) {
+                        const header = btn.closest('.wrapper-header');
+                        const wrapperId = header.getAttribute('data-wrapper-id');
+                        header.remove();
+                        // Move widgets from this wrapper to the first wrapper
+                        document.querySelectorAll(`[data-wrapper="${wrapperId}"]`).forEach(widget => {
+                            widget.setAttribute('data-wrapper', '1');
+                        });
                     }
                 });
             });
-
-            // Show remove button for first wrapper if there are multiple wrappers
-            function updateRemoveButtons() {
-                const wrappers = document.querySelectorAll('.dashboard-wrapper');
-                wrappers.forEach((wrapper, index) => {
-                    const removeBtn = wrapper.querySelector('.remove-wrapper-btn');
-                    if (wrappers.length > 1) {
-                        removeBtn.style.display = 'inline-flex';
-                    } else {
-                        removeBtn.style.display = 'none';
-                    }
-                });
-            }
 
             const saveLayout = () => {
                 const layoutData = {
                     wrappers: []
                 };
 
-                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
-                    const wrapperId = wrapper.getAttribute('data-wrapper-id');
-                    const title = wrapper.querySelector('.wrapper-title').value;
-                    const grid = grids[wrapperIndex];
+                document.querySelectorAll('.wrapper-header').forEach((header, headerIndex) => {
+                    const wrapperId = header.getAttribute('data-wrapper-id');
+                    const title = header.querySelector('.wrapper-title').value;
+                    const widgets = document.querySelectorAll(`[data-wrapper="${wrapperId}"]`);
                     
-                    if (grid) {
-                        const serializedData = grid.save();
-                        layoutData.wrappers.push({
-                            id: wrapperId,
-                            title: title,
-                            layout: serializedData
-                        });
-                    }
+                    const wrapperData = {
+                        id: wrapperId,
+                        title: title,
+                        widgets: []
+                    };
+
+                    widgets.forEach(widget => {
+                        const widgetData = grid.save();
+                        wrapperData.widgets.push(widgetData);
+                    });
+
+                    layoutData.wrappers.push(wrapperData);
                 });
 
                 fetch('{{ route("dashboard.saveLayout") }}', {

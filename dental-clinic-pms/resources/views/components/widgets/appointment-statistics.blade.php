@@ -1,4 +1,4 @@
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
     <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
