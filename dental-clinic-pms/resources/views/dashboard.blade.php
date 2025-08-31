@@ -33,6 +33,12 @@
                             <span class="text-sm font-medium text-gray-700">Dashboard Controls</span>
                         </div>
                         <div class="flex items-center space-x-3">
+                            <button id="add-wrapper-btn" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Wrapper
+                            </button>
                             <x-primary-button id="save-layout-btn" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -59,16 +65,35 @@
                 </div>
             </div>
 
-            <!-- Dashboard Grid Container -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="grid-stack">
-                    @foreach ($widgets as $widget)
-                        <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
-                            <div class="grid-stack-item-content">
-                                <x-dynamic-component :component="$widget['component']" :data="$data" />
-                            </div>
+            <!-- Dynamic Dashboard Wrappers -->
+            <div id="dashboard-wrappers" class="space-y-6">
+                <!-- Default Wrapper -->
+                <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="Main Dashboard" placeholder="Wrapper Title">
                         </div>
-                    @endforeach
+                        <div class="flex items-center space-x-2">
+                            <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200" style="display: none;">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid-stack">
+                        @foreach ($widgets as $widget)
+                            <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
+                                <div class="grid-stack-item-content">
+                                    <x-dynamic-component :component="$widget['component']" :data="$data" />
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,29 +104,128 @@
     <script src="https://cdn.jsdelivr.net/npm/gridstack@12.2.2/dist/gridstack-all.js"></script>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            let grid = GridStack.init({
-                float: true,
-                cellHeight: '8rem',
-                minRow: 1,
-                margin: '12px',
-                disableOneColumnMode: false,
-                resizable: {
-                    handles: 'all'
-                },
-                draggable: {
-                    handle: '.grid-stack-item-content'
-                }
-            }, '.grid-stack');
+            let grids = [];
+            let wrapperCounter = 1;
+
+            // Initialize the first grid
+            initializeGrid(document.querySelector('.grid-stack'));
+
+            function initializeGrid(gridElement) {
+                const grid = GridStack.init({
+                    float: true,
+                    cellHeight: '8rem',
+                    minRow: 1,
+                    margin: '12px',
+                    disableOneColumnMode: false,
+                    resizable: {
+                        handles: 'all'
+                    },
+                    draggable: {
+                        handle: '.grid-stack-item-content'
+                    }
+                }, gridElement);
+                
+                grids.push(grid);
+                return grid;
+            }
+
+            // Add new wrapper
+            document.getElementById('add-wrapper-btn').addEventListener('click', function() {
+                wrapperCounter++;
+                const wrapperHtml = `
+                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="${wrapperCounter}">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="Dashboard ${wrapperCounter}" placeholder="Wrapper Title">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid-stack"></div>
+                    </div>
+                `;
+                
+                const wrapperElement = document.createElement('div');
+                wrapperElement.innerHTML = wrapperHtml;
+                const wrapper = wrapperElement.firstElementChild;
+                
+                document.getElementById('dashboard-wrappers').appendChild(wrapper);
+                
+                // Initialize grid for new wrapper
+                const newGrid = initializeGrid(wrapper.querySelector('.grid-stack'));
+                
+                // Add remove functionality
+                wrapper.querySelector('.remove-wrapper-btn').addEventListener('click', function() {
+                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
+                        wrapper.remove();
+                        // Remove grid from grids array
+                        const gridIndex = grids.indexOf(newGrid);
+                        if (gridIndex > -1) {
+                            grids.splice(gridIndex, 1);
+                        }
+                    }
+                });
+            });
+
+            // Add remove functionality to existing wrapper (except first one)
+            document.querySelectorAll('.remove-wrapper-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
+                        const wrapper = btn.closest('.dashboard-wrapper');
+                        wrapper.remove();
+                    }
+                });
+            });
+
+            // Show remove button for first wrapper if there are multiple wrappers
+            function updateRemoveButtons() {
+                const wrappers = document.querySelectorAll('.dashboard-wrapper');
+                wrappers.forEach((wrapper, index) => {
+                    const removeBtn = wrapper.querySelector('.remove-wrapper-btn');
+                    if (wrappers.length > 1) {
+                        removeBtn.style.display = 'inline-flex';
+                    } else {
+                        removeBtn.style.display = 'none';
+                    }
+                });
+            }
 
             const saveLayout = () => {
-                const serializedData = grid.save();
+                const layoutData = {
+                    wrappers: []
+                };
+
+                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
+                    const wrapperId = wrapper.getAttribute('data-wrapper-id');
+                    const title = wrapper.querySelector('.wrapper-title').value;
+                    const grid = grids[wrapperIndex];
+                    
+                    if (grid) {
+                        const serializedData = grid.save();
+                        layoutData.wrappers.push({
+                            id: wrapperId,
+                            title: title,
+                            layout: serializedData
+                        });
+                    }
+                });
+
                 fetch('{{ route("dashboard.saveLayout") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ layout: serializedData })
+                    body: JSON.stringify({ layout: layoutData })
                 }).then(res => {
                     if(res.ok) {
                         // Show success notification
@@ -128,7 +252,6 @@
             };
 
             document.getElementById('save-layout-btn').addEventListener('click', saveLayout);
-
         });
     </script>
     @endpush
