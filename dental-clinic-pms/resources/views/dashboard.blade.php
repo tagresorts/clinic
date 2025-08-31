@@ -35,32 +35,32 @@
                                 </svg>
                                 <span>Save Layout</span>
                             </x-primary-button>
-                            <form action="{{ route('dashboard.saveAsDefault') }}" method="POST" class="inline-block">
+                            <form action="{{ route('dashboard.saveAsDefault') }}" method="POST" class="inline-block" style="display: inline-block !important;">
                                 @csrf
-                                <x-secondary-button type="submit" class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button type="submit" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200" style="display: inline-flex !important; background-color: #059669 !important; color: white !important;">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
-                                    <span>Save as Default</span>
-                                </x-secondary-button>
+                                    Save as Default
+                                </button>
                             </form>
-                            <form action="{{ route('dashboard.resetToDefault') }}" method="POST" class="inline-block">
+                            <form action="{{ route('dashboard.resetToDefault') }}" method="POST" class="inline-block" style="display: inline-block !important;">
                                 @csrf
-                                <x-secondary-button type="submit" class="flex items-center space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors duration-200" style="display: inline-flex !important; background-color: #2563eb !important; color: white !important;">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
-                                    <span>Reset to Saved Default</span>
-                                </x-secondary-button>
+                                    Reset to Saved Default
+                                </button>
                             </form>
-                            <form action="{{ route('dashboard.resetLayout') }}" method="POST" class="inline-block">
+                            <form action="{{ route('dashboard.resetLayout') }}" method="POST" class="inline-block" style="display: inline-block !important;">
                                 @csrf
-                                <x-secondary-button type="submit" class="flex items-center space-x-2 bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors duration-200" style="display: inline-flex !important; background-color: #dc2626 !important; color: white !important;">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
-                                    <span>Reset to Config Default</span>
-                                </x-secondary-button>
+                                    Reset to Config Default
+                                </button>
                             </form>
                             <a href="{{ route('admin.dashboard-widgets.edit') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 shadow-sm">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
