@@ -30,7 +30,7 @@ class InvoiceController extends Controller
      */
     public function create()
     {
-        $patients = Patient::where('is_active', true)->get();
+        $patients = Patient::all();
         $appointments = Appointment::with('patient')->get();
         $treatmentPlans = TreatmentPlan::with('patient')->get();
         $procedures = Procedure::all();
@@ -115,7 +115,7 @@ class InvoiceController extends Controller
     public function edit(string $id)
     {
         $invoice = Invoice::findOrFail($id);
-        $patients = Patient::where('is_active', true)->get();
+        $patients = Patient::all();
         $appointments = Appointment::with('patient')->get();
         $treatmentPlans = TreatmentPlan::with('patient')->get();
         $procedures = Procedure::all();

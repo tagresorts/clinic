@@ -36,13 +36,11 @@ class Patient extends Model
         'insurance_policy_number',
         'insurance_group_number',
         'insurance_expiry_date',
-        'is_active',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
         'insurance_expiry_date' => 'date',
-        'is_active' => 'boolean',
     ];
 
     /**
