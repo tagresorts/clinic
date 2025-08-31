@@ -1,4 +1,6 @@
 -- Add paid_at column to invoices table
+-- Run this SQL query in your MySQL database
+
 ALTER TABLE invoices ADD COLUMN paid_at TIMESTAMP NULL AFTER status;
 
 -- Update existing paid invoices to have a paid_at timestamp
