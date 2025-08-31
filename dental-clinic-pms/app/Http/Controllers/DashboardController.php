@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\UserDashboardPreference;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\UserDashboardWrapper; // Added this import
 
 class DashboardController extends Controller
 {
@@ -83,6 +84,12 @@ class DashboardController extends Controller
         // Widgets: merge config defaults with user preferences; hide widgets marked invisible
         $widgetDefinitions = config('dashboard.widgets');
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+        
+        // Load wrapper information
+        $userWrappers = UserDashboardWrapper::where('user_id', $user->id)
+            ->orderBy('order')
+            ->get()
+            ->keyBy('wrapper_id');
 
         $widgets = [];
         $allWidgets = [];
@@ -150,8 +157,9 @@ class DashboardController extends Controller
 
         return view('dashboard', [
             'widgets' => $widgets,
-            'data' => $data,
             'allWidgets' => $allWidgets,
+            'data' => $data,
+            'userWrappers' => $userWrappers,
         ]);
     }
 
@@ -290,6 +298,21 @@ class DashboardController extends Controller
         
         // Handle new wrapper-based format
         if (isset($request->layout['wrappers'])) {
+            // Save wrapper information
+            foreach ($request->layout['wrappers'] as $wrapper) {
+                UserDashboardWrapper::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'wrapper_id' => $wrapper['id'],
+                    ],
+                    [
+                        'title' => $wrapper['title'] ?? 'Dashboard ' . $wrapper['id'],
+                        'order' => $wrapper['id'],
+                    ]
+                );
+            }
+            
+            // Save widget positions
             foreach ($request->layout['wrappers'] as $wrapper) {
                 if (isset($wrapper['widgets'])) {
                     foreach ($wrapper['widgets'] as $item) {

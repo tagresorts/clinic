@@ -14,6 +14,18 @@ return new class extends Migration
         Schema::table('user_dashboard_preferences', function (Blueprint $table) {
             $table->integer('wrapper_id')->default(1)->after('height');
         });
+
+        // Create table for storing wrapper information
+        Schema::create('user_dashboard_wrappers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->integer('wrapper_id');
+            $table->string('title')->nullable();
+            $table->integer('order')->default(0);
+            $table->timestamps();
+
+            $table->unique(['user_id', 'wrapper_id']);
+        });
     }
 
     /**
@@ -24,5 +36,7 @@ return new class extends Migration
         Schema::table('user_dashboard_preferences', function (Blueprint $table) {
             $table->dropColumn('wrapper_id');
         });
+        
+        Schema::dropIfExists('user_dashboard_wrappers');
     }
 };

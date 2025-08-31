@@ -76,14 +76,43 @@
                         }
                         $wrapperWidgets[$wrapperId][] = $widget;
                     }
-                    $maxWrapperId = max(array_keys($wrapperWidgets));
+                    
+                    // Get all wrapper IDs (both from widgets and saved wrappers)
+                    $allWrapperIds = array_keys($wrapperWidgets);
+                    foreach ($userWrappers as $wrapper) {
+                        $allWrapperIds[] = $wrapper->wrapper_id;
+                    }
+                    $allWrapperIds = array_unique($allWrapperIds);
+                    sort($allWrapperIds);
                 @endphp
                 
-                @for ($i = 1; $i <= $maxWrapperId; $i++)
-                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="{{ $i }}">
+                @foreach ($allWrapperIds as $wrapperId)
+                    @php
+                        $wrapper = $userWrappers->get($wrapperId);
+                        $title = $wrapper ? $wrapper->title : 'Dashboard ' . $wrapperId;
+                    @endphp
+                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="{{ $wrapperId }}">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="{{ $title }}" placeholder="Wrapper Title">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                @if($wrapperId > 1)
+                                    <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        Remove
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
                         <div class="grid-stack">
-                            @if (isset($wrapperWidgets[$i]))
-                                @foreach ($wrapperWidgets[$i] as $widget)
+                            @if (isset($wrapperWidgets[$wrapperId]))
+                                @foreach ($wrapperWidgets[$wrapperId] as $widget)
                                     <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
                                         <div class="grid-stack-item-content">
                                             <x-dynamic-component :component="$widget['component']" :data="$data" />
@@ -93,7 +122,7 @@
                             @endif
                         </div>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </div>
     </div>
@@ -191,6 +220,22 @@
                 wrapperCounter++;
                 const wrapperHtml = `
                     <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="${wrapperCounter}">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                <input type="text" class="wrapper-title text-lg font-semibold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none" value="Dashboard ${wrapperCounter}" placeholder="Wrapper Title">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="remove-wrapper-btn inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
                         <div class="grid-stack"></div>
                     </div>
                 `;
@@ -203,6 +248,23 @@
                 
                 // Initialize grid for new wrapper
                 initializeGrid(wrapper.querySelector('.grid-stack'));
+                
+                // Add remove functionality
+                wrapper.querySelector('.remove-wrapper-btn').addEventListener('click', function() {
+                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
+                        wrapper.remove();
+                    }
+                });
+            });
+
+            // Add remove functionality to existing wrapper buttons
+            document.querySelectorAll('.remove-wrapper-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.dashboard-wrapper').length > 1) {
+                        const wrapper = btn.closest('.dashboard-wrapper');
+                        wrapper.remove();
+                    }
+                });
             });
 
             const saveLayout = () => {
@@ -213,12 +275,14 @@
                 // Save each wrapper with its widgets
                 document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
                     const wrapperId = wrapper.getAttribute('data-wrapper-id');
+                    const title = wrapper.querySelector('.wrapper-title').value;
                     const grid = grids[wrapperIndex];
                     
                     if (grid) {
                         const gridItems = grid.getGridItems();
                         const wrapperData = {
                             id: wrapperId,
+                            title: title,
                             widgets: []
                         };
                         
