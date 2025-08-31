@@ -39,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/dashboard-widgets', [DashboardController::class, 'updateWidgets'])->name('admin.dashboard-widgets.update');
     Route::get('/admin/quick-actions', [DashboardController::class, 'editQuickActions'])->name('admin.quick-actions.edit');
     Route::post('/admin/quick-actions', [DashboardController::class, 'updateQuickActions'])->name('admin.quick-actions.update');
+    Route::get('/admin/dashboard-panels', [DashboardController::class, 'editPanels'])->name('admin.dashboard-panels.edit');
+    Route::post('/admin/dashboard-panels', [DashboardController::class, 'updatePanels'])->name('admin.dashboard-panels.update');
 });
 
 Route::post('/dashboard/save-layout', [DashboardController::class, 'saveLayout'])

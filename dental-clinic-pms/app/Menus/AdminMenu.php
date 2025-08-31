@@ -84,6 +84,7 @@ class AdminMenu
                         'active' => request()->routeIs('admin.dashboard-widgets.*') || request()->routeIs('admin.quick-actions.*'),
                         'children' => [
                             ['title' => 'Dashboard Widgets', 'url' => route('admin.dashboard-widgets.edit'), 'active' => request()->routeIs('admin.dashboard-widgets.edit')],
+                            ['title' => 'Dashboard Panels', 'url' => route('admin.dashboard-panels.edit'), 'active' => request()->routeIs('admin.dashboard-panels.edit')],
                             ['title' => 'Quick Actions', 'url' => route('admin.quick-actions.edit'), 'active' => request()->routeIs('admin.quick-actions.*')],
                         ]
                     ],

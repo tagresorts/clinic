@@ -33,11 +33,11 @@
                             <span class="text-sm font-medium text-gray-700">Dashboard Controls</span>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <button id="add-wrapper-btn" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200">
+                            <button id="add-panel-btn" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200" style="display: none;">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Add Wrapper
+                                Add Panel
                             </button>
                             <x-primary-button id="save-layout-btn" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@
 
             function initializeGrid(gridElement) {
                 const grid = GridStack.init({
-                    float: true,
+                    float: false,
                     cellHeight: '8rem',
                     minRow: 1,
                     margin: '12px',
@@ -215,24 +215,7 @@
                 }
             }
 
-            // Add new wrapper
-            document.getElementById('add-wrapper-btn').addEventListener('click', function() {
-                wrapperCounter++;
-                const wrapperHtml = `
-                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="${wrapperCounter}">
-                        <div class="grid-stack"></div>
-                    </div>
-                `;
-                
-                const wrapperElement = document.createElement('div');
-                wrapperElement.innerHTML = wrapperHtml;
-                const wrapper = wrapperElement.firstElementChild;
-                
-                document.getElementById('dashboard-wrappers').appendChild(wrapper);
-                
-                // Initialize grid for new wrapper
-                initializeGrid(wrapper.querySelector('.grid-stack'));
-            });
+            
 
             const saveLayout = () => {
                 const layoutData = {

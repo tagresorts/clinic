@@ -18,6 +18,7 @@ class UserDashboardPreference extends Model
         'height',
         'is_visible',
         'quick_actions',
+        'wrapper_id',
     ];
 
     public function user()

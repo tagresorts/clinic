@@ -565,4 +565,49 @@ class DashboardController extends Controller
         }
         return redirect()->route('admin.quick-actions.edit')->with('success', 'Quick actions updated.');
     }
+
+    public function editPanels()
+    {
+        $user = Auth::user();
+        $numPanels = UserDashboardWrapper::where('user_id', $user->id)->count();
+        if ($numPanels == 0) {
+            $numPanels = 1;
+        }
+        return view('admin.dashboard-panels', compact('numPanels'));
+    }
+
+    public function updatePanels(Request $request)
+    {
+        $request->validate([
+            'num_panels' => 'required|integer|min:1|max:10',
+        ]);
+
+        $user = Auth::user();
+        $newNumPanels = $request->input('num_panels');
+        $currentNumPanels = UserDashboardWrapper::where('user_id', $user->id)->count();
+
+        if ($newNumPanels > $currentNumPanels) {
+            for ($i = $currentNumPanels + 1; $i <= $newNumPanels; $i++) {
+                UserDashboardWrapper::create([
+                    'user_id' => $user->id,
+                    'wrapper_id' => $i,
+                    'title' => 'Dashboard ' . $i,
+                    'order' => $i,
+                ]);
+            }
+        } elseif ($newNumPanels < $currentNumPanels) {
+            $wrappersToDelete = UserDashboardWrapper::where('user_id', $user->id)
+                ->where('wrapper_id', '>', $newNumPanels)
+                ->get();
+
+            foreach ($wrappersToDelete as $wrapper) {
+                UserDashboardPreference::where('user_id', $user->id)
+                    ->where('wrapper_id', $wrapper->wrapper_id)
+                    ->update(['wrapper_id' => 1]);
+                $wrapper->delete();
+            }
+        }
+
+        return redirect()->route('admin.dashboard-panels.edit')->with('success', 'Number of dashboard panels updated successfully.');
+    }
 }
