@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
@@ -28,4 +29,6 @@ class Payment extends Model
     public function invoice(): BelongsTo { return $this->belongsTo(Invoice::class); }
     public function patient(): BelongsTo { return $this->belongsTo(Patient::class); }
     public function receivedBy(): BelongsTo { return $this->belongsTo(User::class, 'received_by'); }
+    public function refundOfPayment(): BelongsTo { return $this->belongsTo(Payment::class, 'refund_of_payment_id'); }
+    public function refunds(): HasMany { return $this->hasMany(Payment::class, 'refund_of_payment_id'); }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InventoryController;
@@ -111,8 +112,10 @@ Route::middleware(['auth', 'role:receptionist,administrator'])->group(function (
     Route::resource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'generatePdf'])->name('invoices.pdf');
-    Route::get('payments', [InvoiceController::class, 'payments'])->name('payments.index');
-    Route::post('payments', [InvoiceController::class, 'storePayment'])->name('payments.store');
+    
+    // Payment routes
+    Route::resource('payments', PaymentController::class);
+    Route::post('payments/{payment}/receipt', [PaymentController::class, 'generateReceipt'])->name('payments.receipt');
 });
 
 // Revenue Management - Administrators only
