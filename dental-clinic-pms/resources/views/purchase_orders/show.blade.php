@@ -19,7 +19,7 @@
                         </div>
                         <div>
                             <div class="text-sm text-gray-600">Total</div>
-                            <div>{{ number_format($purchaseOrder->total_cost, 2) }}</div>
+                            <div>₱{{ number_format($purchaseOrder->total_cost, 2) }}</div>
                         </div>
                     </div>
 
@@ -40,8 +40,8 @@
                                     <td class="px-6 py-4 text-sm">{{ $line->inventoryItem?->item_name ?? '—' }}</td>
                                     <td class="px-6 py-4 text-sm">{{ $line->description ?? '—' }}</td>
                                     <td class="px-6 py-4 text-sm">{{ $line->quantity_ordered }}</td>
-                                    <td class="px-6 py-4 text-sm">{{ number_format($line->unit_cost, 2) }}</td>
-                                    <td class="px-6 py-4 text-sm">{{ number_format($line->line_total, 2) }}</td>
+                                                                            <td class="px-6 py-4 text-sm">₱{{ number_format($line->unit_cost, 2) }}</td>
+                                        <td class="px-6 py-4 text-sm">₱{{ number_format($line->line_total, 2) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>

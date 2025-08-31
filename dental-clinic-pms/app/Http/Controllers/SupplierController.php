@@ -36,7 +36,6 @@ class SupplierController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'is_active' => 'boolean',
         ]);
         
         $supplier = Supplier::create($validated);
@@ -67,7 +66,6 @@ class SupplierController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'is_active' => 'boolean',
         ]);
         
         $oldName = $supplier->supplier_name;

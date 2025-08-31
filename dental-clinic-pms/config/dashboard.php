@@ -70,11 +70,11 @@ return [
         ],
         'daily_revenue' => [
             'title' => 'Daily Revenue',
-            'icon' => 'fa-dollar-sign',
+            'icon' => 'fa-money-bill-wave',
         ],
         'pending_payments' => [
             'title' => 'Pending Payments',
-            'icon' => 'fa-file-invoice-dollar',
+            'icon' => 'fa-file-invoice',
         ],
         'chair_utilization' => [
             'title' => 'Chair Utilization',

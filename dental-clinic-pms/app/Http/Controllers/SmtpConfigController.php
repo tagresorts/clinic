@@ -32,7 +32,6 @@ class SmtpConfigController extends Controller
             'password' => 'nullable|string|max:2048',
             'from_email' => 'nullable|email',
             'from_name' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
         ]);
         
         $validated['password'] = $validated['password'] ? Crypt::encryptString($validated['password']) : null;
@@ -67,7 +66,6 @@ class SmtpConfigController extends Controller
             'password' => 'nullable|string|max:2048',
             'from_email' => 'nullable|email',
             'from_name' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
         ]);
         
         $oldName = $smtp->name;
