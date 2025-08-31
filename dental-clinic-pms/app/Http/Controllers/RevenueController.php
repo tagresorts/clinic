@@ -21,11 +21,11 @@ class RevenueController extends Controller
         $metrics = [
             'total_revenue' => Invoice::where('status', 'paid')->sum('total_amount'),
             'this_month_revenue' => Invoice::where('status', 'paid')
-                ->where('paid_at', '>=', $thisMonth)
+                ->where('created_at', '>=', $thisMonth)
                 ->sum('total_amount'),
             'last_month_revenue' => Invoice::where('status', 'paid')
-                ->where('paid_at', '>=', $lastMonth)
-                ->where('paid_at', '<', $thisMonth)
+                ->where('created_at', '>=', $lastMonth)
+                ->where('created_at', '<', $thisMonth)
                 ->sum('total_amount'),
             'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid'])
                 ->sum('outstanding_balance'),
@@ -42,8 +42,8 @@ class RevenueController extends Controller
 
         // Monthly revenue for chart
         $monthlyRevenue = Invoice::where('status', 'paid')
-            ->where('paid_at', '>=', Carbon::now()->subMonths(6))
-            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as month, SUM(total_amount) as revenue')
+            ->where('created_at', '>=', Carbon::now()->subMonths(6))
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_amount) as revenue')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -70,20 +70,20 @@ class RevenueController extends Controller
 
         // Revenue by date range
         $revenue = Invoice::where('status', 'paid')
-            ->whereBetween('paid_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('total_amount');
 
         // Daily revenue breakdown
         $dailyRevenue = Invoice::where('status', 'paid')
-            ->whereBetween('paid_at', [$startDate, $endDate])
-            ->selectRaw('DATE(paid_at) as date, SUM(total_amount) as revenue, COUNT(*) as invoice_count')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as invoice_count')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
         // Top patients by revenue
         $topPatients = Invoice::where('status', 'paid')
-            ->whereBetween('paid_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->with('patient')
             ->selectRaw('patient_id, SUM(total_amount) as total_revenue, COUNT(*) as invoice_count')
             ->groupBy('patient_id')
@@ -119,9 +119,9 @@ class RevenueController extends Controller
             $endDate = Carbon::parse($endDate);
         }
 
-        $invoices = Invoice::whereBetween('invoice_date', [$startDate, $endDate])
+        $invoices = Invoice::whereBetween('created_at', [$startDate, $endDate])
             ->with(['patient', 'createdBy'])
-            ->orderBy('invoice_date')
+            ->orderBy('created_at')
             ->get();
 
         // Generate CSV
@@ -144,12 +144,12 @@ class RevenueController extends Controller
             // CSV data
             foreach ($invoices as $invoice) {
                 fputcsv($file, [
-                    $invoice->invoice_number,
-                    $invoice->invoice_date->format('Y-m-d'),
+                    $invoice->id,
+                    $invoice->created_at->format('Y-m-d'),
                     $invoice->patient->full_name ?? 'N/A',
                     $invoice->status,
                     $invoice->total_amount,
-                    $invoice->amount_paid,
+                    $invoice->total_amount - $invoice->outstanding_balance,
                     $invoice->outstanding_balance,
                     $invoice->createdBy->name ?? 'N/A'
                 ]);

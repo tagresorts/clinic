@@ -241,20 +241,20 @@ class ReportsController extends Controller
         // Revenue statistics
         $stats = [
             'total_revenue' => Invoice::where('status', 'paid')
-                ->whereBetween('paid_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum('total_amount'),
             'outstanding_balance' => Invoice::whereIn('status', ['sent', 'partially_paid'])
                 ->sum('outstanding_balance'),
-            'total_invoices' => Invoice::whereBetween('invoice_date', [$startDate, $endDate])->count(),
+            'total_invoices' => Invoice::whereBetween('created_at', [$startDate, $endDate])->count(),
             'paid_invoices' => Invoice::where('status', 'paid')
-                ->whereBetween('paid_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->count(),
         ];
 
         // Monthly revenue trend
         $monthlyRevenue = Invoice::where('status', 'paid')
-            ->where('paid_at', '>=', Carbon::now()->subMonths(12))
-            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as month, SUM(total_amount) as revenue')
+            ->where('created_at', '>=', Carbon::now()->subMonths(12))
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_amount) as revenue')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -266,7 +266,7 @@ class ReportsController extends Controller
             ->join('treatment_records', 'treatment_plans.id', '=', 'treatment_records.treatment_plan_id')
             ->join('procedures', 'treatment_records.procedure_id', '=', 'procedures.id')
             ->where('invoices.status', 'paid')
-            ->whereBetween('invoices.paid_at', [$startDate, $endDate])
+            ->whereBetween('invoices.created_at', [$startDate, $endDate])
             ->selectRaw('procedures.name, SUM(invoices.total_amount) as revenue')
             ->groupBy('procedures.id', 'procedures.name')
             ->orderBy('revenue', 'desc')
@@ -400,17 +400,17 @@ class ReportsController extends Controller
         fputcsv($file, ['Invoice #', 'Patient', 'Date', 'Status', 'Total Amount', 'Amount Paid', 'Outstanding']);
         
         $invoices = Invoice::with('patient')
-            ->whereBetween('invoice_date', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
         
         foreach ($invoices as $invoice) {
             fputcsv($file, [
-                $invoice->invoice_number,
+                $invoice->id,
                 $invoice->patient->full_name ?? 'N/A',
-                $invoice->invoice_date->format('Y-m-d'),
+                $invoice->created_at->format('Y-m-d'),
                 $invoice->status,
                 $invoice->total_amount,
-                $invoice->amount_paid,
+                $invoice->total_amount - $invoice->outstanding_balance,
                 $invoice->outstanding_balance
             ]);
         }
