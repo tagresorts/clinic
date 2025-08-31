@@ -89,6 +89,7 @@ class DashboardController extends Controller
         foreach ($widgetDefinitions as $key => $definition) {
             $isVisible = true;
             $layout = $definition['default_layout'];
+            $wrapperId = 1; // Default to first wrapper
 
             if (isset($preferences[$key])) {
                 $pref = $preferences[$key];
@@ -99,6 +100,7 @@ class DashboardController extends Controller
                     'w' => (int)$pref->width,
                     'h' => (int)$pref->height,
                 ];
+                $wrapperId = (int)($pref->wrapper_id ?? 1);
             }
 
             // Collect visible widgets for rendering
@@ -107,6 +109,7 @@ class DashboardController extends Controller
                     'key' => $key,
                     'component' => $definition['component'],
                     'layout' => $layout,
+                    'wrapper_id' => $wrapperId,
                 ];
             }
 
@@ -284,20 +287,47 @@ class DashboardController extends Controller
         ]);
 
         $user = Auth::user();
-        foreach ($request->layout as $item) {
-            UserDashboardPreference::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'widget_key' => $item['id'],
-                ],
-                [
-                    'x_pos' => $item['x'],
-                    'y_pos' => $item['y'],
-                    'width' => $item['w'],
-                    'height' => $item['h'],
-                    'is_visible' => true, // Assuming visible if it's in the layout
-                ]
-            );
+        
+        // Handle new wrapper-based format
+        if (isset($request->layout['wrappers'])) {
+            foreach ($request->layout['wrappers'] as $wrapper) {
+                if (isset($wrapper['widgets'])) {
+                    foreach ($wrapper['widgets'] as $item) {
+                        UserDashboardPreference::updateOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'widget_key' => $item['id'],
+                            ],
+                            [
+                                'x_pos' => $item['x'],
+                                'y_pos' => $item['y'],
+                                'width' => $item['w'],
+                                'height' => $item['h'],
+                                'wrapper_id' => $wrapper['id'],
+                                'is_visible' => true, // Assuming visible if it's in the layout
+                            ]
+                        );
+                    }
+                }
+            }
+        } else {
+            // Handle legacy format (backward compatibility)
+            foreach ($request->layout as $item) {
+                UserDashboardPreference::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'widget_key' => $item['id'],
+                    ],
+                    [
+                        'x_pos' => $item['x'],
+                        'y_pos' => $item['y'],
+                        'width' => $item['w'],
+                        'height' => $item['h'],
+                        'wrapper_id' => 1, // Default to first wrapper
+                        'is_visible' => true, // Assuming visible if it's in the layout
+                    ]
+                );
+            }
         }
 
         Log::channel('log_viewer')->info("Dashboard layout saved by " . $user->name, [

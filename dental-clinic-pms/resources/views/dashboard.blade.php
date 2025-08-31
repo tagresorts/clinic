@@ -67,18 +67,33 @@
 
             <!-- Dashboard Wrappers -->
             <div id="dashboard-wrappers" class="space-y-6">
-                <!-- Default Wrapper -->
-                <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="1">
-                    <div class="grid-stack">
-                        @foreach ($widgets as $widget)
-                            <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
-                                <div class="grid-stack-item-content">
-                                    <x-dynamic-component :component="$widget['component']" :data="$data" />
-                                </div>
-                            </div>
-                        @endforeach
+                @php
+                    $wrapperWidgets = [];
+                    foreach ($widgets as $widget) {
+                        $wrapperId = $widget['wrapper_id'] ?? 1;
+                        if (!isset($wrapperWidgets[$wrapperId])) {
+                            $wrapperWidgets[$wrapperId] = [];
+                        }
+                        $wrapperWidgets[$wrapperId][] = $widget;
+                    }
+                    $maxWrapperId = max(array_keys($wrapperWidgets));
+                @endphp
+                
+                @for ($i = 1; $i <= $maxWrapperId; $i++)
+                    <div class="dashboard-wrapper bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-wrapper-id="{{ $i }}">
+                        <div class="grid-stack">
+                            @if (isset($wrapperWidgets[$i]))
+                                @foreach ($wrapperWidgets[$i] as $widget)
+                                    <div class="grid-stack-item" gs-x="{{ $widget['layout']['x'] }}" gs-y="{{ $widget['layout']['y'] }}" gs-w="{{ $widget['layout']['w'] }}" gs-h="{{ $widget['layout']['h'] }}" gs-id="{{ $widget['key'] }}">
+                                        <div class="grid-stack-item-content">
+                                            <x-dynamic-component :component="$widget['component']" :data="$data" />
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
                     </div>
-                </div>
+                @endfor
             </div>
         </div>
     </div>
@@ -93,8 +108,19 @@
             let draggedWidget = null;
             let sourceGrid = null;
 
-            // Initialize the first grid
-            initializeGrid(document.querySelector('.grid-stack'));
+            // Initialize all existing grids
+            document.querySelectorAll('.grid-stack').forEach(gridElement => {
+                initializeGrid(gridElement);
+            });
+
+            // Set wrapper counter to the highest existing wrapper ID
+            const existingWrappers = document.querySelectorAll('.dashboard-wrapper');
+            if (existingWrappers.length > 0) {
+                const wrapperIds = Array.from(existingWrappers).map(wrapper => 
+                    parseInt(wrapper.getAttribute('data-wrapper-id'))
+                );
+                wrapperCounter = Math.max(...wrapperIds);
+            }
 
             function initializeGrid(gridElement) {
                 const grid = GridStack.init({
@@ -180,26 +206,40 @@
             });
 
             const saveLayout = () => {
-                const layoutData = [];
+                const layoutData = {
+                    wrappers: []
+                };
 
-                // Collect all widgets from all grids
-                grids.forEach((grid, gridIndex) => {
-                    const gridItems = grid.getGridItems();
-                    gridItems.forEach(item => {
-                        const widgetId = item.getAttribute('gs-id');
-                        const x = item.getAttribute('gs-x');
-                        const y = item.getAttribute('gs-y');
-                        const w = item.getAttribute('gs-w');
-                        const h = item.getAttribute('gs-h');
+                // Save each wrapper with its widgets
+                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
+                    const wrapperId = wrapper.getAttribute('data-wrapper-id');
+                    const grid = grids[wrapperIndex];
+                    
+                    if (grid) {
+                        const gridItems = grid.getGridItems();
+                        const wrapperData = {
+                            id: wrapperId,
+                            widgets: []
+                        };
                         
-                        layoutData.push({
-                            id: widgetId,
-                            x: parseInt(x) || 0,
-                            y: parseInt(y) || 0,
-                            w: parseInt(w) || 4,
-                            h: parseInt(h) || 2
+                        gridItems.forEach(item => {
+                            const widgetId = item.getAttribute('gs-id');
+                            const x = item.getAttribute('gs-x');
+                            const y = item.getAttribute('gs-y');
+                            const w = item.getAttribute('gs-w');
+                            const h = item.getAttribute('gs-h');
+                            
+                            wrapperData.widgets.push({
+                                id: widgetId,
+                                x: parseInt(x) || 0,
+                                y: parseInt(y) || 0,
+                                w: parseInt(w) || 4,
+                                h: parseInt(h) || 2
+                            });
                         });
-                    });
+                        
+                        layoutData.wrappers.push(wrapperData);
+                    }
                 });
 
                 fetch('{{ route("dashboard.saveLayout") }}', {
