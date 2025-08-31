@@ -33,7 +33,13 @@ class DatabaseSeeder extends Seeder
             TreatmentPlanSeeder::class,
             TreatmentRecordSeeder::class,
             
-            // 7. Finally create inventory data (can be independent)
+            // 7. Then create invoice data (depends on patients, appointments, and treatment plans)
+            InvoiceSeeder::class,
+            
+            // 8. Then create payment data (depends on invoices)
+            PaymentSeeder::class,
+            
+            // 9. Finally create inventory data (can be independent)
             StockDemoSeeder::class,
         ]);
     }
