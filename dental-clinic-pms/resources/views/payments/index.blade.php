@@ -1,12 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center w-full">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Payments') }}
             </h2>
-            <a href="{{ route('payments.create') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                Record Payment
-            </a>
+            <div class="flex-shrink-0">
+                <a href="{{ route('payments.create') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Record Payment
+                </a>
+            </div>
         </div>
     </x-slot>
 
