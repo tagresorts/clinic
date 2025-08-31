@@ -86,10 +86,15 @@ class DashboardController extends Controller
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
         
         // Load wrapper information
-        $userWrappers = UserDashboardWrapper::where('user_id', $user->id)
-            ->orderBy('order')
-            ->get()
-            ->keyBy('wrapper_id');
+        try {
+            $userWrappers = UserDashboardWrapper::where('user_id', $user->id)
+                ->orderBy('order')
+                ->get()
+                ->keyBy('wrapper_id');
+        } catch (\Exception $e) {
+            // If table doesn't exist yet, create empty collection
+            $userWrappers = collect();
+        }
 
         $widgets = [];
         $allWidgets = [];
@@ -299,17 +304,22 @@ class DashboardController extends Controller
         // Handle new wrapper-based format
         if (isset($request->layout['wrappers'])) {
             // Save wrapper information
-            foreach ($request->layout['wrappers'] as $wrapper) {
-                UserDashboardWrapper::updateOrCreate(
-                    [
-                        'user_id' => $user->id,
-                        'wrapper_id' => $wrapper['id'],
-                    ],
-                    [
-                        'title' => $wrapper['title'] ?? 'Dashboard ' . $wrapper['id'],
-                        'order' => $wrapper['id'],
-                    ]
-                );
+            try {
+                foreach ($request->layout['wrappers'] as $wrapper) {
+                    UserDashboardWrapper::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'wrapper_id' => $wrapper['id'],
+                        ],
+                        [
+                            'title' => $wrapper['title'] ?? 'Dashboard ' . $wrapper['id'],
+                            'order' => $wrapper['id'],
+                        ]
+                    );
+                }
+            } catch (\Exception $e) {
+                // If wrapper table doesn't exist yet, just log the error and continue
+                Log::warning('Could not save wrapper information: ' . $e->getMessage());
             }
             
             // Save widget positions
