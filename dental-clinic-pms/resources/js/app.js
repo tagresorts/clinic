@@ -106,9 +106,9 @@ import './table-manager.js';
     });
 
     // Columns dropdown
-    const menuBtn = document.getElementById('patients-columns-toggle');
-    const menu = document.getElementById('patients-columns-menu');
-    const checkboxesWrap = document.getElementById('patients-columns-checkboxes');
+    const menuBtn = document.getElementById('columns-toggle');
+    const menu = document.getElementById('columns-menu');
+    const checkboxesWrap = document.getElementById('columns-checkboxes');
     if (menuBtn && menu && checkboxesWrap) {
       const prefs = loadPreferences();
       checkboxesWrap.innerHTML = '';

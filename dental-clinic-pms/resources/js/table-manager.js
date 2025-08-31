@@ -178,11 +178,6 @@
         
         let tablesInitialized = 0;
         
-        // Initialize patients table
-        if (initTable('patients-table', [
-            'name', 'dob', 'gender', 'address', 'phone', 'email', 'actions'
-        ])) tablesInitialized++;
-
         // Initialize payments table
         if (initTable('payments-table', [
             'payment_ref', 'patient', 'invoice', 'date', 'amount', 
