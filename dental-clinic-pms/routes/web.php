@@ -115,6 +115,13 @@ Route::middleware(['auth', 'role:receptionist,administrator'])->group(function (
     Route::post('payments', [InvoiceController::class, 'storePayment'])->name('payments.store');
 });
 
+// Revenue Management - Administrators only
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('revenue', [App\Http\Controllers\RevenueController::class, 'index'])->name('revenue.index');
+    Route::get('revenue/reports', [App\Http\Controllers\RevenueController::class, 'reports'])->name('revenue.reports');
+    Route::get('revenue/export', [App\Http\Controllers\RevenueController::class, 'export'])->name('revenue.export');
+});
+
 // Inventory Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('suppliers', SupplierController::class);
