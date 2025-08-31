@@ -2,9 +2,6 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l9.75-9.75L21.75 12M4.5 9.75V21h15V9.75"/>
-                </svg>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     {{ __('Dashboard') }}
                 </h2>
