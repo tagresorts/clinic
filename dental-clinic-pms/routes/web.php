@@ -122,6 +122,16 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::get('revenue/export', [App\Http\Controllers\RevenueController::class, 'export'])->name('revenue.export');
 });
 
+// Reports - Administrators only
+Route::middleware(['auth', 'role:administrator'])->group(function () {
+    Route::get('reports', [App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');
+    Route::get('reports/patients', [App\Http\Controllers\ReportsController::class, 'patients'])->name('reports.patients');
+    Route::get('reports/appointments', [App\Http\Controllers\ReportsController::class, 'appointments'])->name('reports.appointments');
+    Route::get('reports/treatments', [App\Http\Controllers\ReportsController::class, 'treatments'])->name('reports.treatments');
+    Route::get('reports/revenue', [App\Http\Controllers\ReportsController::class, 'revenue'])->name('reports.revenue');
+    Route::get('reports/export', [App\Http\Controllers\ReportsController::class, 'export'])->name('reports.export');
+});
+
 // Inventory Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('suppliers', SupplierController::class);
