@@ -90,6 +90,8 @@
         document.addEventListener('DOMContentLoaded', function () {
             let grids = [];
             let wrapperCounter = 1;
+            let draggedWidget = null;
+            let sourceGrid = null;
 
             // Initialize the first grid
             initializeGrid(document.querySelector('.grid-stack'));
@@ -110,8 +112,52 @@
                     acceptWidgets: true
                 }, gridElement);
                 
+                // Add event listeners for cross-wrapper dragging
+                grid.on('dragstart', function(event, ui) {
+                    draggedWidget = event.target;
+                    sourceGrid = grid;
+                    event.target.style.opacity = '0.5';
+                });
+                
+                grid.on('dragstop', function(event, ui) {
+                    if (draggedWidget) {
+                        draggedWidget.style.opacity = '1';
+                    }
+                });
+                
+                grid.on('drop', function(event, previousWidget, newWidget) {
+                    handleWidgetDrop(event, grid, previousWidget, newWidget);
+                });
+                
                 grids.push(grid);
                 return grid;
+            }
+
+            function handleWidgetDrop(event, targetGrid, previousWidget, newWidget) {
+                if (sourceGrid && sourceGrid !== targetGrid && draggedWidget) {
+                    // Widget was dropped in a different grid
+                    console.log('Widget moved between wrappers');
+                    
+                    // Remove from source grid
+                    sourceGrid.removeWidget(draggedWidget);
+                    
+                    // Add to target grid at the drop position
+                    const rect = targetGrid.el.getBoundingClientRect();
+                    const x = Math.floor((event.clientX - rect.left) / (rect.width / 12));
+                    const y = Math.floor((event.clientY - rect.top) / (rect.height / 8));
+                    
+                    targetGrid.addWidget({
+                        x: x,
+                        y: y,
+                        w: 4,
+                        h: 2,
+                        content: draggedWidget.querySelector('.grid-stack-item-content').innerHTML
+                    });
+                    
+                    // Clean up
+                    draggedWidget = null;
+                    sourceGrid = null;
+                }
             }
 
             // Add new wrapper
@@ -130,31 +176,8 @@
                 document.getElementById('dashboard-wrappers').appendChild(wrapper);
                 
                 // Initialize grid for new wrapper
-                const newGrid = initializeGrid(wrapper.querySelector('.grid-stack'));
-                
-                // Enable dropping between grids
-                enableCrossGridDropping();
+                initializeGrid(wrapper.querySelector('.grid-stack'));
             });
-
-            function enableCrossGridDropping() {
-                grids.forEach((grid, gridIndex) => {
-                    grid.on('dragstart', function(event, ui) {
-                        // Store the source grid
-                        event.target._sourceGrid = grid;
-                    });
-                    
-                    grid.on('drop', function(event, previousWidget, newWidget) {
-                        // Handle widget dropped from another grid
-                        if (event.target._sourceGrid && event.target._sourceGrid !== grid) {
-                            // Widget was moved from another grid
-                            console.log('Widget moved between grids');
-                        }
-                    });
-                });
-            }
-
-            // Enable cross-grid dropping for initial grids
-            enableCrossGridDropping();
 
             const saveLayout = () => {
                 const layoutData = {
