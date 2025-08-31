@@ -219,7 +219,6 @@ class PatientController extends Controller
             'insurance_policy_number' => 'nullable|string|max:100',
             'insurance_group_number' => 'nullable|string|max:100',
             'insurance_expiry_date' => 'nullable|date|after:today',
-            'is_active' => 'boolean',
         ]);
 
         $patient->update($validated);

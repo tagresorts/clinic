@@ -194,7 +194,7 @@ class EmailTemplateController extends Controller
      */
     private function withSmtp(callable $callback): void
     {
-        $cfg = SmtpConfig::where('is_default', true)->where('is_active', true)->first();
+        $cfg = SmtpConfig::where('is_default', true)->first();
         if (!$cfg) { $callback(app('mailer')); return; }
 
         $password = $cfg->password ? Crypt::decryptString($cfg->password) : null;

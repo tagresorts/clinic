@@ -34,7 +34,7 @@ class PaymentController extends Controller
             ->get();
         
         $patients = Patient::all();
-        $users = User::where('is_active', true)->get();
+        $users = User::all();
         
         return view('payments.create', compact('invoices', 'patients', 'users'));
     }
@@ -136,7 +136,7 @@ class PaymentController extends Controller
         $payment = Payment::findOrFail($id);
         $invoices = Invoice::with('patient')->get();
         $patients = Patient::all();
-        $users = User::where('is_active', true)->get();
+        $users = User::all();
         
         return view('payments.edit', compact('payment', 'invoices', 'patients', 'users'));
     }

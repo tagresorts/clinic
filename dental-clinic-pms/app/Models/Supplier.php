@@ -15,12 +15,11 @@ class Supplier extends Model
         'state_province', 'postal_code', 'country', 'contact_person_name',
         'contact_person_title', 'phone', 'mobile', 'email', 'website',
         'products_services', 'payment_terms', 'credit_limit', 'notes',
-        'is_active', 'preferred_supplier',
+        'preferred_supplier',
     ];
 
     protected $casts = [
         'credit_limit' => 'decimal:2',
-        'is_active' => 'boolean',
     ];
 
     public function inventoryItems(): HasMany { return $this->hasMany(InventoryItem::class); }
