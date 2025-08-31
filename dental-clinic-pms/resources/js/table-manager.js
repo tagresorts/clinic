@@ -167,6 +167,11 @@
     function init() {
         console.log('Table Manager: Initializing...');
         
+        // Initialize patients table
+        initTable('patients-table', [
+            'name', 'dob', 'gender', 'address', 'phone', 'email', 'actions'
+        ]);
+
         // Initialize payments table
         initTable('payments-table', [
             'payment_ref', 'patient', 'invoice', 'date', 'amount', 
@@ -180,6 +185,11 @@
         ]);
         
         console.log('Table Manager: Initialization complete');
+        
+        // Test alert to confirm script is loaded
+        if (window.location.pathname.includes('/payments') || window.location.pathname.includes('/invoices')) {
+            console.log('Table Manager: Script loaded successfully for payments/invoices pages');
+        }
     }
 
     if (document.readyState === 'loading') {
