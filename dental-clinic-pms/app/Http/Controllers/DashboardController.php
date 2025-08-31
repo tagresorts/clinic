@@ -85,6 +85,28 @@ class DashboardController extends Controller
         $widgetDefinitions = config('dashboard.widgets');
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
         
+        // If user has no preferences, check for saved default layout
+        if ($preferences->isEmpty()) {
+            $defaultPreferences = UserDashboardPreference::where('user_id', 0)->get()->keyBy('widget_key');
+            if ($defaultPreferences->isNotEmpty()) {
+                // Copy default layout to user
+                foreach ($defaultPreferences as $defaultPref) {
+                    UserDashboardPreference::create([
+                        'user_id' => $user->id,
+                        'widget_key' => $defaultPref->widget_key,
+                        'x_pos' => $defaultPref->x_pos,
+                        'y_pos' => $defaultPref->y_pos,
+                        'width' => $defaultPref->width,
+                        'height' => $defaultPref->height,
+                        'is_visible' => $defaultPref->is_visible,
+                        'wrapper_id' => $defaultPref->wrapper_id ?? 1,
+                    ]);
+                }
+                // Reload preferences with the copied default layout
+                $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+            }
+        }
+        
         // Load wrapper information
         $userWrappers = UserDashboardWrapper::where('user_id', $user->id)
             ->orderBy('order')
@@ -374,6 +396,96 @@ class DashboardController extends Controller
         ]);
         
         return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
+    }
+
+    /**
+     * Save current layout as the default layout for all users
+     */
+    public function saveAsDefaultLayout(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Get current user's layout preferences
+        $currentPreferences = UserDashboardPreference::where('user_id', $user->id)->get();
+        
+        if ($currentPreferences->isEmpty()) {
+            return redirect()->route('dashboard')->with('error', 'No layout preferences found to save as default.');
+        }
+        
+        // Delete existing default layout (stored with user_id = 0)
+        UserDashboardPreference::where('user_id', 0)->delete();
+        
+        // Copy current user's preferences as default layout
+        foreach ($currentPreferences as $pref) {
+            UserDashboardPreference::create([
+                'user_id' => 0, // 0 represents the default layout
+                'widget_key' => $pref->widget_key,
+                'x_pos' => $pref->x_pos,
+                'y_pos' => $pref->y_pos,
+                'width' => $pref->width,
+                'height' => $pref->height,
+                'is_visible' => $pref->is_visible,
+                'wrapper_id' => $pref->wrapper_id ?? 1,
+            ]);
+        }
+        
+        Log::channel('log_viewer')->info("Default dashboard layout saved by " . $user->name, [
+            'user_id' => $user->id,
+            'saved_preferences_count' => $currentPreferences->count(),
+            'action' => 'save_default_layout'
+        ]);
+        
+        return redirect()->route('dashboard')->with('success', 'Current layout has been saved as the default layout for all users.');
+    }
+
+    /**
+     * Reset layout to use the saved default layout instead of config defaults
+     */
+    public function resetToDefaultLayout()
+    {
+        $user = Auth::user();
+        
+        // Delete current user's preferences
+        $deletedCount = UserDashboardPreference::where('user_id', $user->id)->delete();
+        
+        // Check if there's a saved default layout
+        $defaultPreferences = UserDashboardPreference::where('user_id', 0)->get();
+        
+        if ($defaultPreferences->isNotEmpty()) {
+            // Copy default layout to current user
+            foreach ($defaultPreferences as $defaultPref) {
+                UserDashboardPreference::create([
+                    'user_id' => $user->id,
+                    'widget_key' => $defaultPref->widget_key,
+                    'x_pos' => $defaultPref->x_pos,
+                    'y_pos' => $defaultPref->y_pos,
+                    'width' => $defaultPref->width,
+                    'height' => $defaultPref->height,
+                    'is_visible' => $defaultPref->is_visible,
+                    'wrapper_id' => $defaultPref->wrapper_id ?? 1,
+                ]);
+            }
+            
+            Log::channel('log_viewer')->info("Dashboard layout reset to saved default by " . $user->name, [
+                'user_id' => $user->id,
+                'deleted_preferences_count' => $deletedCount,
+                'applied_default_preferences_count' => $defaultPreferences->count(),
+                'action' => 'reset_to_saved_default'
+            ]);
+            
+            return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to the saved default layout.');
+        } else {
+            // Fall back to config defaults
+            $deletedCount = UserDashboardPreference::where('user_id', $user->id)->delete();
+            
+            Log::channel('log_viewer')->info("Dashboard layout reset to config defaults by " . $user->name, [
+                'user_id' => $user->id,
+                'deleted_preferences_count' => $deletedCount,
+                'action' => 'reset_to_config_defaults'
+            ]);
+            
+            return redirect()->route('dashboard')->with('success', 'Dashboard layout has been reset to default.');
+        }
     }
 
     /**
