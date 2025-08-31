@@ -180,21 +180,26 @@
             });
 
             const saveLayout = () => {
-                const layoutData = {
-                    wrappers: []
-                };
+                const layoutData = [];
 
-                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
-                    const wrapperId = wrapper.getAttribute('data-wrapper-id');
-                    const grid = grids[wrapperIndex];
-                    
-                    if (grid) {
-                        const serializedData = grid.save();
-                        layoutData.wrappers.push({
-                            id: wrapperId,
-                            layout: serializedData
+                // Collect all widgets from all grids
+                grids.forEach((grid, gridIndex) => {
+                    const gridItems = grid.getGridItems();
+                    gridItems.forEach(item => {
+                        const widgetId = item.getAttribute('gs-id');
+                        const x = item.getAttribute('gs-x');
+                        const y = item.getAttribute('gs-y');
+                        const w = item.getAttribute('gs-w');
+                        const h = item.getAttribute('gs-h');
+                        
+                        layoutData.push({
+                            id: widgetId,
+                            x: parseInt(x) || 0,
+                            y: parseInt(y) || 0,
+                            w: parseInt(w) || 4,
+                            h: parseInt(h) || 2
                         });
-                    }
+                    });
                 });
 
                 fetch('{{ route("dashboard.saveLayout") }}', {

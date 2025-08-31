@@ -1,15 +1,13 @@
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
-    <div class="p-6">
-        <h3 class="text-lg font-semibold mb-4">Recent User Activity</h3>
-        <div class="space-y-4">
-            @foreach(($data['recent_activities'] ?? []) as $activity)
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-{{ $activity['color'] }}-100 rounded-full flex items-center justify-center">
-                        <span class="text-{{ $activity['color'] }}-600">•</span>
-                    </div>
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
+    <div class="p-4 h-full overflow-auto">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">User Activity</h3>
+        <div class="space-y-2">
+            @foreach (($data['user_activity'] ?? []) as $activity)
+                <div class="flex items-center p-2 text-sm text-gray-700 bg-gray-100 rounded-lg">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                     <div class="flex-1">
-                        <p class="text-sm">{{ $activity['message'] }}</p>
-                        <p class="text-xs text-gray-500">{{ $activity['time']->diffForHumans() }}</p>
+                        <div class="font-medium">{{ $activity['user'] ?? 'User' }}</div>
+                        <div class="text-xs text-gray-500">{{ $activity['action'] ?? 'Action' }}</div>
                     </div>
                 </div>
             @endforeach

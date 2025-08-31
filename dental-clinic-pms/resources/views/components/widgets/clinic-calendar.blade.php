@@ -1,5 +1,5 @@
 @php $calId = 'calendar-'.\Illuminate\Support\Str::uuid(); @endphp
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
     <div class="p-4 h-full flex flex-col min-h-0">
         <h3 class="text-lg font-semibold mb-2">Clinic Calendar</h3>
         <div id="{{ $calId }}" class="flex-1 min-h-0"></div>
