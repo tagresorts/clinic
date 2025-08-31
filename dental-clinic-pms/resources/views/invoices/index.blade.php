@@ -41,13 +41,13 @@
                             </a>
                             <!-- Columns visibility control -->
                             <div class="relative">
-                                <button id="columns-toggle" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <button id="invoices-columns-toggle" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Columns
                                     <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.114l3.71-3.883a.75.75 0 111.08 1.04l-4.24 4.44a.75.75 0 01-1.08 0l-4.24-4.44a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
                                 </button>
-                                <div id="columns-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3 z-20">
+                                <div id="invoices-columns-menu" class="hidden absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3 z-20">
                                     <p class="text-xs text-gray-500 mb-2">Show/Hide columns</p>
-                                    <div class="space-y-2" id="columns-checkboxes"></div>
+                                    <div class="space-y-2" id="invoices-columns-checkboxes"></div>
                                 </div>
                             </div>
                         </div>

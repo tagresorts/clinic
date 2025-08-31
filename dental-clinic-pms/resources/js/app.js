@@ -17,6 +17,7 @@ if (document.getElementById('date_range')) {
 }
 
 import './appointments-table.js';
+import './table-manager.js';
 
 // Patients table init (moved from Blade)
 (function initPatientsTableWhenReady() {
