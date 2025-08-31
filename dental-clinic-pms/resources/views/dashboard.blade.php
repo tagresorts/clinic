@@ -233,9 +233,12 @@
                 };
 
                 // Save each wrapper with its widgets
-                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper, wrapperIndex) => {
+                document.querySelectorAll('.dashboard-wrapper').forEach((wrapper) => {
                     const wrapperId = wrapper.getAttribute('data-wrapper-id');
-                    const grid = grids[wrapperIndex];
+                    const gridElement = wrapper.querySelector('.grid-stack');
+                    
+                    // Find the grid instance for this specific wrapper
+                    const grid = GridStack.getInstance(gridElement);
                     
                     if (grid) {
                         const gridItems = grid.getGridItems();
@@ -264,6 +267,8 @@
                     }
                 });
 
+                console.log('Saving layout:', layoutData);
+
                 fetch('{{ route("dashboard.saveLayout") }}', {
                     method: 'POST',
                     headers: {
@@ -273,6 +278,7 @@
                     body: JSON.stringify({ layout: layoutData })
                 }).then(res => {
                     if(res.ok) {
+                        console.log('Layout saved successfully');
                         // Show success notification
                         const button = document.getElementById('save-layout-btn');
                         const originalText = button.innerHTML;
@@ -291,8 +297,12 @@
                             button.classList.add('bg-blue-600', 'hover:bg-blue-700');
                         }, 2000);
                     } else {
+                        console.error('Error saving layout');
                         alert('Error saving layout');
                     }
+                }).catch(error => {
+                    console.error('Error saving layout:', error);
+                    alert('Error saving layout');
                 });
             };
 
