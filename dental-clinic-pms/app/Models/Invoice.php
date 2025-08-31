@@ -13,13 +13,14 @@ class Invoice extends Model
 
     protected $fillable = [
         'patient_id', 'appointment_id', 'treatment_plan_id', 'total_amount',
-        'outstanding_balance', 'status', 'due_date', 'created_by',
+        'outstanding_balance', 'status', 'due_date', 'created_by', 'paid_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'total_amount' => 'decimal:2',
         'outstanding_balance' => 'decimal:2',
+        'paid_at' => 'datetime',
     ];
 
     public function patient(): BelongsTo { return $this->belongsTo(Patient::class); }
