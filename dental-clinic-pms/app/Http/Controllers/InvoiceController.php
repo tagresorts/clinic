@@ -74,7 +74,7 @@ class InvoiceController extends Controller
                 'status' => 'pending',
                 'payment_status' => 'unpaid',
                 'due_date' => $request->due_date,
-                'created_by' => auth()->id(),
+                'user_id' => auth()->id(),
                 'invoice_items' => json_encode($request->invoice_items),
             ]);
 

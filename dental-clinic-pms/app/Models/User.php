@@ -107,7 +107,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
      */
     public function createdInvoices(): HasMany
     {
-        return $this->hasMany(Invoice::class, 'created_by');
+        return $this->hasMany(Invoice::class, 'user_id');
     }
 
     /**
@@ -115,7 +115,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\CanRese
      */
     public function receivedPayments(): HasMany
     {
-        return $this->hasMany(Payment::class, 'received_by');
+        return $this->hasMany(Payment::class, 'user_id');
     }
 
     /**

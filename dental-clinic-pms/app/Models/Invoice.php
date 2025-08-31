@@ -13,7 +13,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'patient_id', 'appointment_id', 'treatment_plan_id', 'total_amount',
-        'outstanding_balance', 'status', 'payment_status', 'due_date', 'created_by', 
+        'outstanding_balance', 'status', 'payment_status', 'due_date', 'user_id', 
         'paid_at', 'sent_at', 'invoice_items', 'invoice_number',
     ];
 
@@ -27,7 +27,7 @@ class Invoice extends Model
     ];
 
     public function patient(): BelongsTo { return $this->belongsTo(Patient::class); }
-    public function createdBy(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function createdBy(): BelongsTo { return $this->belongsTo(User::class, 'user_id'); }
     public function appointment(): BelongsTo { return $this->belongsTo(Appointment::class); }
     public function treatmentPlan(): BelongsTo { return $this->belongsTo(TreatmentPlan::class); }
     public function payments(): HasMany { return $this->hasMany(Payment::class); }

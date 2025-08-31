@@ -12,7 +12,7 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'invoice_id', 'patient_id', 'received_by', 'payment_reference',
+        'invoice_id', 'patient_id', 'user_id', 'payment_reference',
         'payment_date', 'amount', 'payment_method', 'transaction_id',
         'check_number', 'bank_reference', 'card_last_four', 'status',
         'notes', 'receipt_generated', 'receipt_number', 'refund_of_payment_id',
@@ -28,7 +28,7 @@ class Payment extends Model
 
     public function invoice(): BelongsTo { return $this->belongsTo(Invoice::class); }
     public function patient(): BelongsTo { return $this->belongsTo(Patient::class); }
-    public function receivedBy(): BelongsTo { return $this->belongsTo(User::class, 'received_by'); }
+    public function receivedBy(): BelongsTo { return $this->belongsTo(User::class, 'user_id'); }
     public function refundOfPayment(): BelongsTo { return $this->belongsTo(Payment::class, 'refund_of_payment_id'); }
     public function refunds(): HasMany { return $this->hasMany(Payment::class, 'refund_of_payment_id'); }
 }

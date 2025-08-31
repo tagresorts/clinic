@@ -90,7 +90,7 @@ class PaymentSeeder extends Seeder
         $paymentData = [
             'invoice_id' => $invoice->id,
             'patient_id' => $patient->id,
-            'received_by' => $user->id,
+            'user_id' => $user->id,
             'payment_reference' => $reference,
             'amount' => $amount,
             'payment_method' => $paymentMethod,

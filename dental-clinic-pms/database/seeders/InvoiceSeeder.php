@@ -103,7 +103,7 @@ class InvoiceSeeder extends Seeder
                 'status' => $status,
                 'payment_status' => $paymentStatus,
                 'due_date' => Carbon::now()->addDays(rand(7, 30)),
-                'created_by' => $user->id,
+                'user_id' => $user->id,
                 'paid_at' => $paymentStatus === 'paid' ? Carbon::now()->subDays(rand(1, 10)) : null,
                 'sent_at' => $status === 'sent' || $status === 'paid' ? Carbon::now()->subDays(rand(1, 15)) : null,
                 'invoice_items' => $items,

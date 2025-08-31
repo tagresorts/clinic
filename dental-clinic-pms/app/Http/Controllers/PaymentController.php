@@ -65,7 +65,7 @@ class PaymentController extends Controller
             $payment = Payment::create([
                 'invoice_id' => $request->invoice_id,
                 'patient_id' => $request->patient_id,
-                'received_by' => auth()->id(),
+                'user_id' => auth()->id(),
                 'payment_reference' => $request->payment_reference ?? 'PAY-' . time(),
                 'payment_date' => $request->payment_date,
                 'amount' => $request->amount,
