@@ -41,18 +41,55 @@ $adminMenu = AdminMenu::build();
                                     </div>
                                     <svg x-show="sidebarOpen" :class="{'rotate-180': open}" class="h-5 w-5 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                 </button>
-                                <div x-show="open && sidebarOpen" class="pl-12 mt-2 space-y-2">
+                                <div x-show="open && sidebarOpen" class="mt-2 space-y-2">
                                     @foreach ($item['children'] as $child)
-                                        @if (isset($child['can']) && auth()->user()->hasRole($child['can']))
-                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                                {{ $child['title'] }}
-                                            </a>
-                                        @elseif (!isset($child['can']))
-                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                                {{ $child['title'] }}
-                                            </a>
+                                        @if (isset($child['children']))
+                                            <!-- Handle sub-groups (three-level menu) -->
+                                            <div x-data="{ subOpen: {{ isset($child['active']) && $child['active'] ? 'true' : 'false' }} }">
+                                                <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
+                                                    <div class="flex items-center">
+                                                        @if($child['title'] === 'User Management')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952A4.125 4.125 0 0014.25 15M15 19.128v.106A12.318 12.318 0 018.625 21c-2.331 0-4.512-.645-6.375-1.766A6.375 6.375 0 0114.25 15m.75-11.25a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+                                                        @elseif($child['title'] === 'System Configuration')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94a.75.75 0 011.06 0l.53.53a.75.75 0 00.53.22h1.572a.75.75 0 01.707.518l.24.74c.061.187.2.34.38.42l.7.311a.75.75 0 01.4.964l-.29.773a.75.75 0 00.17.79l.53.53a.75.75 0 010 1.06l-.53.53a.75.75 0 00-.17.79l.29.773a.75.75 0 01-.4.964l-.7.311a.75.75 0 00-.38.42l-.24.74a.75.75 0 01-.707.518H11.714a.75.75 0 00-.53.22l-.53.53a.75.75 0 01-1.06 0l-.53-.53a.75.75 0 00-.53-.22H6.962a.75.75 0 01-.707-.518l-.24-.74a.75.75 0 00-.38-.42l-.7-.311a.75.75 0 01-.4-.964l.29-.773a.75.75 0 00-.17-.79l-.53-.53a.75.75 0 010-1.06l.53-.53a.75.75 0 00.17-.79l-.29-.773a.75.75 0 01.4-.964l.7-.311a.75.75 0 00.38-.42l.24-.74A.75.75 0 016.962 5.19h1.572a.75.75 0 00.53-.22l.53-.53zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/></svg>
+                                                        @elseif($child['title'] === 'Dashboard Management')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 018.25 20.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                                                        @elseif($child['title'] === 'System Monitoring')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6m5 12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v11z"/></svg>
+                                                        @endif
+                                                        {{ $child['title'] }}
+                                                    </div>
+                                                    <svg :class="{'rotate-180': subOpen}" class="h-4 w-4 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                                </button>
+                                                <div x-show="subOpen" class="mt-2 space-y-1">
+                                                    @foreach ($child['children'] as $subChild)
+                                                        @if (isset($subChild['can']) && auth()->user()->hasRole($subChild['can']))
+                                                            <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <span class="mr-2">*</span>
+                                                                {{ $subChild['title'] }}
+                                                            </a>
+                                                        @elseif (!isset($subChild['can']))
+                                                            <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                                <span class="mr-2">*</span>
+                                                                {{ $subChild['title'] }}
+                                                            </a>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <!-- Handle regular children (two-level menu) -->
+                                            @if (isset($child['can']) && auth()->user()->hasRole($child['can']))
+                                                <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                    <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                    {{ $child['title'] }}
+                                                </a>
+                                            @elseif (!isset($child['can']))
+                                                <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                    <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                    {{ $child['title'] }}
+                                                </a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
@@ -66,12 +103,42 @@ $adminMenu = AdminMenu::build();
                                     </div>
                                     <svg x-show="sidebarOpen" :class="{'rotate-180': open}" class="h-5 w-5 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                 </button>
-                                <div x-show="open && sidebarOpen" class="pl-12 mt-2 space-y-2">
+                                <div x-show="open && sidebarOpen" class="mt-2 space-y-2">
                                     @foreach ($item['children'] as $child)
-                                        <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
-                                            <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                            {{ $child['title'] }}
-                                        </a>
+                                        @if (isset($child['children']))
+                                            <!-- Handle sub-groups (three-level menu) -->
+                                            <div x-data="{ subOpen: {{ isset($child['active']) && $child['active'] ? 'true' : 'false' }} }">
+                                                <button @click="subOpen = !subOpen" class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none">
+                                                    <div class="flex items-center">
+                                                        @if($child['title'] === 'User Management')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952A4.125 4.125 0 0014.25 15M15 19.128v.106A12.318 12.318 0 018.625 21c-2.331 0-4.512-.645-6.375-1.766A6.375 6.375 0 0114.25 15m.75-11.25a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+                                                        @elseif($child['title'] === 'System Configuration')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94a.75.75 0 011.06 0l.53.53a.75.75 0 00.53.22h1.572a.75.75 0 01.707.518l.24.74c.061.187.2.34.38.42l.7.311a.75.75 0 01.4.964l-.29.773a.75.75 0 00.17.79l.53.53a.75.75 0 010 1.06l-.53.53a.75.75 0 00-.17.79l.29.773a.75.75 0 01-.4.964l-.7.311a.75.75 0 00-.38.42l-.24.74a.75.75 0 01-.707.518H11.714a.75.75 0 00-.53.22l-.53.53a.75.75 0 01-1.06 0l-.53-.53a.75.75 0 00-.53-.22H6.962a.75.75 0 01-.707-.518l-.24-.74a.75.75 0 00-.38-.42l-.7-.311a.75.75 0 01-.4-.964l.29-.773a.75.75 0 00-.17-.79l-.53-.53a.75.75 0 010-1.06l.53-.53a.75.75 0 00.17-.79l-.29-.773a.75.75 0 01.4-.964l.7-.311a.75.75 0 00.38-.42l.24-.74A.75.75 0 016.962 5.19h1.572a.75.75 0 00.53-.22l.53-.53zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/></svg>
+                                                        @elseif($child['title'] === 'Dashboard Management')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 018.25 20.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                                                        @elseif($child['title'] === 'System Monitoring')
+                                                            <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6m5 12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v11z"/></svg>
+                                                        @endif
+                                                        {{ $child['title'] }}
+                                                    </div>
+                                                    <svg :class="{'rotate-180': subOpen}" class="h-4 w-4 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                                </button>
+                                                <div x-show="subOpen" class="mt-2 space-y-1">
+                                                    @foreach ($child['children'] as $subChild)
+                                                        <a href="{{ $subChild['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($subChild['active']) text-white @endif">
+                                                            <span class="mr-2">*</span>
+                                                            {{ $subChild['title'] }}
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <!-- Handle regular children (two-level menu) -->
+                                            <a href="{{ $child['url'] }}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-gray-700 @if($child['active']) text-white @endif">
+                                                <svg class="h-2 w-2 mr-2" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                {{ $child['title'] }}
+                                            </a>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>

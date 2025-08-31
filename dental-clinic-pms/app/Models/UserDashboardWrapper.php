@@ -5,20 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserDashboardPreference extends Model
+class UserDashboardWrapper extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'widget_key',
-        'x_pos',
-        'y_pos',
-        'width',
-        'height',
-        'is_visible',
-        'quick_actions',
         'wrapper_id',
+        'title',
+        'order',
     ];
 
     public function user()

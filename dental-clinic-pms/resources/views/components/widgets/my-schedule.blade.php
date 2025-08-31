@@ -1,4 +1,4 @@
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
     <div class="p-6">
         <h3 class="text-lg font-semibold mb-4">Today's Schedule</h3>
         @if(($data['todays_appointments'] ?? collect())->count() > 0)

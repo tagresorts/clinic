@@ -1,4 +1,4 @@
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
     <div class="p-6">
         <h3 class="text-lg font-semibold mb-4">Pending Treatment Plans</h3>
         @if(($data['pending_treatment_plans'] ?? collect())->count() > 0)

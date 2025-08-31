@@ -1,4 +1,4 @@
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full">
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg h-full border border-gray-200">
     <div class="p-4 h-full overflow-auto">
         <h3 class="text-lg font-semibold text-gray-800 mb-3">Quick Actions</h3>
         <div class="space-y-2">

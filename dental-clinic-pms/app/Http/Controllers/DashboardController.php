@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\UserDashboardPreference;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\UserDashboardWrapper; // Added this import
 
 class DashboardController extends Controller
 {
@@ -83,12 +84,19 @@ class DashboardController extends Controller
         // Widgets: merge config defaults with user preferences; hide widgets marked invisible
         $widgetDefinitions = config('dashboard.widgets');
         $preferences = UserDashboardPreference::where('user_id', $user->id)->get()->keyBy('widget_key');
+        
+        // Load wrapper information
+        $userWrappers = UserDashboardWrapper::where('user_id', $user->id)
+            ->orderBy('order')
+            ->get()
+            ->keyBy('wrapper_id');
 
         $widgets = [];
         $allWidgets = [];
         foreach ($widgetDefinitions as $key => $definition) {
             $isVisible = true;
             $layout = $definition['default_layout'];
+            $wrapperId = 1; // Default to first wrapper
 
             if (isset($preferences[$key])) {
                 $pref = $preferences[$key];
@@ -99,6 +107,7 @@ class DashboardController extends Controller
                     'w' => (int)$pref->width,
                     'h' => (int)$pref->height,
                 ];
+                $wrapperId = (int)($pref->wrapper_id ?? 1);
             }
 
             // Collect visible widgets for rendering
@@ -107,6 +116,7 @@ class DashboardController extends Controller
                     'key' => $key,
                     'component' => $definition['component'],
                     'layout' => $layout,
+                    'wrapper_id' => $wrapperId,
                 ];
             }
 
@@ -147,8 +157,9 @@ class DashboardController extends Controller
 
         return view('dashboard', [
             'widgets' => $widgets,
-            'data' => $data,
             'allWidgets' => $allWidgets,
+            'data' => $data,
+            'userWrappers' => $userWrappers,
         ]);
     }
 
@@ -284,20 +295,62 @@ class DashboardController extends Controller
         ]);
 
         $user = Auth::user();
-        foreach ($request->layout as $item) {
-            UserDashboardPreference::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'widget_key' => $item['id'],
-                ],
-                [
-                    'x_pos' => $item['x'],
-                    'y_pos' => $item['y'],
-                    'width' => $item['w'],
-                    'height' => $item['h'],
-                    'is_visible' => true, // Assuming visible if it's in the layout
-                ]
-            );
+        
+        // Handle new wrapper-based format
+        if (isset($request->layout['wrappers'])) {
+            // Save wrapper information
+            foreach ($request->layout['wrappers'] as $wrapper) {
+                UserDashboardWrapper::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'wrapper_id' => $wrapper['id'],
+                    ],
+                    [
+                        'title' => 'Dashboard ' . $wrapper['id'],
+                        'order' => $wrapper['id'],
+                    ]
+                );
+            }
+            
+            // Save widget positions
+            foreach ($request->layout['wrappers'] as $wrapper) {
+                if (isset($wrapper['widgets'])) {
+                    foreach ($wrapper['widgets'] as $item) {
+                        UserDashboardPreference::updateOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'widget_key' => $item['id'],
+                            ],
+                            [
+                                'x_pos' => $item['x'],
+                                'y_pos' => $item['y'],
+                                'width' => $item['w'],
+                                'height' => $item['h'],
+                                'wrapper_id' => $wrapper['id'],
+                                'is_visible' => true, // Assuming visible if it's in the layout
+                            ]
+                        );
+                    }
+                }
+            }
+        } else {
+            // Handle legacy format (backward compatibility)
+            foreach ($request->layout as $item) {
+                UserDashboardPreference::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'widget_key' => $item['id'],
+                    ],
+                    [
+                        'x_pos' => $item['x'],
+                        'y_pos' => $item['y'],
+                        'width' => $item['w'],
+                        'height' => $item['h'],
+                        'wrapper_id' => 1, // Default to first wrapper
+                        'is_visible' => true, // Assuming visible if it's in the layout
+                    ]
+                );
+            }
         }
 
         Log::channel('log_viewer')->info("Dashboard layout saved by " . $user->name, [
@@ -511,5 +564,50 @@ class DashboardController extends Controller
             );
         }
         return redirect()->route('admin.quick-actions.edit')->with('success', 'Quick actions updated.');
+    }
+
+    public function editPanels()
+    {
+        $user = Auth::user();
+        $numPanels = UserDashboardWrapper::where('user_id', $user->id)->count();
+        if ($numPanels == 0) {
+            $numPanels = 1;
+        }
+        return view('admin.dashboard-panels', compact('numPanels'));
+    }
+
+    public function updatePanels(Request $request)
+    {
+        $request->validate([
+            'num_panels' => 'required|integer|min:1|max:10',
+        ]);
+
+        $user = Auth::user();
+        $newNumPanels = $request->input('num_panels');
+        $currentNumPanels = UserDashboardWrapper::where('user_id', $user->id)->count();
+
+        if ($newNumPanels > $currentNumPanels) {
+            for ($i = $currentNumPanels + 1; $i <= $newNumPanels; $i++) {
+                UserDashboardWrapper::create([
+                    'user_id' => $user->id,
+                    'wrapper_id' => $i,
+                    'title' => 'Dashboard ' . $i,
+                    'order' => $i,
+                ]);
+            }
+        } elseif ($newNumPanels < $currentNumPanels) {
+            $wrappersToDelete = UserDashboardWrapper::where('user_id', $user->id)
+                ->where('wrapper_id', '>', $newNumPanels)
+                ->get();
+
+            foreach ($wrappersToDelete as $wrapper) {
+                UserDashboardPreference::where('user_id', $user->id)
+                    ->where('wrapper_id', $wrapper->wrapper_id)
+                    ->update(['wrapper_id' => 1]);
+                $wrapper->delete();
+            }
+        }
+
+        return redirect()->route('admin.dashboard-panels.edit')->with('success', 'Number of dashboard panels updated successfully.');
     }
 }

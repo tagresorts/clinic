@@ -16,7 +16,7 @@ class AdminMenu
             ],
             [
                 'title' => 'Patients',
-                'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952A4.125 4.125 0 0014.25 15M15 19.128v.106A12.318 12.318 0 018.625 21c-2.331 0-4.512-.645-6.375-1.766A6.375 6.375 0 0114.25 15m.75-11.25a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>',
+                'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>',
                 'active' => request()->routeIs('patients.*'),
                 'children' => [
                     ['title' => 'View All', 'url' => route('patients.index'), 'active' => request()->routeIs('patients.index')],
@@ -59,18 +59,43 @@ class AdminMenu
             [
                 'title' => 'Admin',
                 'icon' => '<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94a.75.75 0 011.06 0l.53.53a.75.75 0 00.53.22h1.572a.75.75 0 01.707.518l.24.74c.061.187.2.34.38.42l.7.311a.75.75 0 01.4.964l-.29.773a.75.75 0 00.17.79l.53.53a.75.75 0 010 1.06l-.53.53a.75.75 0 00-.17.79l.29.773a.75.75 0 01-.4.964l-.7.311a.75.75 0 00-.38.42l-.24.74a.75.75 0 01-.707.518H11.714a.75.75 0 00-.53.22l-.53.53a.75.75 0 01-1.06 0l-.53-.53a.75.75 0 00-.53-.22H6.962a.75.75 0 01-.707-.518l-.24-.74a.75.75 0 00-.38-.42l-.7-.311a.75.75 0 01-.4-.964l.29-.773a.75.75 0 00-.17-.79l-.53-.53a.75.75 0 010-1.06l.53-.53a.75.75 0 00.17-.79l-.29-.773a.75.75 0 01.4-.964l.7-.311a.75.75 0 00.38-.42l.24-.74A.75.75 0 016.962 5.19h1.572a.75.75 0 00.53-.22l.53-.53zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/></svg>',
-                'active' => request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*') || request()->routeIs('logs.*') || request()->routeIs('audit-logs.*'),
+                'active' => request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*') || request()->routeIs('logs.*') || request()->routeIs('audit-logs.*') || request()->routeIs('admin.dashboard-widgets.*') || request()->routeIs('admin.quick-actions.*'),
                 'children' => [
-                    ['title' => 'Users', 'url' => route('users.index'), 'active' => request()->routeIs('users.index')],
-                    ['title' => 'Roles', 'url' => route('roles.index'), 'active' => request()->routeIs('roles.index')],
-                    ['title' => 'Permissions', 'url' => route('permissions.index'), 'active' => request()->routeIs('permissions.index')],
-                    ['title' => 'SMTP Settings', 'url' => route('smtp.index'), 'active' => request()->routeIs('smtp.index')],
-                    ['title' => 'Email Templates', 'url' => route('email-templates.index'), 'active' => request()->routeIs('email-templates.index')],
-                    ['title' => 'Operational Settings', 'url' => route('ops-settings.index'), 'active' => request()->routeIs('ops-settings.index')],
-                    ['title' => 'Dashboard Widgets', 'url' => route('admin.dashboard-widgets.edit'), 'active' => request()->routeIs('admin.dashboard-widgets.edit')],
-                    ['title' => 'Quick Actions', 'url' => route('admin.quick-actions.edit'), 'active' => request()->routeIs('admin.quick-actions.*')],
-                    ['title' => 'System Logs', 'url' => route('logs.index'), 'active' => request()->routeIs('logs.index')],
-                    ['title' => 'Audit Logs', 'url' => route('audit-logs.index'), 'active' => request()->routeIs('audit-logs.index')],
+                    [
+                        'title' => 'User Management',
+                        'active' => request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*'),
+                        'children' => [
+                            ['title' => 'Users', 'url' => route('users.index'), 'active' => request()->routeIs('users.index')],
+                            ['title' => 'Roles', 'url' => route('roles.index'), 'active' => request()->routeIs('roles.index')],
+                            ['title' => 'Permissions', 'url' => route('permissions.index'), 'active' => request()->routeIs('permissions.index')],
+                        ]
+                    ],
+                    [
+                        'title' => 'System Configuration',
+                        'active' => request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*'),
+                        'children' => [
+                            ['title' => 'SMTP Settings', 'url' => route('smtp.index'), 'active' => request()->routeIs('smtp.index')],
+                            ['title' => 'Email Templates', 'url' => route('email-templates.index'), 'active' => request()->routeIs('email-templates.index')],
+                            ['title' => 'Operational Settings', 'url' => route('ops-settings.index'), 'active' => request()->routeIs('ops-settings.index')],
+                        ]
+                    ],
+                    [
+                        'title' => 'Dashboard Management',
+                        'active' => request()->routeIs('admin.dashboard-widgets.*') || request()->routeIs('admin.quick-actions.*'),
+                        'children' => [
+                            ['title' => 'Dashboard Widgets', 'url' => route('admin.dashboard-widgets.edit'), 'active' => request()->routeIs('admin.dashboard-widgets.edit')],
+                            ['title' => 'Dashboard Panels', 'url' => route('admin.dashboard-panels.edit'), 'active' => request()->routeIs('admin.dashboard-panels.edit')],
+                            ['title' => 'Quick Actions', 'url' => route('admin.quick-actions.edit'), 'active' => request()->routeIs('admin.quick-actions.*')],
+                        ]
+                    ],
+                    [
+                        'title' => 'System Monitoring',
+                        'active' => request()->routeIs('logs.*') || request()->routeIs('audit-logs.*'),
+                        'children' => [
+                            ['title' => 'System Logs', 'url' => route('logs.index'), 'active' => request()->routeIs('logs.index')],
+                            ['title' => 'Audit Logs', 'url' => route('audit-logs.index'), 'active' => request()->routeIs('audit-logs.index')],
+                        ]
+                    ],
                 ],
                 'can' => 'administrator',
             ],
