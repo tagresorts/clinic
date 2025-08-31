@@ -197,7 +197,7 @@
                 total += quantity * unitPrice;
             });
             
-            document.getElementById('total-amount').textContent = '$' + total.toFixed(2);
+            document.getElementById('total-amount').textContent = '₱' + total.toFixed(2);
         }
 
         // Initialize total
