@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\Invoice;
 
 class InvoiceController extends Controller
 {
@@ -12,7 +13,8 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        //
+        $invoices = Invoice::with('patient')->latest()->paginate(10);
+        return view('invoices.index', compact('invoices'));
     }
 
     /**
