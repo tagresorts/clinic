@@ -143,24 +143,7 @@ Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('stock-movements', StockMovementController::class)->only(['index']);
 });
 
-// Reports - Administrators only
-Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('reports', function () {
-        return view('reports.index');
-    })->name('reports.index');
-    
-    Route::get('reports/revenue', function () {
-        return view('reports.revenue');
-    })->name('reports.revenue');
-    
-    Route::get('reports/patients', function () {
-        return view('reports.patients');
-    })->name('reports.patients');
-    
-    Route::get('reports/treatments', function () {
-        return view('reports.treatments');
-    })->name('reports.treatments');
-});
+
 
 // SMTP Management - Administrators only
 Route::middleware(['auth', 'role:administrator'])->group(function () {
