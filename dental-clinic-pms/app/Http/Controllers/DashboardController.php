@@ -8,6 +8,7 @@ use App\Models\UserDashboardPreference;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\UserDashboardWrapper; // Added this import
+use App\Models\DefaultDashboardLayout; // Added this import
 
 class DashboardController extends Controller
 {
@@ -87,7 +88,7 @@ class DashboardController extends Controller
         
         // If user has no preferences, check for saved default layout
         if ($preferences->isEmpty()) {
-            $defaultPreferences = UserDashboardPreference::where('user_id', 0)->get()->keyBy('widget_key');
+            $defaultPreferences = DefaultDashboardLayout::all()->keyBy('widget_key');
             if ($defaultPreferences->isNotEmpty()) {
                 // Copy default layout to user
                 foreach ($defaultPreferences as $defaultPref) {
@@ -412,13 +413,12 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'No layout preferences found to save as default.');
         }
         
-        // Delete existing default layout (stored with user_id = 0)
-        UserDashboardPreference::where('user_id', 0)->delete();
+        // Delete existing default layout
+        DefaultDashboardLayout::truncate();
         
         // Copy current user's preferences as default layout
         foreach ($currentPreferences as $pref) {
-            UserDashboardPreference::create([
-                'user_id' => 0, // 0 represents the default layout
+            DefaultDashboardLayout::create([
                 'widget_key' => $pref->widget_key,
                 'x_pos' => $pref->x_pos,
                 'y_pos' => $pref->y_pos,
@@ -449,7 +449,7 @@ class DashboardController extends Controller
         $deletedCount = UserDashboardPreference::where('user_id', $user->id)->delete();
         
         // Check if there's a saved default layout
-        $defaultPreferences = UserDashboardPreference::where('user_id', 0)->get();
+        $defaultPreferences = DefaultDashboardLayout::all();
         
         if ($defaultPreferences->isNotEmpty()) {
             // Copy default layout to current user
