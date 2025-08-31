@@ -155,32 +155,39 @@
                 grid.on('dragstop', function(event, ui) {
                     if (draggedWidget) {
                         draggedWidget.style.opacity = '1';
+                        
+                        // Check if widget was moved to a different wrapper
+                        const currentWrapper = draggedWidget.closest('.dashboard-wrapper');
+                        const targetWrapper = event.target.closest('.dashboard-wrapper');
+                        
+                        if (currentWrapper && targetWrapper && currentWrapper !== targetWrapper) {
+                            handleWidgetMove(event, grid, draggedWidget, targetWrapper);
+                        }
                     }
-                });
-                
-                grid.on('drop', function(event, previousWidget, newWidget) {
-                    handleWidgetDrop(event, grid, previousWidget, newWidget);
                 });
                 
                 grids.push(grid);
                 return grid;
             }
 
-            function handleWidgetDrop(event, targetGrid, previousWidget, newWidget) {
-                if (sourceGrid && sourceGrid !== targetGrid && draggedWidget) {
-                    // Widget was dropped in a different grid
-                    console.log('Widget moved between wrappers');
-                    
-                    // Get the widget ID and target wrapper ID
-                    const widgetId = draggedWidget.getAttribute('gs-id');
-                    const targetWrapper = targetGrid.el.closest('.dashboard-wrapper');
-                    const targetWrapperId = targetWrapper.getAttribute('data-wrapper-id');
-                    
+            function handleWidgetMove(event, sourceGrid, widget, targetWrapper) {
+                // Widget was moved to a different wrapper
+                console.log('Widget moved between wrappers');
+                
+                // Get the widget ID and target wrapper ID
+                const widgetId = widget.getAttribute('gs-id');
+                const targetWrapperId = targetWrapper.getAttribute('data-wrapper-id');
+                
+                // Find the target grid
+                const targetGridElement = targetWrapper.querySelector('.grid-stack');
+                const targetGrid = grids.find(g => g.el === targetGridElement);
+                
+                if (targetGrid && targetGrid !== sourceGrid) {
                     // Remove from source grid
-                    sourceGrid.removeWidget(draggedWidget);
+                    sourceGrid.removeWidget(widget);
                     
                     // Add to target grid at the drop position
-                    const rect = targetGrid.el.getBoundingClientRect();
+                    const rect = targetGridElement.getBoundingClientRect();
                     const x = Math.floor((event.clientX - rect.left) / (rect.width / 12));
                     const y = Math.floor((event.clientY - rect.top) / (rect.height / 8));
                     
@@ -191,7 +198,7 @@
                         w: 4,
                         h: 2,
                         id: widgetId,
-                        content: draggedWidget.querySelector('.grid-stack-item-content').innerHTML
+                        content: widget.querySelector('.grid-stack-item-content').innerHTML
                     });
                     
                     // Set the wrapper_id attribute on the new widget
@@ -238,7 +245,7 @@
                     const gridElement = wrapper.querySelector('.grid-stack');
                     
                     // Find the grid instance for this specific wrapper
-                    const grid = GridStack.getInstance(gridElement);
+                    const grid = grids.find(g => g.el === gridElement);
                     
                     if (grid) {
                         const gridItems = grid.getGridItems();
