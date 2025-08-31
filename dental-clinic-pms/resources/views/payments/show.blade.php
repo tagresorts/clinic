@@ -43,7 +43,7 @@
                             <p class="text-sm text-gray-600">
                                 <strong>Payment Reference:</strong> {{ $payment->payment_reference }}<br>
                                 <strong>Payment Date:</strong> {{ $payment->payment_date->format('Y-m-d') }}<br>
-                                <strong>Amount:</strong> ${{ number_format($payment->amount, 2) }}<br>
+                                <strong>Amount:</strong> ₱{{ number_format($payment->amount, 2) }}<br>
                                 <strong>Payment Method:</strong> {{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}
                             </p>
                         </div>
@@ -56,8 +56,8 @@
                             <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-indigo-600 hover:text-indigo-900">
                                 {{ $payment->invoice->invoice_number ?? 'INV-' . $payment->invoice->id }}
                             </a><br>
-                            <strong>Invoice Total:</strong> ${{ number_format($payment->invoice->total_amount, 2) }}<br>
-                            <strong>Outstanding Balance:</strong> ${{ number_format($payment->invoice->outstanding_balance, 2) }}<br>
+                                                            <strong>Invoice Total:</strong> ₱{{ number_format($payment->invoice->total_amount, 2) }}<br>
+                                <strong>Outstanding Balance:</strong> ₱{{ number_format($payment->invoice->outstanding_balance, 2) }}<br>
                             <strong>Payment Status:</strong> 
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 @if($payment->invoice->payment_status === 'paid') bg-green-100 text-green-800
@@ -160,7 +160,7 @@
                         <div>
                             <h4 class="font-medium text-gray-700 mb-2">Refund Details</h4>
                             <p class="text-sm text-gray-600">
-                                <strong>Refund Amount:</strong> ${{ number_format($payment->refund_amount, 2) }}<br>
+                                <strong>Refund Amount:</strong> ₱{{ number_format($payment->refund_amount, 2) }}<br>
                                 <strong>Refund Reason:</strong> {{ $payment->refund_reason ?? 'N/A' }}
                             </p>
                         </div>
@@ -173,7 +173,7 @@
                                 <a href="{{ route('payments.show', $payment->refundOfPayment) }}" class="text-indigo-600 hover:text-indigo-900">
                                     {{ $payment->refundOfPayment->payment_reference }}
                                 </a><br>
-                                <strong>Original Amount:</strong> ${{ number_format($payment->refundOfPayment->amount, 2) }}
+                                <strong>Original Amount:</strong> ₱{{ number_format($payment->refundOfPayment->amount, 2) }}
                             </p>
                         </div>
                         @endif

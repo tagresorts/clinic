@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-500">Total Revenue</p>
-                                    <p class="text-2xl font-bold text-gray-900">${{ number_format($metrics['total_revenue'], 2) }}</p>
+                                    <p class="text-2xl font-bold text-gray-900">₱{{ number_format($metrics['total_revenue'], 2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-500">This Month</p>
-                                    <p class="text-2xl font-bold text-gray-900">${{ number_format($metrics['this_month_revenue'], 2) }}</p>
+                                    <p class="text-2xl font-bold text-gray-900">₱{{ number_format($metrics['this_month_revenue'], 2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-500">Outstanding</p>
-                                    <p class="text-2xl font-bold text-gray-900">${{ number_format($metrics['outstanding_balance'], 2) }}</p>
+                                    <p class="text-2xl font-bold text-gray-900">₱{{ number_format($metrics['outstanding_balance'], 2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -122,7 +122,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-sm font-semibold text-gray-900">${{ number_format($payment->amount, 2) }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">₱{{ number_format($payment->amount, 2) }}</p>
                                                 <p class="text-xs text-gray-500">#{{ $payment->invoice->invoice_number ?? 'N/A' }}</p>
                                             </div>
                                         </div>
@@ -152,7 +152,7 @@
                                                 <span class="text-sm font-medium text-gray-900">{{ ucfirst(str_replace('_', ' ', $method->payment_method)) }}</span>
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-sm font-semibold text-gray-900">${{ number_format($method->total, 2) }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">₱{{ number_format($method->total, 2) }}</p>
                                                 <p class="text-xs text-gray-500">{{ $method->count }} payments</p>
                                             </div>
                                         </div>

@@ -58,7 +58,7 @@
                         <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Revenue Summary</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white p-4 rounded-lg border text-center">
-                                <p class="text-3xl font-bold text-green-600">${{ number_format($revenue, 2) }}</p>
+                                <p class="text-3xl font-bold text-green-600">₱{{ number_format($revenue, 2) }}</p>
                                 <p class="text-sm text-gray-500">Total Revenue</p>
                             </div>
                             <div class="bg-white p-4 rounded-lg border text-center">
@@ -66,7 +66,7 @@
                                 <p class="text-sm text-gray-500">Days with Revenue</p>
                             </div>
                             <div class="bg-white p-4 rounded-lg border text-center">
-                                <p class="text-3xl font-bold text-purple-600">${{ $dailyRevenue->count() > 0 ? number_format($revenue / $dailyRevenue->count(), 2) : '0.00' }}</p>
+                                <p class="text-3xl font-bold text-purple-600">₱{{ $dailyRevenue->count() > 0 ? number_format($revenue / $dailyRevenue->count(), 2) : '0.00' }}</p>
                                 <p class="text-sm text-gray-500">Average Daily Revenue</p>
                             </div>
                         </div>
@@ -92,7 +92,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-sm font-semibold text-gray-900">${{ number_format($patient->total_revenue, 2) }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">₱{{ number_format($patient->total_revenue, 2) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -130,7 +130,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-sm font-semibold text-gray-900">${{ number_format($invoice->outstanding_balance, 2) }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">₱{{ number_format($invoice->outstanding_balance, 2) }}</p>
                                                 <p class="text-xs text-gray-500">Due: {{ $invoice->due_date->format('M d, Y') }}</p>
                                             </div>
                                         </div>
@@ -165,7 +165,7 @@
                                             <span class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($day->date)->format('M d, Y') }}</span>
                                             <div class="flex items-center space-x-6">
                                                 <span class="text-sm text-gray-500">{{ $day->invoice_count }} invoices</span>
-                                                <span class="text-sm font-semibold text-gray-900">${{ number_format($day->revenue, 2) }}</span>
+                                                <span class="text-sm font-semibold text-gray-900">₱{{ number_format($day->revenue, 2) }}</span>
                                             </div>
                                         </div>
                                     </div>

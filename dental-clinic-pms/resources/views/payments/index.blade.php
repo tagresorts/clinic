@@ -96,7 +96,7 @@
                                             <div class="text-sm text-gray-700">{{ $payment->payment_date->format('M d, Y') }}</div>
                                         </td>
                                         <td data-col="amount" class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">${{ number_format($payment->amount, 2) }}</div>
+                                            <div class="text-sm font-medium text-gray-900">₱{{ number_format($payment->amount, 2) }}</div>
                                         </td>
                                         <td data-col="method" class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">

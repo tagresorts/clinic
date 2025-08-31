@@ -26,7 +26,7 @@
                                     <td class="px-6 py-4 text-sm">{{ $order->supplier?->supplier_name }}</td>
                                     <td class="px-6 py-4 text-sm capitalize">{{ $order->status }}</td>
                                     <td class="px-6 py-4 text-sm">{{ optional($order->expected_date)->format('M d, Y') ?? '—' }}</td>
-                                    <td class="px-6 py-4 text-sm">{{ number_format($order->total_cost, 2) }}</td>
+                                    <td class="px-6 py-4 text-sm">₱{{ number_format($order->total_cost, 2) }}</td>
                                     <td class="px-6 py-4 text-right text-sm"><a href="{{ route('purchase-orders.show', $order) }}" class="text-indigo-600">View</a></td>
                                 </tr>
                                 @endforeach

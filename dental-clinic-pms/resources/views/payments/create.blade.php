@@ -20,7 +20,7 @@
                                     <option value="">Select Invoice</option>
                                     @foreach($invoices as $invoice)
                                         <option value="{{ $invoice->id }}" {{ old('invoice_id', request('invoice_id')) == $invoice->id ? 'selected' : '' }}>
-                                            {{ $invoice->invoice_number ?? 'INV-' . $invoice->id }} - {{ $invoice->patient->first_name }} {{ $invoice->patient->last_name }} (${{ number_format($invoice->outstanding_balance, 2) }} outstanding)
+                                            {{ $invoice->invoice_number ?? 'INV-' . $invoice->id }} - {{ $invoice->patient->first_name }} {{ $invoice->patient->last_name }} (₱{{ number_format($invoice->outstanding_balance, 2) }} outstanding)
                                         </option>
                                     @endforeach
                                 </select>

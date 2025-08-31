@@ -59,7 +59,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">Total Revenue</p>
-                                <p class="text-2xl font-semibold text-gray-900">${{ number_format($stats['total_revenue'], 2) }}</p>
+                                <p class="text-2xl font-semibold text-gray-900">₱{{ number_format($stats['total_revenue'], 2) }}</p>
                             </div>
                         </div>
                     </div>
@@ -75,7 +75,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">Outstanding</p>
-                                <p class="text-2xl font-semibold text-gray-900">${{ number_format($stats['outstanding_balance'], 2) }}</p>
+                                <p class="text-2xl font-semibold text-gray-900">₱{{ number_format($stats['outstanding_balance'], 2) }}</p>
                             </div>
                         </div>
                     </div>
@@ -127,7 +127,7 @@
                                         <div class="w-32 bg-gray-200 rounded-full h-2">
                                             <div class="bg-green-600 h-2 rounded-full" style="width: {{ ($month->revenue / $monthlyRevenue->max('revenue')) * 100 }}%"></div>
                                         </div>
-                                        <span class="text-sm font-medium text-gray-900">${{ number_format($month->revenue, 2) }}</span>
+                                        <span class="text-sm font-medium text-gray-900">₱{{ number_format($month->revenue, 2) }}</span>
                                     </div>
                                 </div>
                             @empty
@@ -151,7 +151,7 @@
                                         <div class="w-32 bg-gray-200 rounded-full h-2">
                                             <div class="bg-blue-600 h-2 rounded-full" style="width: {{ ($procedure->revenue / $revenueByProcedure->max('revenue')) * 100 }}%"></div>
                                         </div>
-                                        <span class="text-sm text-gray-500">${{ number_format($procedure->revenue, 2) }}</span>
+                                        <span class="text-sm text-gray-500">₱{{ number_format($procedure->revenue, 2) }}</span>
                                     </div>
                                 </div>
                             @empty
@@ -180,7 +180,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-sm font-medium text-gray-900">${{ number_format($method->total, 2) }}</p>
+                                        <p class="text-sm font-medium text-gray-900">₱{{ number_format($method->total, 2) }}</p>
                                     </div>
                                 </div>
                             @empty
@@ -206,7 +206,7 @@
                             
                             @if($stats['total_revenue'] > 0)
                                 <div class="text-center">
-                                    <p class="text-2xl font-bold text-blue-600">${{ number_format($stats['total_revenue'] / max(1, $stats['paid_invoices']), 2) }}</p>
+                                    <p class="text-2xl font-bold text-blue-600">₱{{ number_format($stats['total_revenue'] / max(1, $stats['paid_invoices']), 2) }}</p>
                                     <p class="text-sm text-gray-500">Average Invoice Value</p>
                                 </div>
                             @endif
@@ -229,15 +229,15 @@
                         <h3 class="text-lg font-medium text-gray-900 mb-4">Financial Summary</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-3xl font-bold text-green-600">${{ number_format($stats['total_revenue'], 2) }}</p>
+                                <p class="text-3xl font-bold text-green-600">₱{{ number_format($stats['total_revenue'], 2) }}</p>
                                 <p class="text-sm text-gray-600">Total Revenue Collected</p>
                             </div>
                             <div class="text-center p-4 bg-red-50 rounded-lg">
-                                <p class="text-3xl font-bold text-red-600">${{ number_format($stats['outstanding_balance'], 2) }}</p>
+                                <p class="text-3xl font-bold text-red-600">₱{{ number_format($stats['outstanding_balance'], 2) }}</p>
                                 <p class="text-sm text-gray-600">Outstanding Balance</p>
                             </div>
                             <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-3xl font-bold text-blue-600">${{ number_format($stats['total_revenue'] + $stats['outstanding_balance'], 2) }}</p>
+                                <p class="text-3xl font-bold text-blue-600">₱{{ number_format($stats['total_revenue'] + $stats['outstanding_balance'], 2) }}</p>
                                 <p class="text-sm text-gray-600">Total Billed Amount</p>
                             </div>
                         </div>

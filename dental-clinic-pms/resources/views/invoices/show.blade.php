@@ -63,11 +63,11 @@
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-500">Total Amount</p>
-                                        <p class="text-lg font-semibold text-gray-900">${{ number_format($invoice->total_amount, 2) }}</p>
+                                        <p class="text-lg font-semibold text-gray-900">₱{{ number_format($invoice->total_amount, 2) }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-500">Outstanding Balance</p>
-                                        <p class="text-lg font-semibold text-gray-900">${{ number_format($invoice->outstanding_balance, 2) }}</p>
+                                        <p class="text-lg font-semibold text-gray-900">₱{{ number_format($invoice->outstanding_balance, 2) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-500">Estimated Cost</p>
-                                        <p class="text-lg text-gray-900">${{ number_format($invoice->treatmentPlan->estimated_cost, 2) }}</p>
+                                        <p class="text-lg text-gray-900">₱{{ number_format($invoice->treatmentPlan->estimated_cost, 2) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -170,10 +170,10 @@
                                                             {{ $item['quantity'] }}
                                                         </td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            ${{ number_format($item['unit_price'], 2) }}
+                                                            ₱{{ number_format($item['unit_price'], 2) }}
                                                         </td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            ${{ number_format($item['quantity'] * $item['unit_price'], 2) }}
+                                                            ₱{{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -184,10 +184,10 @@
                                     <div class="mt-6 flex justify-end">
                                         <div class="text-right">
                                             <p class="text-lg font-semibold text-gray-900">
-                                                Total Amount: ${{ number_format($invoice->total_amount, 2) }}
+                                                Total Amount: ₱{{ number_format($invoice->total_amount, 2) }}
                                             </p>
                                             <p class="text-sm text-gray-600">
-                                                Outstanding Balance: ${{ number_format($invoice->outstanding_balance, 2) }}
+                                                Outstanding Balance: ₱{{ number_format($invoice->outstanding_balance, 2) }}
                                             </p>
                                         </div>
                                     </div>
@@ -255,7 +255,7 @@
                                             <div class="bg-white p-3 rounded border">
                                                 <div class="flex justify-between items-start">
                                                     <div>
-                                                        <p class="text-sm font-medium text-gray-900">${{ number_format($payment->amount, 2) }}</p>
+                                                        <p class="text-sm font-medium text-gray-900">₱{{ number_format($payment->amount, 2) }}</p>
                                                         <p class="text-xs text-gray-500">{{ $payment->payment_date->format('M d, Y') }}</p>
                                                         <p class="text-xs text-gray-500">{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</p>
                                                     </div>

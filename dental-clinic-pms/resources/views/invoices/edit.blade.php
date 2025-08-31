@@ -145,7 +145,7 @@
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-medium text-gray-900">Total Amount:</span>
-                                    <span id="total-amount" class="text-2xl font-bold text-gray-900">${{ number_format($invoice->total_amount, 2) }}</span>
+                                    <span id="total-amount" class="text-2xl font-bold text-gray-900">₱{{ number_format($invoice->total_amount, 2) }}</span>
                                 </div>
                             </div>
                         </div>
