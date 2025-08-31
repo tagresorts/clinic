@@ -306,7 +306,7 @@ class DashboardController extends Controller
                         'wrapper_id' => $wrapper['id'],
                     ],
                     [
-                        'title' => $wrapper['title'] ?? 'Dashboard ' . $wrapper['id'],
+                        'title' => 'Dashboard ' . $wrapper['id'],
                         'order' => $wrapper['id'],
                     ]
                 );
