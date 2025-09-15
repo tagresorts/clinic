@@ -125,7 +125,7 @@ class EmailTemplateController extends Controller
     private function renderForTest(EmailTemplate $template): array
     {
         $type = $template->type;
-        $replacements = [];
+        $replacements = $this->clinicReplacements();
 
         if ($type === 'password_reset') {
             $userName = auth()->user()->name ?? 'Test User';
@@ -209,5 +209,19 @@ class EmailTemplateController extends Controller
         $laravelMailer->alwaysFrom($cfg->from_email ?: config('mail.from.address'), $cfg->from_name ?: config('mail.from.name'));
         $laravelMailer->setQueue(app('queue'));
         $callback($laravelMailer);
+    }
+
+    private function clinicReplacements(): array
+    {
+        $pairs = [
+            'clinic_name', 'clinic_address', 'clinic_phone', 'clinic_email',
+            'clinic_fb', 'clinic_instagram', 'clinic_website', 'operation_hours', 'clinic_logo_url'
+        ];
+        $settings = Setting::whereIn('key', $pairs)->pluck('value', 'key');
+        $repl = [];
+        foreach ($pairs as $k) {
+            $repl['{{'.$k.'}}'] = (string) ($settings[$k] ?? '');
+        }
+        return $repl;
     }
 }
