@@ -79,6 +79,16 @@
             <li><code>{{'{'.'inventory_url'.'}'}}</code> - Link to inventory index</li>
             <li><code>{{'{'.'low_count'.'}'}}</code> - Count of low stock items</li>
             <li><code>{{'{'.'expiring_count'.'}'}}</code> - Count of expiring items</li>
+            <li class="mt-2 font-semibold">Clinic</li>
+            <li><code>{{'{'.'clinic_name'.'}'}}</code> - Clinic name</li>
+            <li><code>{{'{'.'clinic_address'.'}'}}</code> - Clinic address</li>
+            <li><code>{{'{'.'clinic_phone'.'}'}}</code> - Clinic phone</li>
+            <li><code>{{'{'.'clinic_email'.'}'}}</code> - Clinic email</li>
+            <li><code>{{'{'.'clinic_fb'.'}'}}</code> - Facebook URL</li>
+            <li><code>{{'{'.'clinic_instagram'.'}'}}</code> - Instagram URL</li>
+            <li><code>{{'{'.'clinic_website'.'}'}}</code> - Website URL</li>
+            <li><code>{{'{'.'operation_hours'.'}'}}</code> - Operation hours</li>
+            <li><code>{{'{'.'clinic_logo_url'.'}'}}</code> - Logo URL (for HTML templates)</li>
         </ul>
     </div>
 
