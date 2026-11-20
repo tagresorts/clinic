@@ -97,11 +97,12 @@ class AdminMenu
                     ],
                     [
                         'title' => 'System Configuration',
-                        'active' => request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*'),
+                        'active' => request()->routeIs('smtp.*') || request()->routeIs('email-templates.*') || request()->routeIs('ops-settings.*') || request()->routeIs('app-settings.*'),
                         'children' => [
                             ['title' => 'SMTP Settings', 'url' => route('smtp.index'), 'active' => request()->routeIs('smtp.index')],
                             ['title' => 'Email Templates', 'url' => route('email-templates.index'), 'active' => request()->routeIs('email-templates.index')],
                             ['title' => 'Operational Settings', 'url' => route('ops-settings.index'), 'active' => request()->routeIs('ops-settings.index')],
+                            ['title' => 'App Settings', 'url' => route('app-settings.index'), 'active' => request()->routeIs('app-settings.index')],
                         ]
                     ],
                     [

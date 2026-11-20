@@ -178,11 +178,14 @@ Route::middleware(['auth'])->group(function () {
 // Settings - Administrators only
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\OperationalSettingsController;
+use App\Http\Controllers\AppSettingsController;
 Route::middleware(['auth', 'role:administrator'])->group(function () {
     Route::resource('email-templates', EmailTemplateController::class)->parameters(['email-templates' => 'emailTemplate']);
     Route::post('email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('email-templates.test');
     Route::get('ops-settings', [OperationalSettingsController::class, 'index'])->name('ops-settings.index');
     Route::patch('ops-settings', [OperationalSettingsController::class, 'update'])->name('ops-settings.update');
+    Route::get('app-settings', [AppSettingsController::class, 'index'])->name('app-settings.index');
+    Route::patch('app-settings', [AppSettingsController::class, 'update'])->name('app-settings.update');
 });
 
 // Log Viewer - Administrators only
