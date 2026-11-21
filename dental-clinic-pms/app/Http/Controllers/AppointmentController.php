@@ -19,13 +19,9 @@ class AppointmentController extends Controller
     {
         $query = Appointment::with(['patient', 'dentist']);
 
-        // Role-based filtering (skip if role system is misconfigured)
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('dentist')) {
-                $query->where('dentist_id', auth()->id());
-            }
-        } catch (\Throwable $e) {
-            // ignore
+        // Dentists only see their own appointments.
+        if ($this->userHasRole('dentist')) {
+            $query->where('dentist_id', auth()->id());
         }
 
         // Search functionality
@@ -61,13 +57,7 @@ class AppointmentController extends Controller
      */
     public function create()
     {
-        try {
-            if (method_exists(auth()->user(), 'can') && !auth()->user()->can('appointment-create')) {
-                abort(403, 'You are not authorized to create appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('create', Appointment::class);
 
         $patients = Patient::orderBy('last_name')->get();
         try {
@@ -84,19 +74,13 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            if (method_exists(auth()->user(), 'can') && !auth()->user()->can('appointment-create')) {
-                abort(403);
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('create', Appointment::class);
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'dentist_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date',
-            'appointment_time' => 'required',
+            'appointment_time' => 'required|date_format:H:i',
             'duration_minutes' => 'required|integer|min:15',
             'appointment_type' => 'required|string|max:255',
             'reason_for_visit' => 'nullable|string',
@@ -138,18 +122,8 @@ class AppointmentController extends Controller
      */
     public function show(Appointment $appointment)
     {
-        // Authorization: ensure user can view the appointment
-        $user = auth()->user();
-
-        try {
-            if (method_exists($user, 'hasRole') && $user->hasRole('dentist') && $appointment->dentist_id !== $user->id) {
-                abort(403, 'This appointment is not for one of your patients.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
-
-        // Receptionists and Admins can see any appointment.
+        // Authorization: dentists may only view their own appointments.
+        $this->authorize('view', $appointment);
 
         $appointment->load(['patient', 'dentist', 'treatmentRecords']);
 
@@ -161,13 +135,7 @@ class AppointmentController extends Controller
      */
     public function edit(Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole(['administrator', 'receptionist'])) {
-                abort(403, 'You are not authorized to edit appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('update', $appointment);
 
         $patients = Patient::orderBy('last_name')->get();
         try {
@@ -184,19 +152,13 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole(['administrator', 'receptionist'])) {
-                abort(403);
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('update', $appointment);
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'dentist_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date',
-            'appointment_time' => 'required',
+            'appointment_time' => 'required|date_format:H:i',
             'duration_minutes' => 'required|integer|min:15',
             'appointment_type' => 'required|string|max:255',
             'status' => 'required|in:' . implode(',', Appointment::getStatuses()),
@@ -250,13 +212,7 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole('administrator')) {
-                abort(403, 'Only administrators can delete appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('delete', $appointment);
 
         // Instead of deleting, we should probably cancel it.
         if ($appointment->status !== Appointment::STATUS_CANCELLED) {
@@ -396,7 +352,7 @@ class AppointmentController extends Controller
         // Otherwise, if the logged-in user is a dentist, only show their appointments.
         if ($request->filled('dentist_id')) {
             $query->byDentist($request->dentist_id);
-        } elseif (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('dentist')) {
+        } elseif ($this->userHasRole('dentist')) {
             $query->byDentist(auth()->id());
         }
 
@@ -480,13 +436,7 @@ class AppointmentController extends Controller
      */
     public function confirm(Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole(['administrator', 'receptionist', 'dentist'])) {
-                abort(403, 'You are not authorized to confirm appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('modifyStatus', $appointment);
 
         $oldStatus = $appointment->status;
         $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
@@ -510,13 +460,7 @@ class AppointmentController extends Controller
      */
     public function cancel(Request $request, Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole(['administrator', 'receptionist', 'dentist'])) {
-                abort(403, 'You are not authorized to cancel appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('modifyStatus', $appointment);
 
         $request->validate([
             'cancellation_reason' => 'nullable|string|max:500',
@@ -546,13 +490,7 @@ class AppointmentController extends Controller
      */
     public function complete(Appointment $appointment)
     {
-        try {
-            if (method_exists(auth()->user(), 'hasRole') && !auth()->user()->hasRole(['administrator', 'dentist'])) {
-                abort(403, 'You are not authorized to complete appointments.');
-            }
-        } catch (\Throwable $e) {
-            // allow
-        }
+        $this->authorize('complete', $appointment);
 
         $oldStatus = $appointment->status;
         $appointment->update(['status' => Appointment::STATUS_COMPLETED]);
@@ -567,5 +505,20 @@ class AppointmentController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Appointment completed successfully.');
+    }
+
+    /**
+     * Safely check whether the authenticated user has one of the given roles,
+     * tolerating a misconfigured permission system (consistent with RoleMiddleware).
+     */
+    private function userHasRole(string|array $roles): bool
+    {
+        $user = auth()->user();
+
+        try {
+            return $user !== null && method_exists($user, 'hasRole') && $user->hasRole($roles);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }

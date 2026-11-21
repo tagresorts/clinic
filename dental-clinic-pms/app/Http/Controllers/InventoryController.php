@@ -89,23 +89,27 @@ class InventoryController extends Controller
         $oldQty = $inventory->quantity_in_stock;
         $oldName = $inventory->item_name;
         $oldCost = $inventory->unit_cost;
-        
-        $inventory->update($validated);
-        
-        // Record stock adjustment when quantity changes
-        if (isset($validated['quantity_in_stock']) && $validated['quantity_in_stock'] != $oldQty) {
-            $delta = (int)$validated['quantity_in_stock'] - (int)$oldQty;
-            if ($delta !== 0) {
-                StockMovement::create([
-                    'inventory_item_id' => $inventory->id,
-                    'type' => $delta > 0 ? 'in' : 'out',
-                    'quantity' => abs($delta),
-                    'reference' => 'manual_adjustment',
-                    'notes' => 'Adjusted via inventory edit',
-                    'created_by' => auth()->id(),
-                ]);
+
+        // Keep the item update and its stock movement atomic so the ledger
+        // can never diverge from the on-hand quantity.
+        \Illuminate\Support\Facades\DB::transaction(function () use ($inventory, $validated, $oldQty) {
+            $inventory->update($validated);
+
+            // Record stock adjustment when quantity changes
+            if (isset($validated['quantity_in_stock']) && $validated['quantity_in_stock'] != $oldQty) {
+                $delta = (int)$validated['quantity_in_stock'] - (int)$oldQty;
+                if ($delta !== 0) {
+                    StockMovement::create([
+                        'inventory_item_id' => $inventory->id,
+                        'type' => $delta > 0 ? 'in' : 'out',
+                        'quantity' => abs($delta),
+                        'reference' => 'manual_adjustment',
+                        'notes' => 'Adjusted via inventory edit',
+                        'created_by' => auth()->id(),
+                    ]);
+                }
             }
-        }
+        });
         
         Log::channel('log_viewer')->info("Inventory item '{$oldName}' updated by " . auth()->user()->name, [
             'item_id' => $inventory->id,
